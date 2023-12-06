@@ -1,5 +1,5 @@
 import pygame
-from nightsky import generate_stars, draw_stars, update_star_positions
+from nightsky import generate_stars, draw_stars
 
 # Initialize Pygame
 pygame.init()
@@ -59,14 +59,6 @@ while running:
     # Keep the spaceship within the bounds of the screen
     x_position = max(0, min(x_position, SCREEN_WIDTH - TILE_SIZE))
     y_position = max(0, min(y_position, SCREEN_HEIGHT - TILE_SIZE))
-
-    shift_x = 0  # Calculate the background shift based on spaceship movement for paralax
-    shift_y = 0  
-
-    # Update star positions for each layer with different parallax factors
-    update_star_positions(white_stars, shift_x, shift_y, 0.5)  # Less movement for distant layer
-    update_star_positions(purple_stars, shift_x, shift_y, 0.3)  # Even less movement for further layer
-    update_star_positions(blue_stars, shift_x, shift_y, 0.1)  # Minimal movement for the farthest layer
 
     clock.tick(60)
     
