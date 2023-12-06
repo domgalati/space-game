@@ -1,5 +1,7 @@
 import pygame
 from nightsky import generate_stars, draw_stars
+from sprite_animation import AnimatedSprite
+
 
 # Initialize Pygame
 pygame.init()
@@ -14,9 +16,6 @@ pygame.display.set_caption("Spaceship Game")
 
 clock = pygame.time.Clock()
 
-spaceship_img = pygame.image.load('placeholder.png').convert_alpha()
-spaceship_img = pygame.transform.scale(spaceship_img, (TILE_SIZE, TILE_SIZE))
-
 x_position, y_position = 0, 0
 grid_size = (SCREEN_WIDTH // TILE_SIZE, SCREEN_HEIGHT // TILE_SIZE)
 
@@ -27,6 +26,12 @@ star_size_options = [1, 2, 3]  # Different sizes for variety
 white_stars = generate_stars(100, SCREEN_WIDTH, SCREEN_HEIGHT, star_size_options, (255, 255, 255))
 purple_stars = generate_stars(50, SCREEN_WIDTH, SCREEN_HEIGHT, star_size_options, (51, 0, 51))
 blue_stars = generate_stars(75, SCREEN_WIDTH, SCREEN_HEIGHT, star_size_options, (190, 230, 255)) 
+
+sprite_sheet_path = 'shipsheet.png'
+frame_dimensions = (48, 48)  # Width and height of each frame
+num_frames = 2  # Total number of frames in the sprite sheet
+animated_spaceship = AnimatedSprite(sprite_sheet_path, frame_dimensions, num_frames)
+
 
 #main loop
 running = True
@@ -82,7 +87,12 @@ while running:
     draw_stars(screen, white_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (parallax_offset_x * 2, parallax_offset_y * 2))
     draw_stars(screen, purple_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (parallax_offset_x * 3, parallax_offset_y * 3))
     draw_stars(screen, blue_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (parallax_offset_x * 4, parallax_offset_y * 4))
-    screen.blit(spaceship_img, (x_position * TILE_SIZE, y_position * TILE_SIZE))
+    
+
+    animated_spaceship.update()
+    spaceship_frame = animated_spaceship.get_frame()
+    screen.blit(spaceship_frame, (x_position * TILE_SIZE, y_position * TILE_SIZE))
     pygame.display.flip()  # Update the display
     
 pygame.quit()
+
