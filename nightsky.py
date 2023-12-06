@@ -1,7 +1,7 @@
 import random
 import pygame
 
-SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480 
+SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 720
 
 def generate_stars(num_stars, screen_width, screen_height, size_options, color):
     stars = []
@@ -13,7 +13,12 @@ def generate_stars(num_stars, screen_width, screen_height, size_options, color):
         stars.append((x, y, size, color, original_pos))
     return stars
 
-def draw_stars(screen, stars):
+def draw_stars(screen, stars, screen_width, screen_height, offset=(0, 0)):
     for star in stars:
-        rect = pygame.Rect(star[0], star[1], star[2], star[2])  # Create a square rect
-        pygame.draw.rect(screen, star[3], rect)
+        x, y, size, color, original_pos = star
+        shifted_x = (x + offset[0]) % screen_width
+        shifted_y = (y + offset[1]) % screen_height
+        rect = pygame.Rect(shifted_x, shifted_y, size, size)
+        pygame.draw.rect(screen, color, rect)
+
+

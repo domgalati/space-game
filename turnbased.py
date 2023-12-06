@@ -5,7 +5,7 @@ from nightsky import generate_stars, draw_stars
 pygame.init()
 
 # Constants
-SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480  # Adjust as needed
+SCREEN_WIDTH, SCREEN_HEIGHT = 1080, 720  # Adjust as needed
 TILE_SIZE = 24
 
 # Set up the display
@@ -21,12 +21,16 @@ x_position, y_position = 0, 0
 grid_size = (SCREEN_WIDTH // TILE_SIZE, SCREEN_HEIGHT // TILE_SIZE)
 
 # Star properties
+parallax_factor = 0.5  # Adjust this for the effect strength
+parallax_offset_x, parallax_offset_y = 0, 0 # Initialize parallax offset variables
 star_size_options = [1, 2, 3]  # Different sizes for variety
 white_stars = generate_stars(100, SCREEN_WIDTH, SCREEN_HEIGHT, star_size_options, (255, 255, 255))
 purple_stars = generate_stars(50, SCREEN_WIDTH, SCREEN_HEIGHT, star_size_options, (51, 0, 51))
 blue_stars = generate_stars(75, SCREEN_WIDTH, SCREEN_HEIGHT, star_size_options, (190, 230, 255)) 
 
+#main loop
 running = True
+previous_x, previous_y = x_position, y_position # This is for paralax
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -56,6 +60,17 @@ while running:
                 x_position = min(grid_size[0] - 1, x_position + 1)
                 y_position = max(0, y_position - 1)
 
+    # Calculate parallax offset based on spaceship movement
+    delta_x = (x_position - previous_x) * parallax_factor
+    delta_y = (y_position - previous_y) * parallax_factor
+
+    # Accumulate the offset
+    parallax_offset_x += delta_x
+    parallax_offset_y += delta_y
+
+    # Update the previous position for the next iteration
+    previous_x, previous_y = x_position, y_position
+
     # Keep the spaceship within the bounds of the screen
     x_position = max(0, min(x_position, SCREEN_WIDTH - TILE_SIZE))
     y_position = max(0, min(y_position, SCREEN_HEIGHT - TILE_SIZE))
@@ -64,9 +79,9 @@ while running:
     
     # Drawing the game
     screen.fill((0, 0, 0))  # Black background
-    draw_stars(screen, white_stars)
-    draw_stars(screen, purple_stars)
-    draw_stars(screen, blue_stars)
+    draw_stars(screen, white_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (parallax_offset_x * 2, parallax_offset_y * 2))
+    draw_stars(screen, purple_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (parallax_offset_x * 3, parallax_offset_y * 3))
+    draw_stars(screen, blue_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (parallax_offset_x * 4, parallax_offset_y * 4))
     screen.blit(spaceship_img, (x_position * TILE_SIZE, y_position * TILE_SIZE))
     pygame.display.flip()  # Update the display
     
