@@ -14,3 +14,6 @@ def draw_stars(screen, stars):
     for star in stars:
         rect = pygame.Rect(star[0], star[1], star[2], star[2])  # Create a square rect
         pygame.draw.rect(screen, star[3], rect)
+
+
+        test change
