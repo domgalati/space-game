@@ -46,3 +46,22 @@ def determine_direction(x_position, y_position, previous_x, previous_y):
         new_direction = "north"
 
     return new_direction
+
+def update_parallax(x_position, y_position, previous_x, previous_y, parallax_offset_x, parallax_offset_y, parallax_velocity_x, parallax_velocity_y, parallax_factor, damping_factor):
+    # Immediate change in position
+    immediate_delta_x = (x_position - previous_x) * parallax_factor
+    immediate_delta_y = (y_position - previous_y) * parallax_factor
+
+    # Update velocities based on immediate movement
+    parallax_velocity_x += immediate_delta_x
+    parallax_velocity_y += immediate_delta_y
+
+    # Apply damping to simulate inertia
+    parallax_velocity_x *= damping_factor
+    parallax_velocity_y *= damping_factor
+
+    # Update parallax offsets using the velocity
+    parallax_offset_x += parallax_velocity_x
+    parallax_offset_y += parallax_velocity_y
+
+    return parallax_offset_x, parallax_offset_y, parallax_velocity_x, parallax_velocity_y

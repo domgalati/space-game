@@ -3,7 +3,7 @@ import os
 from nightsky import generate_stars, draw_stars
 from sprite_animation import AnimatedSprite
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
-from input_handler import handle_movement, determine_direction
+from input_handler import handle_movement, determine_direction, update_parallax
 
 
 # Initialize Pygame
@@ -19,16 +19,18 @@ pygame.display.set_caption("working title")
 
 clock = pygame.time.Clock()
 
-x_position, y_position = 0, 0
+x_position, y_position = 12, 12
 grid_size = (SCREEN_WIDTH // TILE_SIZE, SCREEN_HEIGHT // TILE_SIZE)
 
 # Star properties
-parallax_factor = 0.5  # Adjust this for the effect strength
+parallax_factor = 0.9999  # Adjust this for the effect strength
 parallax_offset_x, parallax_offset_y = 0, 0 # Initialize parallax offset variables
-star_size_options = [1, 2, 3]  # Different sizes for variety
+parallax_velocity_x, parallax_velocity_y = 0, 0
+parallax_damping_factor = 0.8  # Adjust this value to control the inertia effect
+star_size_options = [.5, 1, 2]  # Different sizes for variety
 white_stars = generate_stars(100, SCREEN_WIDTH, SCREEN_HEIGHT, star_size_options, (255, 255, 255))
 purple_stars = generate_stars(50, SCREEN_WIDTH, SCREEN_HEIGHT, star_size_options, (51, 0, 51))
-blue_stars = generate_stars(75, SCREEN_WIDTH, SCREEN_HEIGHT, star_size_options, (190, 230, 255)) 
+blue_stars = generate_stars(75, SCREEN_WIDTH, SCREEN_HEIGHT, star_size_options, (185, 217, 235)) 
 
 sprite_sheet_path = 'space/img/'
 cargo_ship = 'cargo6frame.png'
@@ -49,18 +51,17 @@ while running:
             # Movement on keypress
             x_position, y_position = handle_movement(event, x_position, y_position, grid_size)
 
-    # Determine the direction of movement for ship rotation
     new_direction = determine_direction(x_position, y_position, previous_x, previous_y)
     if new_direction is not None:
         current_direction = new_direction
-    
-    # Calculate parallax offset based on spaceship movement
-    delta_x = (x_position - previous_x) * parallax_factor
-    delta_y = (y_position - previous_y) * parallax_factor
 
-    # Accumulate the offset
-    parallax_offset_x += delta_x
-    parallax_offset_y += delta_y
+    # Calculate parallax offset
+    parallax_offset_x, parallax_offset_y, parallax_velocity_x, parallax_velocity_y = update_parallax(
+        x_position, y_position, previous_x, previous_y, 
+        parallax_offset_x, parallax_offset_y, 
+        parallax_velocity_x, parallax_velocity_y, 
+        parallax_factor, parallax_damping_factor
+    )
 
     # Update the previous position for the next iteration
     previous_x, previous_y = x_position, y_position
