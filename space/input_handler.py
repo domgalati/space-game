@@ -47,7 +47,7 @@ def determine_direction(x_position, y_position, previous_x, previous_y):
 
     return new_direction
 
-def update_parallax(x_position, y_position, previous_x, previous_y, parallax_offset_x, parallax_offset_y, parallax_velocity_x, parallax_velocity_y, parallax_factor, damping_factor):
+def update_parallax(x_position, y_position, previous_x, previous_y, parallax_offset_x, parallax_offset_y, parallax_velocity_x, parallax_velocity_y, parallax_factor, damping_factor, velocity_threshold):
     # Immediate change in position
     immediate_delta_x = (x_position - previous_x) * parallax_factor
     immediate_delta_y = (y_position - previous_y) * parallax_factor
@@ -59,6 +59,12 @@ def update_parallax(x_position, y_position, previous_x, previous_y, parallax_off
     # Apply damping to simulate inertia
     parallax_velocity_x *= damping_factor
     parallax_velocity_y *= damping_factor
+
+    # Apply the minimum velocity threshold
+    if abs(parallax_velocity_x) < velocity_threshold:
+        parallax_velocity_x = 0
+    if abs(parallax_velocity_y) < velocity_threshold:
+        parallax_velocity_y = 0
 
     # Update parallax offsets using the velocity
     parallax_offset_x += parallax_velocity_x

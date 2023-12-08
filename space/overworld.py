@@ -23,18 +23,17 @@ x_position, y_position = 12, 12
 grid_size = (SCREEN_WIDTH // TILE_SIZE, SCREEN_HEIGHT // TILE_SIZE)
 
 # Star properties
-parallax_factor = 0.9999  # Adjust this for the effect strength
+parallax_factor = 0.5  # Adjust this for the effect strength
 parallax_offset_x, parallax_offset_y = 0, 0 # Initialize parallax offset variables
 parallax_velocity_x, parallax_velocity_y = 0, 0
-parallax_damping_factor = 0.8  # Adjust this value to control the inertia effect
+parallax_damping_factor = 0.95  # Adjust this value to control the inertia effect
+velocity_threshold = 0.1  # Adjust this value based on testing
 star_size_options = [.5, 1, 2]  # Different sizes for variety
 white_stars = generate_stars(100, SCREEN_WIDTH, SCREEN_HEIGHT, star_size_options, (255, 255, 255))
 purple_stars = generate_stars(50, SCREEN_WIDTH, SCREEN_HEIGHT, star_size_options, (51, 0, 51))
 blue_stars = generate_stars(75, SCREEN_WIDTH, SCREEN_HEIGHT, star_size_options, (185, 217, 235)) 
 
-sprite_sheet_path = 'space/img/'
-cargo_ship = 'cargo6frame.png'
-cargo_sheet = os.path.join(sprite_sheet_path, cargo_ship)
+cargo_sheet = 'space/img/cargo6frame.png'
 frame_dimensions = (48, 48)  # Width and height of each frame
 num_frames = 6  # Total number of frames in the sprite sheet
 animated_cargoship = AnimatedSprite(cargo_sheet, frame_dimensions, num_frames)
@@ -60,7 +59,8 @@ while running:
         x_position, y_position, previous_x, previous_y, 
         parallax_offset_x, parallax_offset_y, 
         parallax_velocity_x, parallax_velocity_y, 
-        parallax_factor, parallax_damping_factor
+        parallax_factor, parallax_damping_factor, 
+        velocity_threshold
     )
 
     # Update the previous position for the next iteration
