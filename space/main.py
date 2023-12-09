@@ -1,8 +1,10 @@
+import pygame
 from state_manager import StateManager
+
 
 def main():
     state_manager = StateManager()
-    state_manager.change_state("Overworld")
+    state_manager.change_state("Sol")
 
     while True:
         state_manager.update()

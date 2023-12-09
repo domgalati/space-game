@@ -1,10 +1,11 @@
-from overworld import OverworldState
+from star_systems.sol import SolState
 from dungeon import DungeonState
 
 class StateManager:
     def __init__(self):
         self.states = {
-            "Overworld": OverworldState(),
+            "Sol": SolState(),
+            # "OtherStarSystem": OtherStarSystemState(),
             "Dungeon": DungeonState()
         }
         self.current_state = None
