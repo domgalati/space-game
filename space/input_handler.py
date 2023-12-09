@@ -1,56 +1,56 @@
 import pygame
 
-def handle_movement(event, x_position, y_position, grid_size):
+def handle_movement(event, ship_x_position, ship_y_position, grid_size):
     if event.key == pygame.K_KP4:
-        x_position = max(0, x_position - 1)
+        ship_x_position = max(0, ship_x_position - 1)
     elif event.key == pygame.K_KP6:
-        x_position = min(grid_size[0] - 1, x_position + 1)
+        ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
     if event.key == pygame.K_KP8:
-        y_position = max(0, y_position - 1)
+        ship_y_position = max(0, ship_y_position - 1)
     elif event.key == pygame.K_KP2:
-        y_position = min(grid_size[1] - 1, y_position + 1)
+        ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
 
     # Diagonal Movement
     if event.key == pygame.K_KP1:
-        x_position = max(0, x_position - 1)
-        y_position = min(grid_size[1] - 1, y_position + 1)
+        ship_x_position = max(0, ship_x_position - 1)
+        ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
     elif event.key == pygame.K_KP3:
-        x_position = min(grid_size[0] - 1, x_position + 1)
-        y_position = min(grid_size[1] - 1, y_position + 1)
+        ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
+        ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
     elif event.key == pygame.K_KP7:
-        x_position = max(0, x_position - 1)
-        y_position = max(0, y_position - 1)
+        ship_x_position = max(0, ship_x_position - 1)
+        ship_y_position = max(0, ship_y_position - 1)
     elif event.key == pygame.K_KP9:
-        x_position = min(grid_size[0] - 1, x_position + 1)
-        y_position = max(0, y_position - 1)
+        ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
+        ship_y_position = max(0, ship_y_position - 1)
 
-    return x_position, y_position
+    return ship_x_position, ship_y_position
 
-def determine_direction(x_position, y_position, previous_x, previous_y):
+def determine_direction(ship_x_position, ship_y_position, previous_x, previous_y):
     new_direction = None
-    if x_position > previous_x and y_position > previous_y:
+    if ship_x_position > previous_x and ship_y_position > previous_y:
         new_direction = "southeast"
-    elif x_position > previous_x and y_position < previous_y:
+    elif ship_x_position > previous_x and ship_y_position < previous_y:
         new_direction = "northeast"
-    elif x_position < previous_x and y_position > previous_y:
+    elif ship_x_position < previous_x and ship_y_position > previous_y:
         new_direction = "southwest"
-    elif x_position < previous_x and y_position < previous_y:
+    elif ship_x_position < previous_x and ship_y_position < previous_y:
         new_direction = "northwest"
-    elif x_position > previous_x:
+    elif ship_x_position > previous_x:
         new_direction = "east"
-    elif x_position < previous_x:
+    elif ship_x_position < previous_x:
         new_direction = "west"
-    elif y_position > previous_y:
+    elif ship_y_position > previous_y:
         new_direction = "south"
-    elif y_position < previous_y:
+    elif ship_y_position < previous_y:
         new_direction = "north"
 
     return new_direction
 
-def update_parallax(x_position, y_position, previous_x, previous_y, parallax_offset_x, parallax_offset_y, parallax_velocity_x, parallax_velocity_y, parallax_factor, damping_factor, velocity_threshold):
+def update_parallax(ship_x_position, ship_y_position, previous_x, previous_y, parallax_offset_x, parallax_offset_y, parallax_velocity_x, parallax_velocity_y, parallax_factor, damping_factor, velocity_threshold):
     # Immediate change in position
-    immediate_delta_x = (x_position - previous_x) * parallax_factor
-    immediate_delta_y = (y_position - previous_y) * parallax_factor
+    immediate_delta_x = (ship_x_position - previous_x) * parallax_factor
+    immediate_delta_y = (ship_y_position - previous_y) * parallax_factor
 
     # Update velocities based on immediate movement
     parallax_velocity_x += immediate_delta_x
