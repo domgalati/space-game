@@ -1,10 +1,10 @@
+import os, sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pygame
 import math
+from planet import Planet
 import random
 from pygame.locals import Rect
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from nightsky import generate_stars, draw_stars
 from sprite_animation import AnimatedSprite
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
@@ -16,7 +16,7 @@ pygame.key.set_repeat(50, 200)  # 1 millisecond delay, 10 milliseconds interval
 
 # Constants
 TILE_SIZE = 24
-MAP_WIDTH, MAP_HEIGHT = SCREEN_WIDTH * 16, SCREEN_HEIGHT * 16 # Map Size Constants
+MAP_WIDTH, MAP_HEIGHT = SCREEN_WIDTH * 24, SCREEN_HEIGHT * 24 # Map Size Constants
 
 # Calculate center of the map
 map_center_x = MAP_WIDTH // 2
@@ -42,56 +42,7 @@ blue_stars = generate_stars(75, SCREEN_WIDTH, SCREEN_HEIGHT, star_size_options, 
 
 # ####################
 # Planet Properties
-planet_image = pygame.image.load('space/img/planet.png')
-def calculate_orbit_positions(center_x, center_y, min_orbit_radius, max_orbit_radius, num_orbits, min_distance_between_orbits, max_distance_between_orbits):
-    planets = []
-    orbits = []
-    last_orbit_radius = min_orbit_radius
 
-    for i in range(num_orbits):
-        if i > 0:
-            # Randomize the distance to the next orbit
-            distance_to_next_orbit = random.randint(min_distance_between_orbits, max_distance_between_orbits)
-            radius = last_orbit_radius + distance_to_next_orbit
-            last_orbit_radius = radius
-        else:
-            radius = last_orbit_radius
-
-        if radius > max_orbit_radius:
-            break
-
-        orbits.append(radius)
-
-        # Random angle for planet in this orbit
-        angle = random.uniform(0, 2 * math.pi)
-        x = center_x + int(radius * math.cos(angle))
-        y = center_y + int(radius * math.sin(angle))
-        planets.append((x, y))
-
-    return planets, orbits
-
-def draw_orbital_paths(surface, center_x, center_y, orbits):
-     for radius in orbits:
-         pygame.draw.circle(surface, (255, 255, 255), (center_x, center_y), radius, 1)  # White color, 1 pixel width
-
-# Example usage
-num_orbits = 5  # Number of orbital paths
-min_orbit_radius = 500  # Minimum orbit radius
-max_orbit_radius = 10080  # Maximum orbit radius
-min_distance_between_orbits = 300  # Minimum distance between orbits
-max_distance_between_orbits = 2650  # Maximum distance between orbits
-
-planets, orbits = calculate_orbit_positions(map_center_x, map_center_y, min_orbit_radius, max_orbit_radius, num_orbits, min_distance_between_orbits, max_distance_between_orbits)
-
-# Function to draw planets
-def draw_planets(surface, planets, planet_image):
-    planet_image_width = planet_image.get_width()
-    planet_image_height = planet_image.get_height()
-
-    for planet_pos in planets:
-        # Adjust the position so that the image is centered on the planet's coordinates
-        adjusted_pos = (planet_pos[0] - planet_image_width // 2, planet_pos[1] - planet_image_height // 2)
-        surface.blit(planet_image, adjusted_pos)
 
 map_surface = pygame.Surface((MAP_WIDTH, MAP_HEIGHT)) # Create a surface for the map
 # Initialize ship position at the center of the map
@@ -99,8 +50,45 @@ x_position = map_center_x // TILE_SIZE
 y_position = map_center_y // TILE_SIZE
 
 
-draw_planets(map_surface, planets, planet_image) # Drawing the planets on the map surface
+#draw_planets(map_surface, planets, planet_image) # Drawing the planets on the map surface
+def generate_planets(center_x, center_y, seed):
+    random.seed(seed)
+    orbits = []
 
+    # Manually defined attributes for each planet
+    planet_data = [
+        {"name": "Planet 1", "type": "Type A", "image_path": "space/img/planets/Baren.png"},
+        {"name": "Planet 2", "type": "Type B", "image_path": "space/img/planets/Lava.png"},
+        {"name": "Planet 3", "type": "Type B", "image_path": "space/img/planets/Terran.png"},
+        {"name": "Planet 4", "type": "Type B", "image_path": "space/img/planets/Ice.png"},
+        {"name": "Planet 5", "type": "Type B", "image_path": "space/img/planets/Baren.png"},
+        {"name": "Planet 6", "type": "Type B", "image_path": "space/img/planets/Ice.png"},
+        {"name": "Planet 7", "type": "Type B", "image_path": "space/img/planets/Baren.png"},
+        # 7 planet max for a map size of screen x24
+    ]
+
+    planets = []
+    min_orbit_radius = 500
+    max_orbit_radius = 5760
+    min_distance_between_orbits = 500
+    max_distance_between_orbits = 1000
+    last_orbit_radius = min_orbit_radius
+
+    for data in planet_data:
+        if last_orbit_radius > max_orbit_radius:
+            break
+
+        orbit_radius = last_orbit_radius + random.randint(min_distance_between_orbits, max_distance_between_orbits)
+        angle = random.uniform(0, 2 * math.pi)
+
+        planet = Planet(data['name'], data['type'], data['image_path'], orbit_radius, angle, center_x, center_y)
+        planets.append(planet)
+        orbits.append(orbit_radius)
+        last_orbit_radius = orbit_radius
+
+    return planets, orbits
+
+planets, orbits = generate_planets(map_center_x, map_center_y, seed=12345)
 
 # #####################
 # Cargo Ship properties
@@ -183,8 +171,11 @@ while running:
     draw_stars(screen, purple_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (parallax_offset_x * 3, parallax_offset_y * 3))
     draw_stars(screen, blue_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (parallax_offset_x * 4, parallax_offset_y * 4))
 
-    draw_orbital_paths(map_surface, map_center_x, map_center_y, orbits)
+    for orbit_radius in orbits:
+        pygame.draw.circle(map_surface, (255, 255, 255), (map_center_x, map_center_y), orbit_radius, 1)
 
+    for planet in planets:
+        planet.draw(map_surface)
 
     animated_cargoship.update()
     spaceship_frame = animated_cargoship.get_frame(current_direction)
