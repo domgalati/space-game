@@ -1,0 +1,12 @@
+{
+    "seed": 12345,
+    "planets": [
+        {"name": "Planet 1", "type": "Type A", "image_path": "space/img/planets/Baren.png"},
+        {"name": "Planet 2", "type": "Type B", "image_path": "space/img/planets/Lava.png"},
+        {"name": "Planet 3", "type": "Type C", "image_path": "space/img/planets/Terran.png"},
+        {"name": "Planet 4", "type": "Type D", "image_path": "space/img/planets/Ice.png"},
+        {"name": "Planet 5", "type": "Type E", "image_path": "space/img/planets/Baren.png"},
+        {"name": "Planet 6", "type": "Type F", "image_path": "space/img/planets/Ice.png"},
+        {"name": "Planet 7", "type": "Type G", "image_path": "space/img/planets/Baren.png"}
+    ]
+}

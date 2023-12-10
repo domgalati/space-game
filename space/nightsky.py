@@ -2,19 +2,17 @@ import random
 import pygame
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
 
-"""
-generate_stars():
-Generates a list of stars with randomized attributes. 
-Args:
-    num_stars (int): The number of stars to be generated.
-    screen_width (int): The width of the screen.
-    screen_height (int): The height of the screen.
-    size_options (list): A list of size options for the stars.
-    color (tuple): An RGB color tuple.
-Returns:
-    List[Tuple]: A list of tuples where each tuple represents a star and contains its x, y 
-                 coordinates, size, color, and original position.
-"""
+PARALLAX_FACTOR = 0.5
+PARALLAX_DAMPING_FACTOR = 0.95
+VELOCITY_THRESHOLD = 0.1
+STAR_SIZE_OPTIONS = [.5, 1, 2]
+
+def initialize_stars(screen_width, screen_height):
+    white_stars = generate_stars(100, screen_width, screen_height, STAR_SIZE_OPTIONS, (255, 255, 255))
+    purple_stars = generate_stars(50, screen_width, screen_height, STAR_SIZE_OPTIONS, (51, 0, 51))
+    blue_stars = generate_stars(75, screen_width, screen_height, STAR_SIZE_OPTIONS, (185, 217, 235))
+    return white_stars, purple_stars, blue_stars
+
 def generate_stars(num_stars, screen_width, screen_height, size_options, color):
     stars = []
     for _ in range(num_stars):
@@ -25,17 +23,6 @@ def generate_stars(num_stars, screen_width, screen_height, size_options, color):
         stars.append((x, y, size, color, original_pos))
     return stars
 
-
-"""
-Draws stars on a given screen.
-Args:
-    screen (pygame.Surface): The surface on which to draw the stars.
-    stars (List[Tuple]): A list of tuples where each tuple represents a star and contains its 
-                         x, y coordinates, size, color, and original position.
-    screen_width (int): The width of the screen.
-    screen_height (int): The height of the screen.
-    offset (tuple, optional): A tuple containing x and y offset for parallax effect, defaults to (0, 0).
-"""
 def draw_stars(screen, stars, screen_width, screen_height, offset=(0, 0)):
     for star in stars:
         x, y, size, color, original_pos = star
