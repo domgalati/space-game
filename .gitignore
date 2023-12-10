@@ -2,3 +2,4 @@ __pycache__
 space/__pycache__
 space/planets/__pycache__
 space/star_systems/__pycache__
+trash/*
