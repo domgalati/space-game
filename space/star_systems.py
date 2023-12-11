@@ -1,3 +1,5 @@
+## This file handles the generation of star_systems.
+
 import os
 import json
 import random

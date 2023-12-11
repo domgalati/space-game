@@ -1,29 +1,49 @@
 import pygame
+import time
 
-def handle_movement(ship_x_position, ship_y_position, grid_size):
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_KP4]:
-        ship_x_position = max(0, ship_x_position - 1)
-    elif keys[pygame.K_KP6]:
-        ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
-    if keys[pygame.K_KP8]:
-        ship_y_position = max(0, ship_y_position - 1)
-    elif keys[pygame.K_KP2]:
-        ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
-    # Diagonal Movement
-    if keys[pygame.K_KP1]:
-        ship_x_position = max(0, ship_x_position - 1)
-        ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
-    elif keys[pygame.K_KP3]:
-        ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
-        ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
-    elif keys[pygame.K_KP7]:
-        ship_x_position = max(0, ship_x_position - 1)
-        ship_y_position = max(0, ship_y_position - 1)
-    elif keys[pygame.K_KP9]:
-        ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
-        ship_y_position = max(0, ship_y_position - 1)
-    return ship_x_position, ship_y_position
+class InputHandler:
+    def __init__(self):
+        self.last_movement_time = 0
+        self.movement_cooldown = 0.2  # 200 milliseconds
+
+    def handle_movement(self, ship_x_position, ship_y_position, grid_size):
+        current_time = time.time()
+        keys = pygame.key.get_pressed()
+
+        # Track whether any movement key is pressed
+        movement_key_pressed = keys[pygame.K_KP4] or keys[pygame.K_KP6] or keys[pygame.K_KP8] or keys[pygame.K_KP2] or \
+                               keys[pygame.K_KP1] or keys[pygame.K_KP3] or keys[pygame.K_KP7] or keys[pygame.K_KP9]
+
+        if current_time - self.last_movement_time > self.movement_cooldown and movement_key_pressed:
+            # Handle non-diagonal movement
+            if keys[pygame.K_KP4]:
+                ship_x_position = max(0, ship_x_position - 1)
+            elif keys[pygame.K_KP6]:
+                ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
+            if keys[pygame.K_KP8]:
+                print("UP!")
+                ship_y_position = max(0, ship_y_position - 1)
+            elif keys[pygame.K_KP2]:
+                ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
+
+            # Handle diagonal movement
+            if keys[pygame.K_KP1]:
+                ship_x_position = max(0, ship_x_position - 1)
+                ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
+            elif keys[pygame.K_KP3]:
+                ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
+                ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
+            elif keys[pygame.K_KP7]:
+                ship_x_position = max(0, ship_x_position - 1)
+                ship_y_position = max(0, ship_y_position - 1)
+            elif keys[pygame.K_KP9]:
+                ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
+                ship_y_position = max(0, ship_y_position - 1)
+
+            # Update the timer
+            self.last_movement_time = current_time
+        return ship_x_position, ship_y_position
+
 
 def determine_direction(ship_x_position, ship_y_position, previous_x, previous_y):
     new_direction = None
