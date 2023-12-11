@@ -4,6 +4,8 @@ from config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
 from star_system_mode import StarSystemMode
 
 pygame.init()
+pygame.font.init()  # Initialize the font module
+
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Space Game")

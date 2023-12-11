@@ -51,10 +51,42 @@ class StarSystem:
 
     def draw(self, screen, camera):
         screen.blit(self.map_surface, (0, 0), camera)
-        for orbit_radius in self.orbits:
-            pygame.draw.circle(self.map_surface, (255, 255, 255), (self.map_center_x, self.map_center_y), orbit_radius, 1)
+
+        font = pygame.font.Font("space/assets/fonts/OfficeCodePro-Light.ttf", 24)  # Use a default font for testing
         for planet in self.planets:
+            orbit_radius = planet.orbit_radius
+            pygame.draw.circle(self.map_surface, (255, 255, 255), (self.map_center_x, self.map_center_y), orbit_radius, 1)
+
+            # Calculate the text position relative to the screen
+            text_pos = self.calculate_text_position(orbit_radius, camera, self.map_center_x, self.map_center_y)
+            if text_pos:
+                text_surface = font.render(planet.name, True, (255, 255, 255))
+                screen.blit(text_surface, text_pos)  # Draw text on the screen
+
+            print("drawing name.")
             planet.draw(self.map_surface)
+    
+    def is_orbit_visible(self, orbit_radius, camera):
+        # Check if the orbit is within the camera's visible area
+        camera_rect = pygame.Rect(camera.x, camera.y, camera.width, camera.height)
+        orbit_rect = pygame.Rect(self.map_center_x - orbit_radius, self.map_center_y - orbit_radius, 2 * orbit_radius, 2 * orbit_radius)
+        return camera_rect.colliderect(orbit_rect)
+
+    def calculate_text_position(self, orbit_radius, camera, center_x, center_y):
+        # Check for points on the orbit that are within the camera's view
+        for angle in range(0, 360, 5):  # Check every 5 degrees
+            angle_rad = math.radians(angle)
+            x = center_x + orbit_radius * math.cos(angle_rad)
+            y = center_y + orbit_radius * math.sin(angle_rad)
+
+            # Check if this point is within the camera's view
+            if camera.x <= x <= camera.x + camera.width and camera.y <= y <= camera.y + camera.height:
+                # Adjust the position relative to the camera
+                text_x = x - camera.x
+                text_y = y - camera.y
+                return (text_x, text_y)
+        return None  # Return None if no part of the orbit is visible
+
 
 # Usage example
 # sol_system = StarSystem('space/star_systems/sol.json')
