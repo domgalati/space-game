@@ -50,19 +50,46 @@ class StarSystem:
 
     def draw(self, screen, camera):
         screen.blit(self.map_surface, (0, 0), camera)
+        font = pygame.font.Font("space/assets/fonts/OfficeCodePro-Light.ttf", 14)
 
-        font = pygame.font.Font("space/assets/fonts/OfficeCodePro-Light.ttf", 14)  # Use a default font for testing
         for planet in self.planets:
             orbit_radius = planet.orbit_radius
             pygame.draw.circle(self.map_surface, (255, 255, 255), (self.map_center_x, self.map_center_y), orbit_radius, 1)
 
-            # Calculate the text position relative to the screen
-            text_pos = self.calculate_text_position(orbit_radius, camera, self.map_center_x, self.map_center_y)
-            if text_pos:
-                text_surface = font.render(planet.name, True, (255, 255, 255))
-                screen.blit(text_surface, text_pos)  # Draw text on the screen
+            if self.is_orbit_visible(orbit_radius, camera):
+                self.draw_planet_name_along_orbit(planet, font, screen, camera, orbit_radius)
 
             planet.draw(self.map_surface)
+    
+    def draw_planet_name_along_orbit(self, planet, font, screen, camera, orbit_radius, segment_start_ratio=0.25, segment_end_ratio=0.50):
+        name = planet.name
+        char_spacing = 1  # Space between characters
+        name_length = len(name) * char_spacing
+        visible_segments = self.get_visible_segments(orbit_radius, camera, name_length)
+
+        if not visible_segments:
+            return
+
+        raw_start_angle, raw_end_angle = visible_segments[0]  # Consider only the first visible segment
+        segment_angle_range = raw_end_angle - raw_start_angle
+
+        # Calculate actual start and end angles based on the provided ratios
+        start_angle = raw_start_angle + segment_angle_range * segment_start_ratio
+        end_angle = raw_start_angle + segment_angle_range * segment_end_ratio
+
+        for i, char in enumerate(name):
+            angle = start_angle + (end_angle - start_angle) * i / (len(name) - 1)
+            angle_rad = math.radians(angle)
+
+            x = self.map_center_x + orbit_radius * math.cos(angle_rad) - camera.x
+            y = self.map_center_y + orbit_radius * math.sin(angle_rad) - camera.y
+
+            char_surface = font.render(char, True, (255, 255, 255))
+            #char_surface = pygame.transform.rotate(char_surface, -math.degrees(angle_rad))
+            char_rect = char_surface.get_rect(center=(x + 10, y + 10))
+            screen.blit(char_surface, char_rect)
+    
+    
     
     def is_orbit_visible(self, orbit_radius, camera):
         # Check if the orbit is within the camera's visible area
@@ -70,20 +97,34 @@ class StarSystem:
         orbit_rect = pygame.Rect(self.map_center_x - orbit_radius, self.map_center_y - orbit_radius, 2 * orbit_radius, 2 * orbit_radius)
         return camera_rect.colliderect(orbit_rect)
 
-    def calculate_text_position(self, orbit_radius, camera, center_x, center_y):
-        # Check for points on the orbit that are within the camera's view
-        for angle in range(0, 360, 5):  # Check every 5 degrees
+    def get_visible_segments(self, orbit_radius, camera, name_length):
+        visible_segments = []
+        start_angle = None
+        for angle in range(0, 360, 1):  # Check every degree for more precision
             angle_rad = math.radians(angle)
-            x = center_x + orbit_radius * math.cos(angle_rad)
-            y = center_y + orbit_radius * math.sin(angle_rad)
+            x = self.map_center_x + orbit_radius * math.cos(angle_rad)
+            y = self.map_center_y + orbit_radius * math.sin(angle_rad) + 100
 
-            # Check if this point is within the camera's view
             if camera.x <= x <= camera.x + camera.width and camera.y <= y <= camera.y + camera.height:
-                # Adjust the position relative to the camera
-                text_x = x - camera.x
-                text_y = y - camera.y
-                return (text_x, text_y)
-        return None  # Return None if no part of the orbit is visible
+                if start_angle is None:
+                    start_angle = angle
+            else:
+                if start_angle is not None:
+                    end_angle = angle
+                    if end_angle - start_angle >= self.calculate_angle_length(orbit_radius, name_length):
+                        visible_segments.append((start_angle, end_angle))
+                    start_angle = None
+
+        if start_angle is not None:
+            end_angle = 360
+            if end_angle - start_angle >= self.calculate_angle_length(orbit_radius, name_length):
+                visible_segments.append((start_angle, end_angle))
+
+        return visible_segments
+
+    def calculate_angle_length(self, orbit_radius, length):
+        return math.degrees(length / orbit_radius)
+
 
 
 # Usage example
