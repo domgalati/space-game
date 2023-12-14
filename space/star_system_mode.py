@@ -1,3 +1,5 @@
+# This file handles the main loop when the player is traversing a star system
+
 import pygame
 from config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
 from input_handler import InputHandler, determine_direction, update_parallax

@@ -1,6 +1,5 @@
 ## This file handles the generation of star_systems.
 
-import os
 import json
 import random
 import math
@@ -52,7 +51,7 @@ class StarSystem:
     def draw(self, screen, camera):
         screen.blit(self.map_surface, (0, 0), camera)
 
-        font = pygame.font.Font("space/assets/fonts/OfficeCodePro-Light.ttf", 24)  # Use a default font for testing
+        font = pygame.font.Font("space/assets/fonts/OfficeCodePro-Light.ttf", 14)  # Use a default font for testing
         for planet in self.planets:
             orbit_radius = planet.orbit_radius
             pygame.draw.circle(self.map_surface, (255, 255, 255), (self.map_center_x, self.map_center_y), orbit_radius, 1)
@@ -63,7 +62,6 @@ class StarSystem:
                 text_surface = font.render(planet.name, True, (255, 255, 255))
                 screen.blit(text_surface, text_pos)  # Draw text on the screen
 
-            print("drawing name.")
             planet.draw(self.map_surface)
     
     def is_orbit_visible(self, orbit_radius, camera):
