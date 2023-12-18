@@ -56,3 +56,4 @@ class StarSystemMode:
         draw_stars(screen, self.blue_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 4, self.parallax_offset_y * 4))
         spaceship_frame = self.animated_cargoship.get_frame(self.current_direction)
         screen.blit(spaceship_frame, (self.x_position * TILE_SIZE - self.camera.x, self.y_position * TILE_SIZE - self.camera.y))
+        print(f"x: {self.x_position}, y: {self.y_position}, camera: {self.camera}")

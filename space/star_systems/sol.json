@@ -8,5 +8,8 @@
         {"name": "Planet 5", "type": "Type E", "image_path": "space/img/planets/Baren.png"},
         {"name": "Planet 6", "type": "Type F", "image_path": "space/img/planets/Ice.png"},
         {"name": "Planet 7", "type": "Type G", "image_path": "space/img/planets/Baren.png"}
+    ],
+    "objects": [
+        {"name": "Space Station Alpha", "type": "SpaceStation", "image_path": "space/img/objects/space_station.png", "x": 539, "y": 360}
     ]
 }

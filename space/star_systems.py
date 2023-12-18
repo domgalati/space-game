@@ -1,5 +1,4 @@
 ## This file handles the generation of star_systems.
-
 import json
 import random
 import math
@@ -63,7 +62,7 @@ class StarSystem:
     
     def draw_planet_name_along_orbit(self, planet, font, screen, camera, orbit_radius, segment_start_ratio=0.25, segment_end_ratio=0.50):
         name = planet.name
-        char_spacing = 1  # Space between characters
+        char_spacing = 2  # Space between characters
         name_length = len(name) * char_spacing
         visible_segments = self.get_visible_segments(orbit_radius, camera, name_length)
 
@@ -72,6 +71,10 @@ class StarSystem:
 
         raw_start_angle, raw_end_angle = visible_segments[0]  # Consider only the first visible segment
         segment_angle_range = raw_end_angle - raw_start_angle
+
+        print(f"raw_start_angle:{raw_start_angle}, raw_end_angle:{raw_end_angle}")
+        if raw_start_angle < 180:
+            name = name[::-1]  # Reverse the name
 
         # Calculate actual start and end angles based on the provided ratios
         start_angle = raw_start_angle + segment_angle_range * segment_start_ratio
@@ -85,7 +88,6 @@ class StarSystem:
             y = self.map_center_y + orbit_radius * math.sin(angle_rad) - camera.y
 
             char_surface = font.render(char, True, (255, 255, 255))
-            #char_surface = pygame.transform.rotate(char_surface, -math.degrees(angle_rad))
             char_rect = char_surface.get_rect(center=(x + 10, y + 10))
             screen.blit(char_surface, char_rect)
     
