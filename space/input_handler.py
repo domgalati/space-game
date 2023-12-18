@@ -21,7 +21,6 @@ class InputHandler:
             elif keys[pygame.K_KP6]:
                 ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
             if keys[pygame.K_KP8]:
-                print("UP!")
                 ship_y_position = max(0, ship_y_position - 1)
             elif keys[pygame.K_KP2]:
                 ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
