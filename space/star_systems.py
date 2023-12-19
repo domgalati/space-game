@@ -4,6 +4,7 @@ import random
 import math
 import pygame
 from planet import Planet
+from object import SpaceObject
 from config import SCREEN_WIDTH, SCREEN_HEIGHT
 
 class StarSystem:
@@ -15,6 +16,7 @@ class StarSystem:
         self.map_center_y = self.MAP_HEIGHT // 2        
         self.map_surface = None
         self.planets = []
+        self.objects = []
         self.orbits = []
         self.load_system(json_path)
 
@@ -23,10 +25,12 @@ class StarSystem:
             data = json.load(file)
             seed = data['seed']
             planet_data = data['planets']
+            object_data = data.get('objects', [])
             random.seed(seed)
 
             self.map_surface = pygame.Surface((self.MAP_WIDTH, self.MAP_HEIGHT)) # Create a surface for the map
             self.generate_planets(planet_data)
+            self.generate_objects(object_data)
 
     def generate_planets(self, planet_data):
         min_orbit_radius = 500
@@ -47,9 +51,18 @@ class StarSystem:
             self.orbits.append(orbit_radius)
             last_orbit_radius = orbit_radius
 
+    def generate_objects(self, object_data):
+        self.objects = []
+        for data in object_data:
+            obj = SpaceObject(data['name'], data['type'], data['image_path'], data['x'], data['y'])
+            self.objects.append(obj)
+
     def draw(self, screen, camera):
         screen.blit(self.map_surface, (0, 0), camera)
         font = pygame.font.Font("space/assets/fonts/OfficeCodePro-Light.ttf", 14)
+
+        for obj in self.objects:
+            obj.draw(self.map_surface, camera)
 
         for planet in self.planets:
             orbit_radius = planet.orbit_radius
@@ -59,6 +72,7 @@ class StarSystem:
                 self.draw_planet_name_along_orbit(planet, font, screen, camera, orbit_radius)
 
             planet.draw(self.map_surface)
+
     
     def draw_planet_name_along_orbit(self, planet, font, screen, camera, orbit_radius, segment_start_ratio=0.25, segment_end_ratio=0.50):
         name = planet.name
@@ -72,7 +86,7 @@ class StarSystem:
         raw_start_angle, raw_end_angle = visible_segments[0]  # Consider only the first visible segment
         segment_angle_range = raw_end_angle - raw_start_angle
 
-        print(f"raw_start_angle:{raw_start_angle}, raw_end_angle:{raw_end_angle}")
+        #print(f"raw_start_angle:{raw_start_angle}, raw_end_angle:{raw_end_angle}") ##Debug
         if raw_start_angle < 180:
             name = name[::-1]  # Reverse the name
 
@@ -90,9 +104,7 @@ class StarSystem:
             char_surface = font.render(char, True, (255, 255, 255))
             char_rect = char_surface.get_rect(center=(x + 10, y + 10))
             screen.blit(char_surface, char_rect)
-    
-    
-    
+        
     def is_orbit_visible(self, orbit_radius, camera):
         # Check if the orbit is within the camera's visible area
         camera_rect = pygame.Rect(camera.x, camera.y, camera.width, camera.height)
