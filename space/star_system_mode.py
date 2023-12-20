@@ -9,8 +9,8 @@ from star_systems import StarSystem
 
 class StarSystemMode:
     def __init__(self):
-        self.input_handler = InputHandler()  # Instantiate InputHandler
         self.sol_system = StarSystem('space/star_systems/sol.json')
+        self.input_handler = InputHandler(self.sol_system, self)  # Instantiate InputHandler
         self.grid_size = (self.sol_system.MAP_WIDTH // TILE_SIZE, self.sol_system.MAP_HEIGHT // TILE_SIZE)
         self.white_stars, self.purple_stars, self.blue_stars = initialize_stars(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.map_center_x = self.sol_system.MAP_WIDTH // 2
@@ -33,7 +33,17 @@ class StarSystemMode:
         new_direction = determine_direction(self.x_position, self.y_position, self.previous_x, self.previous_y)
         if new_direction:
             self.current_direction = new_direction
-            
+
+    def check_collision(self):
+        ship_rect = pygame.Rect(self.x_position * TILE_SIZE, self.y_position * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+        for planet in self.sol_system.planets:
+            if ship_rect.colliderect(planet.get_rect()):
+                return planet
+        for obj in self.sol_system.objects:
+            if ship_rect.colliderect(obj.get_rect()):
+                return obj
+        return None
+
     def update(self):
         # Update logic specific to star system mode
         self.handle_input()
@@ -46,6 +56,7 @@ class StarSystemMode:
         self.animated_cargoship.update()
         self.camera.x = max(0, min(self.x_position * TILE_SIZE - SCREEN_WIDTH // 2, self.sol_system.MAP_WIDTH - SCREEN_WIDTH))
         self.camera.y = max(0, min(self.y_position * TILE_SIZE - SCREEN_HEIGHT // 2, self.sol_system.MAP_HEIGHT - SCREEN_HEIGHT))
+        self.input_handler.handle_interaction(self.x_position, self.y_position, TILE_SIZE)
 
     def draw(self, screen):
         # Draw logic specific to star system mode
@@ -56,4 +67,12 @@ class StarSystemMode:
         draw_stars(screen, self.blue_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 4, self.parallax_offset_y * 4))
         spaceship_frame = self.animated_cargoship.get_frame(self.current_direction)
         screen.blit(spaceship_frame, (self.x_position * TILE_SIZE - self.camera.x, self.y_position * TILE_SIZE - self.camera.y))
+        
+        # Draw collision detection text
+        collided_entity = self.check_collision()
+        if collided_entity:
+            font = pygame.font.Font(None, 36)
+            text_surface = font.render("[E] Interact", True, (255, 255, 255))
+            screen.blit(text_surface, (SCREEN_WIDTH // 2 - text_surface.get_width() // 2, SCREEN_HEIGHT // 2))
+
         print(f"camera: {self.camera}")
