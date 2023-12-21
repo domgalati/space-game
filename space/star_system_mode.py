@@ -43,6 +43,18 @@ class StarSystemMode:
             if ship_rect.colliderect(obj.get_rect()):
                 return obj
         return None
+    
+    def show_interaction_menu(self, entity):
+        from menu import InteractionMenu
+        # Example options - you can customize these based on the entity
+        options = ["Scan", "Hail", "Dock"]
+
+        # Position the menu in the middle of the screen
+        menu_position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+
+        # Create and activate the interaction menu
+        self.interaction_menu = InteractionMenu(options, menu_position, "space/assets/fonts/OfficeCodePro-Light.ttf")
+        self.interaction_menu.activate()
 
     def update(self):
         # Update logic specific to star system mode
@@ -57,6 +69,10 @@ class StarSystemMode:
         self.camera.x = max(0, min(self.x_position * TILE_SIZE - SCREEN_WIDTH // 2, self.sol_system.MAP_WIDTH - SCREEN_WIDTH))
         self.camera.y = max(0, min(self.y_position * TILE_SIZE - SCREEN_HEIGHT // 2, self.sol_system.MAP_HEIGHT - SCREEN_HEIGHT))
         self.input_handler.handle_interaction(self.x_position, self.y_position, TILE_SIZE)
+        # Update the interaction menu if it's active
+        if hasattr(self, 'interaction_menu') and self.interaction_menu.active:
+            for event in pygame.event.get():
+                self.interaction_menu.update(event)        
 
     def draw(self, screen):
         # Draw logic specific to star system mode
@@ -74,5 +90,9 @@ class StarSystemMode:
             font = pygame.font.Font(None, 36)
             text_surface = font.render("[E] Interact", True, (255, 255, 255))
             screen.blit(text_surface, (SCREEN_WIDTH // 2 - text_surface.get_width() // 2, SCREEN_HEIGHT // 2))
-
+        
+        # Draw interaction menu if its active.
+        if hasattr(self, 'interaction_menu') and self.interaction_menu.active:
+            self.interaction_menu.draw(screen)
+        
         print(f"camera: {self.camera}")

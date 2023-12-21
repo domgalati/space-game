@@ -48,7 +48,7 @@ class InputHandler:
     def handle_interaction(self, ship_x_position, ship_y_position, tile_size):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_e]:
-            collided_entity = self.check_collision(ship_x_position, ship_y_position, tile_size)
+            collided_entity = collided_entity = self.star_system_mode.check_collision()
             if collided_entity:
                 self.star_system_mode.show_interaction_menu(collided_entity)
 
