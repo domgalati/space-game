@@ -47,7 +47,7 @@ class StarSystemMode:
     def show_interaction_menu(self, entity):
         from menu import InteractionMenu
         # Example options - you can customize these based on the entity
-        options = ["Scan", "Hail", "Dock"]
+        options = ["Scan", "Hail", "Dock", "Test"]
 
         # Position the menu in the middle of the screen
         menu_position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
@@ -62,9 +62,10 @@ class StarSystemMode:
             if hasattr(self, 'interaction_menu') and self.interaction_menu.active:
                 self.interaction_menu.update(event)
             else:
-                self.handle_input()
+                self.handle_continuous_updates()
                         
     def handle_continuous_updates(self):
+        self.handle_input()
     # Update logic for continuous effects like parallax
         self.parallax_offset_x, self.parallax_offset_y, self.parallax_velocity_x, self.parallax_velocity_y = update_parallax(
                         self.x_position, self.y_position, self.previous_x, self.previous_y,
