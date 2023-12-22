@@ -41,8 +41,10 @@ class InteractionMenu:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
                 self.navigate("up")
+                print("pressed up")
             elif event.key == pygame.K_DOWN:
                 self.navigate("down")
+                print("pressed down")
             elif event.key == pygame.K_RETURN:
                 self.selected_action = self.options[self.selected_index]
                 self.active = False

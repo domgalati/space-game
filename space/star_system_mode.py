@@ -56,14 +56,21 @@ class StarSystemMode:
         self.interaction_menu = InteractionMenu(options, menu_position, "space/assets/fonts/OfficeCodePro-Light.ttf")
         self.interaction_menu.activate()
 
-    def update(self):
-        # Update logic specific to star system mode
-        self.handle_input()
+    def update(self, events):
+        self.handle_continuous_updates()
+        for event in events:
+            if hasattr(self, 'interaction_menu') and self.interaction_menu.active:
+                self.interaction_menu.update(event)
+            else:
+                self.handle_input()
+                        
+    def handle_continuous_updates(self):
+    # Update logic for continuous effects like parallax
         self.parallax_offset_x, self.parallax_offset_y, self.parallax_velocity_x, self.parallax_velocity_y = update_parallax(
-            self.x_position, self.y_position, self.previous_x, self.previous_y,
-            self.parallax_offset_x, self.parallax_offset_y, self.parallax_velocity_x, self.parallax_velocity_y,
-            PARALLAX_FACTOR, PARALLAX_DAMPING_FACTOR, VELOCITY_THRESHOLD
-        )
+                        self.x_position, self.y_position, self.previous_x, self.previous_y,
+                        self.parallax_offset_x, self.parallax_offset_y, self.parallax_velocity_x, self.parallax_velocity_y,
+                        PARALLAX_FACTOR, PARALLAX_DAMPING_FACTOR, VELOCITY_THRESHOLD
+                    )
         self.previous_x, self.previous_y = self.x_position, self.y_position
         self.animated_cargoship.update()
         self.camera.x = max(0, min(self.x_position * TILE_SIZE - SCREEN_WIDTH // 2, self.sol_system.MAP_WIDTH - SCREEN_WIDTH))
@@ -72,7 +79,7 @@ class StarSystemMode:
         # Update the interaction menu if it's active
         if hasattr(self, 'interaction_menu') and self.interaction_menu.active:
             for event in pygame.event.get():
-                self.interaction_menu.update(event)        
+                self.interaction_menu.update(event)
 
     def draw(self, screen):
         # Draw logic specific to star system mode
