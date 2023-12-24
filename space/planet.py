@@ -18,6 +18,12 @@ class Planet:
         y = center_y + int(self.orbit_radius * math.sin(self.angle))
         return x, y
 
+    def get_rect(self):
+        # Assuming the image's center is at the planet's position
+        rect_x = self.position[0] - self.image.get_width() // 2
+        rect_y = self.position[1] - self.image.get_height() // 2
+        return pygame.Rect(rect_x, rect_y, self.image.get_width(), self.image.get_height())
+
     def draw(self, surface):
         adjusted_pos = (self.position[0] - self.image.get_width() // 2, self.position[1] - self.image.get_height() // 2)
         surface.blit(self.image, adjusted_pos)

@@ -15,14 +15,16 @@ star_system_mode = StarSystemMode()
 
 running = True
 while running:
-    for event in pygame.event.get():
+    events = pygame.event.get()
+    for event in events:
         if event.type == pygame.QUIT:
             running = False
     
-    clock.tick(60)
-    star_system_mode.update()
+    star_system_mode.update(events)
     star_system_mode.draw(screen)
+    
     pygame.display.flip()
-    # ... other code ...
+    clock.tick(144)
+
 
 pygame.quit()
