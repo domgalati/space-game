@@ -1,15 +1,15 @@
 {
     "seed": 12345,
     "planets": [
-        {"name": "Planet 1", "type": "Type A", "image_path": "space/img/planets/Baren.png"},
-        {"name": "Planet 2", "type": "Type B", "image_path": "space/img/planets/Lava.png"},
-        {"name": "Planet 3", "type": "Type C", "image_path": "space/img/planets/Terran.png"},
-        {"name": "Planet 4", "type": "Type D", "image_path": "space/img/planets/Ice.png"},
-        {"name": "Planet 5", "type": "Type E", "image_path": "space/img/planets/Baren.png"},
-        {"name": "Planet 6", "type": "Type F", "image_path": "space/img/planets/Ice.png"},
-        {"name": "Planet 7", "type": "Type G", "image_path": "space/img/planets/Baren.png"}
+        {"name": "Terramonta", "type": "Lava", "image_path": "space/img/planets/Lava.png"},
+        {"name": "Etheora", "type": "Baren", "image_path": "space/img/planets/Baren.png"},
+        {"name": "Arboresia", "type": "Terran", "image_path": "space/img/planets/Terran.png"},
+        {"name": "Ageria", "type": "Terran", "image_path": "space/img/planets/Terran.png"},
+        {"name": "Cosmopolara", "type": "Terran", "image_path": "space/img/planets/Terran.png"},
+        {"name": "Ferrica", "type": "Frost", "image_path": "space/img/planets/Ice.png"},
+        {"name": "Governus Centralis", "type": "Frost", "image_path": "space/img/planets/Baren.png"}
     ],
     "objects": [
-        {"name": "Space Station Alpha", "type": "SpaceStation", "image_path": "space/img/objects/space_station.png", "x": 12420, "y": 8280}
+        {"name": "Nexum Astra", "type": "SpaceStation", "image_path": "space/img/objects/space_station.png", "x": 12420, "y": 8280}
     ]
 }
