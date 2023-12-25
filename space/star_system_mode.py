@@ -26,6 +26,9 @@ class StarSystemMode:
         self.parallax_offset_x, self.parallax_offset_y = 0, 0
         self.parallax_velocity_x, self.parallax_velocity_y = 0, 0
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.landing_requested = False
+        self.player = [] ## Should store changes that happen to the player in star system mode.
+        self.selected_planet = None
 
     def handle_input(self):
         # Handle input specific to this mode
@@ -50,17 +53,27 @@ class StarSystemMode:
         options = ["Scan", "Hail", "Dock", "Test"]
 
         # Position the menu in the middle of the screen
-        menu_position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+        menu_position = (SCREEN_WIDTH // 2 + 50, SCREEN_HEIGHT // 2 + 50)
 
         # Create and activate the interaction menu
         self.interaction_menu = InteractionMenu(options, menu_position, "space/assets/fonts/OfficeCodePro-Light.ttf")
         self.interaction_menu.activate()
 
+    def get_selected_planet(self):
+        return self.selected_planet
+    
+    def get_player(self):
+        # Assuming self.player is an attribute holding the player's state
+        return self.player
+
     def update(self, events):
         self.handle_continuous_updates()
         for event in events:
             if hasattr(self, 'interaction_menu') and self.interaction_menu.active:
-                self.interaction_menu.update(event)
+                selected_action = self.interaction_menu.update(event)
+                if selected_action == "Dock":
+                    self.landing_requested = True
+                    self.selected_planet = self.check_collision()  # Assuming this returns the planet
             else:
                 self.handle_continuous_updates()
                         
