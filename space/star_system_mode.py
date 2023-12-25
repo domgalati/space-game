@@ -27,7 +27,7 @@ class StarSystemMode:
         self.parallax_velocity_x, self.parallax_velocity_y = 0, 0
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
         self.landing_requested = False
-        self.player = [] ## Should store changes that happen to the player in star system mode.
+        self.player = [] ## Should store changes that happen to the player in star system mode. I think.
         self.selected_planet = None
 
     def handle_input(self):

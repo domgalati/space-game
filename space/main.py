@@ -13,7 +13,9 @@ pygame.display.set_caption("Space Game")
 clock = pygame.time.Clock()
 
 star_system_mode = StarSystemMode()
+#planetary_mode = PlanetaryMode(selected_planet, player)
 current_mode = star_system_mode
+
 
 running = True
 while running:

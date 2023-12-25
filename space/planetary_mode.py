@@ -3,23 +3,23 @@ import pytmx
 from pytmx.util_pygame import load_pygame
 from config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
 
-#temporary placeholder
+#temporary 
 map_filename = ("space/assets/maps/Terramonta.tmx")
 
 class PlanetaryMode:
-    def __init__(self, planet, player):
-        self.planet = planet
+    def __init__(self, selected_planet, player): 
+        self.planet = selected_planet
         self.player = player
         self.tileset = pygame.image.load("space/img/tilesets/planets.png")
         self.sidebar_width = 200
-        self.log_height = 100
+        self.log_height = 200
         self.map_surface = pygame.Surface((SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height))
         self.sidebar_surface = pygame.Surface((self.sidebar_width, SCREEN_HEIGHT))
         self.log_surface = pygame.Surface((SCREEN_WIDTH, self.log_height))
         self.map_tiles = self.initialize_map_tiles()
         self.log_messages = []
-        self.tmx_data = self.load_map(map_filename)  # Load the TMX data here
-
+        planet_map_filename = f"space/assets/maps/{self.planet.name}.tmx"
+        self.tmx_data = self.load_map(planet_map_filename)
 
     def initialize_map_tiles(self):
         # Load tiles from the tileset and store them in a dictionary
