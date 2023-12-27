@@ -1,7 +1,7 @@
 import pygame
 
 class InteractionMenu:
-    def __init__(self, options, position, font, font_size=30, font_color=(255, 255, 255)):
+    def __init__(self, options, position, font, font_size=16, font_color=(255, 255, 255)):
         self.options = options
         self.selected_index = 0
         self.position = position

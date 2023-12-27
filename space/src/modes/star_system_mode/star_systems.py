@@ -3,9 +3,9 @@ import json
 import random
 import math
 import pygame
-from planet import Planet
-from object import SpaceObject
-from config import SCREEN_WIDTH, SCREEN_HEIGHT
+from entities.planet import Planet
+from entities.object import SpaceObject
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT
 
 class StarSystem:
     def __init__(self, json_path):

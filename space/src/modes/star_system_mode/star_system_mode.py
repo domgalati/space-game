@@ -1,11 +1,11 @@
 # This file handles the main loop when the player is traversing a star system
 
 import pygame
-from config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
-from input_handler import InputHandler, determine_direction, update_parallax
-from nightsky import initialize_stars, draw_stars, PARALLAX_FACTOR, PARALLAX_DAMPING_FACTOR, VELOCITY_THRESHOLD
-from sprite_animation import AnimatedSprite
-from star_systems import StarSystem
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
+from .input_handler import InputHandler, determine_direction, update_parallax
+from .nightsky import initialize_stars, draw_stars, PARALLAX_FACTOR, PARALLAX_DAMPING_FACTOR, VELOCITY_THRESHOLD
+from util.sprite_animation import AnimatedSprite
+from .star_systems import StarSystem
 
 class StarSystemMode:
     def __init__(self):
@@ -15,7 +15,7 @@ class StarSystemMode:
         self.white_stars, self.purple_stars, self.blue_stars = initialize_stars(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.map_center_x = self.sol_system.MAP_WIDTH // 2
         self.map_center_y = self.sol_system.MAP_HEIGHT // 2
-        self.cargo_sheet = 'space/img/cargo6frame.png'
+        self.cargo_sheet = 'space/assets/img/cargo6frame.png'
         self.frame_dimensions = (48, 48)
         self.num_frames = 6
         self.animated_cargoship = AnimatedSprite(self.cargo_sheet, self.frame_dimensions, self.num_frames)
@@ -26,6 +26,9 @@ class StarSystemMode:
         self.parallax_offset_x, self.parallax_offset_y = 0, 0
         self.parallax_velocity_x, self.parallax_velocity_y = 0, 0
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.landing_requested = False
+        self.player = [] ## Should store changes that happen to the player in star system mode. I think.
+        self.selected_planet = None
 
     def handle_input(self):
         # Handle input specific to this mode
@@ -45,22 +48,32 @@ class StarSystemMode:
         return None
     
     def show_interaction_menu(self, entity):
-        from menu import InteractionMenu
+        from modes.star_system_mode.menu import InteractionMenu
         # Example options - you can customize these based on the entity
         options = ["Scan", "Hail", "Dock", "Test"]
 
         # Position the menu in the middle of the screen
-        menu_position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+        menu_position = (SCREEN_WIDTH // 2 + 50, SCREEN_HEIGHT // 2 + 50)
 
         # Create and activate the interaction menu
         self.interaction_menu = InteractionMenu(options, menu_position, "space/assets/fonts/OfficeCodePro-Light.ttf")
         self.interaction_menu.activate()
 
+    def get_selected_planet(self):
+        return self.selected_planet
+    
+    def get_player(self):
+        # Assuming self.player is an attribute holding the player's state
+        return self.player
+
     def update(self, events):
         self.handle_continuous_updates()
         for event in events:
             if hasattr(self, 'interaction_menu') and self.interaction_menu.active:
-                self.interaction_menu.update(event)
+                selected_action = self.interaction_menu.update(event)
+                if selected_action == "Dock":
+                    self.landing_requested = True
+                    self.selected_planet = self.check_collision()  # Assuming this returns the planet
             else:
                 self.handle_continuous_updates()
                         
