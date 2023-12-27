@@ -11,7 +11,7 @@ class PlanetaryMode:
         self.planet = selected_planet
         self.player = player
         self.player_sprite = pygame.image.load("space/assets/img/objects/player.png").convert_alpha()
-        self.player_position = [100, 100]  # Example starting position
+        self.player_position = [0, 0]  # Example starting position
         self.tileset = pygame.image.load("space/assets/img/tilesets/planets.png")
         self.sidebar_width = 200
         self.log_height = 200
@@ -22,6 +22,7 @@ class PlanetaryMode:
         self.log_messages = []
         planet_map_filename = f"space/assets/maps/{self.planet.name}.tmx"
         self.tmx_data = self.load_map(planet_map_filename)
+        self.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height)
 
     def initialize_map_tiles(self):
         # Load tiles from the tileset and store them in a dictionary
@@ -50,27 +51,62 @@ class PlanetaryMode:
                 for x, y, gid in layer:
                     tile = self.tmx_data.get_tile_image_by_gid(gid)
                     if tile:
-                        surface.blit(tile, (x * self.tmx_data.tilewidth, y * self.tmx_data.tileheight))
-        pass
-
+                        surface.blit(tile, (x * self.tmx_data.tilewidth - self.camera.x, y * self.tmx_data.tileheight - self.camera.y))
+    
+    def update_camera(self):
+    # Shift the camera if the player passes the edge of the current screen area
+        if self.player_position[0] < self.camera.left:
+            self.camera.move_ip(-self.camera.width, 0)
+        elif self.player_position[0] > self.camera.right:
+            self.camera.move_ip(self.camera.width, 0)
+        if self.player_position[1] < self.camera.top:
+            self.camera.move_ip(0, -self.camera.height)
+        elif self.player_position[1] > self.camera.bottom:
+            self.camera.move_ip(0, self.camera.height)
+        # Constrain the camera to the map bounds
+        #self.camera.clamp_ip(pygame.Rect(0, 0, self.tmx_data.width * TILE_SIZE, self.tmx_data.height * TILE_SIZE))
+        
     def handle_input(self, events):
         for event in events:
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
+                moved = False
+                if event.key == pygame.K_KP4:
                     self.player_position[0] -= TILE_SIZE
-                elif event.key == pygame.K_RIGHT:
+                    moved = True
+                elif event.key == pygame.K_KP6:
                     self.player_position[0] += TILE_SIZE
-                elif event.key == pygame.K_UP:
+                    moved = True
+                elif event.key == pygame.K_KP8:
                     self.player_position[1] -= TILE_SIZE
-                elif event.key == pygame.K_DOWN:
+                    moved = True
+                elif event.key == pygame.K_KP2:
                     self.player_position[1] += TILE_SIZE
+                    moved = True
+                elif event.key == pygame.K_KP7:
+                    self.player_position[0] -= TILE_SIZE
+                    self.player_position[1] -= TILE_SIZE
+                    moved = True
+                elif event.key == pygame.K_KP9:
+                    self.player_position[0] += TILE_SIZE
+                    self.player_position[1] -= TILE_SIZE
+                    moved = True
+                elif event.key == pygame.K_KP1:
+                    self.player_position[0] -= TILE_SIZE
+                    self.player_position[1] += TILE_SIZE
+                    moved = True
+                elif event.key == pygame.K_KP3:
+                    self.player_position[0] += TILE_SIZE
+                    self.player_position[1] += TILE_SIZE
+                    moved = True
+                if moved:
+                    self.update_camera()
 
     def update(self, events):
         self.handle_input(events)
         # Add additional update logic if necessary
 
     def draw_player(self, surface):
-        surface.blit(self.player_sprite, self.player_position)
+        surface.blit(self.player_sprite, (self.player_position[0] - self.camera.x, self.player_position[1] - self.camera.y))
 
     def draw(self, screen):
         screen.fill((0, 0, 0))
