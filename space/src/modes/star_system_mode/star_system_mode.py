@@ -1,11 +1,11 @@
 # This file handles the main loop when the player is traversing a star system
 
 import pygame
-from config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
-from input_handler import InputHandler, determine_direction, update_parallax
-from nightsky import initialize_stars, draw_stars, PARALLAX_FACTOR, PARALLAX_DAMPING_FACTOR, VELOCITY_THRESHOLD
-from sprite_animation import AnimatedSprite
-from star_systems import StarSystem
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
+from .input_handler import InputHandler, determine_direction, update_parallax
+from .nightsky import initialize_stars, draw_stars, PARALLAX_FACTOR, PARALLAX_DAMPING_FACTOR, VELOCITY_THRESHOLD
+from util.sprite_animation import AnimatedSprite
+from .star_systems import StarSystem
 
 class StarSystemMode:
     def __init__(self):
@@ -15,7 +15,7 @@ class StarSystemMode:
         self.white_stars, self.purple_stars, self.blue_stars = initialize_stars(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.map_center_x = self.sol_system.MAP_WIDTH // 2
         self.map_center_y = self.sol_system.MAP_HEIGHT // 2
-        self.cargo_sheet = 'space/img/cargo6frame.png'
+        self.cargo_sheet = 'space/assets/img/cargo6frame.png'
         self.frame_dimensions = (48, 48)
         self.num_frames = 6
         self.animated_cargoship = AnimatedSprite(self.cargo_sheet, self.frame_dimensions, self.num_frames)
@@ -48,7 +48,7 @@ class StarSystemMode:
         return None
     
     def show_interaction_menu(self, entity):
-        from menu import InteractionMenu
+        from modes.star_system_mode.menu import InteractionMenu
         # Example options - you can customize these based on the entity
         options = ["Scan", "Hail", "Dock", "Test"]
 

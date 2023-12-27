@@ -1,8 +1,8 @@
 # main.py
 import pygame
-from config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
-from star_system_mode import StarSystemMode
-from planetary_mode import PlanetaryMode
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
+from modes.star_system_mode.star_system_mode import StarSystemMode
+from modes.planetary_mode.planetary_mode import PlanetaryMode
 
 pygame.init()
 pygame.font.init()  # Initialize the font module

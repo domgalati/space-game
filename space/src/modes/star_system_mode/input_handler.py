@@ -73,7 +73,7 @@ def determine_direction(ship_x_position, ship_y_position, previous_x, previous_y
 
     return new_direction
 
-## It actually DOES make sense to have this here. Parallax happens on each keypress.
+## It actually DOES make sense to have this here. Parallax is tied to movement.
 def update_parallax(ship_x_position, ship_y_position, previous_x, previous_y, parallax_offset_x, parallax_offset_y, parallax_velocity_x, parallax_velocity_y, parallax_factor, damping_factor, velocity_threshold):
     # Immediate change in position
     immediate_delta_x = (ship_x_position - previous_x) * parallax_factor

@@ -1,6 +1,6 @@
 import random
 import pygame
-from config import SCREEN_WIDTH, SCREEN_HEIGHT
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT
 
 PARALLAX_FACTOR = 0.5
 PARALLAX_DAMPING_FACTOR = 0.95

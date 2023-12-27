@@ -1,7 +1,7 @@
 import pygame
 import pytmx
 from pytmx.util_pygame import load_pygame
-from config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
 
 #temporary 
 map_filename = ("space/assets/maps/Terramonta.tmx")
@@ -10,7 +10,9 @@ class PlanetaryMode:
     def __init__(self, selected_planet, player): 
         self.planet = selected_planet
         self.player = player
-        self.tileset = pygame.image.load("space/img/tilesets/planets.png")
+        self.player_sprite = pygame.image.load("space/assets/img/objects/player.png").convert_alpha()
+        self.player_position = [100, 100]  # Example starting position
+        self.tileset = pygame.image.load("space/assets/img/tilesets/planets.png")
         self.sidebar_width = 200
         self.log_height = 200
         self.map_surface = pygame.Surface((SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height))
@@ -42,7 +44,7 @@ class PlanetaryMode:
         tmx_data = load_pygame(map_filename)
         return tmx_data
 
-    def draw_map(self, surface):  # No argument should be passed here
+    def draw_map(self, surface):
         for layer in self.tmx_data.visible_layers:
             if isinstance(layer, pytmx.TiledTileLayer):
                 for x, y, gid in layer:
@@ -52,17 +54,28 @@ class PlanetaryMode:
         pass
 
     def handle_input(self, events):
-        # Handle player input for movement and actions in the planetary mode
-        # Add logic for handling different inputs (movement, interactions, etc.)
-        pass
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    self.player_position[0] -= TILE_SIZE
+                elif event.key == pygame.K_RIGHT:
+                    self.player_position[0] += TILE_SIZE
+                elif event.key == pygame.K_UP:
+                    self.player_position[1] -= TILE_SIZE
+                elif event.key == pygame.K_DOWN:
+                    self.player_position[1] += TILE_SIZE
 
     def update(self, events):
         self.handle_input(events)
         # Add additional update logic if necessary
 
+    def draw_player(self, surface):
+        surface.blit(self.player_sprite, self.player_position)
+
     def draw(self, screen):
         screen.fill((0, 0, 0))
         self.draw_map(self.map_surface)
+        self.draw_player(self.map_surface)
         self.draw_sidebar()
         self.draw_log()
         screen.blit(self.map_surface, (0, 0))
