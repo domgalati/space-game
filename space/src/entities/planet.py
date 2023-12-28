@@ -5,13 +5,14 @@ import json
 
 
 class Planet:
-    def __init__(self, name, planet_type, image_path, orbit_radius, angle, center_x, center_y):
+    def __init__(self, name, planet_type, image_path, orbit_radius, angle, center_x, center_y,start_pos=(0, 0)):
         self.name = name
         self.planet_type = planet_type
         self.image = pygame.image.load(image_path)
         self.orbit_radius = orbit_radius
         self.angle = angle
         self.position = self.calculate_position(center_x, center_y)
+        self.start_pos = start_pos
 
     def calculate_position(self, center_x, center_y):
         x = center_x + int(self.orbit_radius * math.cos(self.angle))

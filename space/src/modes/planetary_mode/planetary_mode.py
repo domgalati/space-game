@@ -3,15 +3,11 @@ import pytmx
 from pytmx.util_pygame import load_pygame
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
 
-#temporary 
-map_filename = ("space/assets/maps/Terramonta.tmx")
-
 class PlanetaryMode:
     def __init__(self, selected_planet, player): 
         self.planet = selected_planet
         self.player = player
         self.player_sprite = pygame.image.load("space/assets/img/objects/player.png").convert_alpha()
-        self.player_position = [0, 0]  # Example starting position
         self.tileset = pygame.image.load("space/assets/img/tilesets/planets.png")
         self.sidebar_width = 200
         self.log_height = 200
@@ -21,6 +17,7 @@ class PlanetaryMode:
         self.map_tiles = self.initialize_map_tiles()
         self.log_messages = []
         planet_map_filename = f"space/assets/maps/{self.planet.name}.tmx"
+        self.player_position = list(self.planet.start_pos)
         self.tmx_data = self.load_map(planet_map_filename)
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height)
 
@@ -57,11 +54,11 @@ class PlanetaryMode:
     # Shift the camera if the player passes the edge of the current screen area
         if self.player_position[0] < self.camera.left:
             self.camera.move_ip(-self.camera.width, 0)
-        elif self.player_position[0] > self.camera.right:
+        elif self.player_position[0] >= self.camera.right:
             self.camera.move_ip(self.camera.width, 0)
         if self.player_position[1] < self.camera.top:
             self.camera.move_ip(0, -self.camera.height)
-        elif self.player_position[1] > self.camera.bottom:
+        elif self.player_position[1] >= self.camera.bottom:
             self.camera.move_ip(0, self.camera.height)
         # Constrain the camera to the map bounds
         #self.camera.clamp_ip(pygame.Rect(0, 0, self.tmx_data.width * TILE_SIZE, self.tmx_data.height * TILE_SIZE))
@@ -100,9 +97,13 @@ class PlanetaryMode:
                     moved = True
                 if moved:
                     self.update_camera()
+                    print("is looping?")
+                    print(f"Player position: {self.player_position}")
+                    print(f"Camera position: {self.camera}")
 
     def update(self, events):
         self.handle_input(events)
+        self.update_camera()
         # Add additional update logic if necessary
 
     def draw_player(self, surface):

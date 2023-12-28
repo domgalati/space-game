@@ -12,9 +12,19 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Space Game")
 clock = pygame.time.Clock()
 
+### DEBUG LOAD ###
+# This class and variables only exist to load directly into planetary mode.
+class SimplePlanet:
+    def __init__(self, name):
+        self.name = name
+        self.start_pos = [1368, 168]
+
+selected_planet = SimplePlanet("Terramonta")
+player = []
+#### END OF DEBUG LOAD ###
 star_system_mode = StarSystemMode()
-#planetary_mode = PlanetaryMode(selected_planet, player)
-current_mode = star_system_mode
+planetary_mode = PlanetaryMode(selected_planet, player)
+current_mode = planetary_mode
 
 
 running = True
