@@ -6,7 +6,7 @@
  <tileset firstgid="358" source="../Tilesheet Files/computor.tsx"/>
  <tileset firstgid="360" source="../Tilesheet Files/RoguelikeAllSpriteSheet3x-tilesize24.tsx"/>
  <tileset firstgid="1096" source="../Tilesheet Files/SpaceRoguelikeSpriteSheet3x-tilesize-24.tsx"/>
- <tileset firstgid="1947" source="../../../trash/Tilesheet Files/RoguelikeOverSpriteSheet3x-tilesize-24.tsx"/>
+ <tileset firstgid="1947" source="../Tilesheet Files/RoguelikeOverSpriteSheet3x-tilesize-24.tsx"/>
  <layer id="1" name="Background" width="180" height="120">
   <data encoding="csv">
 314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,0,0,0,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,314,
