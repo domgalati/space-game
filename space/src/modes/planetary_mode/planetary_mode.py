@@ -50,6 +50,18 @@ class PlanetaryMode:
                     if tile:
                         surface.blit(tile, (x * self.tmx_data.tilewidth - self.camera.x, y * self.tmx_data.tileheight - self.camera.y))
     
+    def is_tile_walkable(self, x, y):
+        # Access the 'walkable' layer
+        walkable_layer = self.tmx_data.get_layer_by_name("walkable")
+        if walkable_layer:
+            # The layer is structured as a 2D grid. Check if the tile at (x, y) is walkable
+            tile = walkable_layer.data[x][y]
+            if tile is not 0:
+                return True
+            else:
+            # If there is no 'walkable' layer, default to non-walkable
+                return False
+    
     def update_camera(self):
     # Shift the camera if the player passes the edge of the current screen area
         if self.player_position[0] < self.camera.left:
@@ -66,40 +78,43 @@ class PlanetaryMode:
     def handle_input(self, events):
         for event in events:
             if event.type == pygame.KEYDOWN:
+                new_position = self.player_position.copy()
                 moved = False
+
                 if event.key == pygame.K_KP4:
-                    self.player_position[0] -= TILE_SIZE
-                    moved = True
+                    new_position[0] -= TILE_SIZE
                 elif event.key == pygame.K_KP6:
-                    self.player_position[0] += TILE_SIZE
-                    moved = True
+                    new_position[0] += TILE_SIZE
                 elif event.key == pygame.K_KP8:
-                    self.player_position[1] -= TILE_SIZE
-                    moved = True
+                    new_position[1] -= TILE_SIZE
                 elif event.key == pygame.K_KP2:
-                    self.player_position[1] += TILE_SIZE
-                    moved = True
+                    new_position[1] += TILE_SIZE
                 elif event.key == pygame.K_KP7:
-                    self.player_position[0] -= TILE_SIZE
-                    self.player_position[1] -= TILE_SIZE
-                    moved = True
+                    new_position[0] -= TILE_SIZE
+                    new_position[1] -= TILE_SIZE
                 elif event.key == pygame.K_KP9:
-                    self.player_position[0] += TILE_SIZE
-                    self.player_position[1] -= TILE_SIZE
-                    moved = True
+                    new_position[0] += TILE_SIZE
+                    new_position[1] -= TILE_SIZE
                 elif event.key == pygame.K_KP1:
-                    self.player_position[0] -= TILE_SIZE
-                    self.player_position[1] += TILE_SIZE
-                    moved = True
+                    new_position[0] -= TILE_SIZE
+                    new_position[1] += TILE_SIZE
                 elif event.key == pygame.K_KP3:
-                    self.player_position[0] += TILE_SIZE
-                    self.player_position[1] += TILE_SIZE
-                    moved = True
+                    new_position[0] += TILE_SIZE
+                    new_position[1] += TILE_SIZE
+
+                if new_position != self.player_position:
+                    tile_x, tile_y = new_position[0] // TILE_SIZE, new_position[1] // TILE_SIZE
+                    if self.is_tile_walkable(tile_y, tile_x):
+                        self.player_position = new_position
+                        moved = True
+                    else:
+                        self.add_log_message("Cannot move here: Tile not walkable.")
+
                 if moved:
                     self.update_camera()
-                    print("is looping?")
                     print(f"Player position: {self.player_position}")
                     print(f"Camera position: {self.camera}")
+
 
     def update(self, events):
         self.handle_input(events)
