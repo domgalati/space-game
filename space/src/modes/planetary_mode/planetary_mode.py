@@ -12,7 +12,7 @@ class PlanetaryMode:
         self.sidebar_width = 200
         self.log_height = 200
         self.map_surface = pygame.Surface((SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height))
-        self.sidebar_surface = pygame.Surface((self.sidebar_width, SCREEN_HEIGHT))
+        self.sidebar_surface = pygame.Surface((self.sidebar_width, SCREEN_HEIGHT - 200))
         self.log_surface = pygame.Surface((SCREEN_WIDTH, self.log_height))
         self.map_tiles = self.initialize_map_tiles()
         self.log_messages = []
@@ -20,6 +20,8 @@ class PlanetaryMode:
         self.player_position = list(self.planet.start_pos)
         self.tmx_data = self.load_map(planet_map_filename)
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height)
+        self.log_scroll_position = 0
+        self.max_log_scroll = 0
 
     def initialize_map_tiles(self):
         # Load tiles from the tileset and store them in a dictionary
@@ -33,10 +35,15 @@ class PlanetaryMode:
         pass
 
     def draw_log(self):
-        # Draw log messages
-        for i, message in enumerate(self.log_messages[-5:]):
-            text_surface = pygame.font.Font(None, 24).render(message, True, (255, 255, 255))
-            self.log_surface.blit(text_surface, (10, i * 20))
+        self.log_surface.fill((0, 0, 0))  # Clear the log surface
+
+        start_index = max(0, self.log_scroll_position // 20)
+        end_index = start_index + 10
+        visible_messages = self.log_messages[start_index:end_index]
+
+        for i, message in enumerate(visible_messages):
+            text_surface = pygame.font.Font("space/assets/fonts/Modern Pixel Round.otf", 16).render(message, True, (255, 255, 255))
+            self.log_surface.blit(text_surface, (10, i * 20 - (self.log_scroll_position % 20)))
 
     def load_map(self, map_filename):
         tmx_data = load_pygame(map_filename)
@@ -77,6 +84,11 @@ class PlanetaryMode:
         
     def handle_input(self, events):
         for event in events:
+            if event.type == pygame.MOUSEWHEEL:
+                # Adjust the log scroll position
+                self.log_scroll_position -= event.y * 20  # Adjust the multiplier as needed
+                self.log_scroll_position = max(0, min(self.log_scroll_position, self.max_log_scroll))
+
             if event.type == pygame.KEYDOWN:
                 new_position = self.player_position.copy()
                 moved = False
@@ -87,8 +99,10 @@ class PlanetaryMode:
                     new_position[0] += TILE_SIZE
                 elif event.key == pygame.K_KP8:
                     new_position[1] -= TILE_SIZE
+                    self.add_log_message("North!")
                 elif event.key == pygame.K_KP2:
                     new_position[1] += TILE_SIZE
+                    self.add_log_message("South!")
                 elif event.key == pygame.K_KP7:
                     new_position[0] -= TILE_SIZE
                     new_position[1] -= TILE_SIZE
@@ -108,7 +122,7 @@ class PlanetaryMode:
                         self.player_position = new_position
                         moved = True
                     else:
-                        self.add_log_message("Cannot move here: Tile not walkable.")
+                        self.add_log_message("Your helmet bounces off the hard surface!")
 
                 if moved:
                     self.update_camera()
@@ -136,6 +150,9 @@ class PlanetaryMode:
 
     def add_log_message(self, message):
         self.log_messages.append(message)
+        self.max_log_scroll = max(0, len(self.log_messages) * 20 - 200)  # Assuming each message is 20 pixels high
+        # Auto-scroll to the bottom to show the latest message
+        self.log_scroll_position = self.max_log_scroll
 
     def land_on_planet(self):
         # Logic to initialize the planetary landing, setting the initial position of the player, etc.
