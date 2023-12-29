@@ -22,7 +22,9 @@ class PlanetaryMode:
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height)
         self.log_scroll_position = 0
         self.max_log_scroll = 0
-
+        self.animations = {}
+        self.initialize_animation_data()
+        
     def initialize_map_tiles(self):
         # Load tiles from the tileset and store them in a dictionary
         tiles = {}
@@ -49,11 +51,36 @@ class PlanetaryMode:
         tmx_data = load_pygame(map_filename)
         return tmx_data
 
+    def initialize_animation_data(self):
+        self.animations = {}  # Dictionary to store animation data keyed by tile GID
+        for gid, properties in self.tmx_data.tile_properties.items():
+            animation = properties.get('frames', None)
+            self.animations[gid] = {
+                'frames': [frame.gid for frame in animation],
+                'durations': [frame.duration for frame in animation],
+                'current_frame': 0,
+                'timer': 0
+            }
+
+    def update_animations(self, dt):
+        for animation in self.animations.values():
+            animation['timer'] += dt
+            if animation['timer'] > animation['durations'][animation['current_frame']]:
+                animation['timer'] -= animation['durations'][animation['current_frame']]
+                animation['current_frame'] = (animation['current_frame'] + 1) % len(animation['frames'])
+
     def draw_map(self, surface):
+        surface.fill((0, 0, 0))
         for layer in self.tmx_data.visible_layers:
             if isinstance(layer, pytmx.TiledTileLayer):
                 for x, y, gid in layer:
-                    tile = self.tmx_data.get_tile_image_by_gid(gid)
+                    animation = self.animations.get(gid)
+                    if animation:
+                        tile_gid = animation['frames'][animation['current_frame']]
+                        tile = self.tmx_data.get_tile_image_by_gid(tile_gid)
+                    else:
+                        tile = self.tmx_data.get_tile_image_by_gid(gid)
+
                     if tile:
                         surface.blit(tile, (x * self.tmx_data.tilewidth - self.camera.x, y * self.tmx_data.tileheight - self.camera.y))
     

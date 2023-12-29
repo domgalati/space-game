@@ -29,6 +29,7 @@ current_mode = planetary_mode
 
 running = True
 while running:
+    dt = clock.tick(60)  
     events = pygame.event.get()
     for event in events:
         if event.type == pygame.QUIT:
@@ -42,11 +43,12 @@ while running:
             current_mode = PlanetaryMode(selected_planet, player)
     elif isinstance(current_mode, PlanetaryMode):
         current_mode.update(events)
+        planetary_mode.update_animations(dt)
 
     current_mode.draw(screen)
 
     pygame.display.flip()
-    clock.tick(60)
+    #clock.tick(60)
 
 
 pygame.quit()
