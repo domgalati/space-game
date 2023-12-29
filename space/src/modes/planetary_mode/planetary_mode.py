@@ -90,7 +90,7 @@ class PlanetaryMode:
         if walkable_layer:
             # The layer is structured as a 2D grid. Check if the tile at (x, y) is walkable
             tile = walkable_layer.data[x][y]
-            if tile is not 0:
+            if tile != 0:
                 return True
             else:
             # If there is no 'walkable' layer, default to non-walkable
@@ -155,7 +155,6 @@ class PlanetaryMode:
                     self.update_camera()
                     print(f"Player position: {self.player_position}")
                     print(f"Camera position: {self.camera}")
-
 
     def update(self, events):
         self.handle_input(events)
