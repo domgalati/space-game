@@ -29,7 +29,7 @@ class InteractionMenu:
             return
 
         for i, menu_item in enumerate(self.menu_items):
-            item_pos = (self.position[0], self.position[1] + i * 40)
+            item_pos = (self.position[0], self.position[1] + i * 20)
             screen.blit(menu_item, item_pos)
             if i == self.selected_index:
                 pygame.draw.rect(screen, self.font_color, (*item_pos, menu_item.get_width(), menu_item.get_height()), 2)
@@ -39,9 +39,9 @@ class InteractionMenu:
             return None
 
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
+            if event.key == pygame.K_k:
                 self.navigate("up")
-            elif event.key == pygame.K_DOWN:
+            elif event.key == pygame.K_j:
                 self.navigate("down")
             elif event.key == pygame.K_RETURN:
                 self.selected_action = self.options[self.selected_index]

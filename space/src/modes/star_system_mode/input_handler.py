@@ -14,17 +14,18 @@ class InputHandler:
 
         # Track whether any movement key is pressed
         movement_key_pressed = keys[pygame.K_KP4] or keys[pygame.K_KP6] or keys[pygame.K_KP8] or keys[pygame.K_KP2] or \
-                               keys[pygame.K_KP1] or keys[pygame.K_KP3] or keys[pygame.K_KP7] or keys[pygame.K_KP9]
+                               keys[pygame.K_KP1] or keys[pygame.K_KP3] or keys[pygame.K_KP7] or keys[pygame.K_KP9] or \
+                               keys[pygame.K_LEFT] or keys[pygame.K_RIGHT] or keys[pygame.K_UP] or keys[pygame.K_DOWN]
 
         if current_time - self.last_movement_time > self.movement_cooldown and movement_key_pressed:
             # Handle non-diagonal movement
-            if keys[pygame.K_KP4]:
+            if keys[pygame.K_KP4] or keys[pygame.K_LEFT]:
                 ship_x_position = max(0, ship_x_position - 1)
-            elif keys[pygame.K_KP6]:
+            elif keys[pygame.K_KP6] or keys[pygame.K_RIGHT]:
                 ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
-            if keys[pygame.K_KP8]:
+            if keys[pygame.K_KP8] or keys[pygame.K_UP]:
                 ship_y_position = max(0, ship_y_position - 1)
-            elif keys[pygame.K_KP2]:
+            elif keys[pygame.K_KP2] or keys[pygame.K_DOWN]:
                 ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
 
             # Handle diagonal movement

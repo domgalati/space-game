@@ -120,13 +120,13 @@ class PlanetaryMode:
                 new_position = self.player_position.copy()
                 moved = False
 
-                if event.key == pygame.K_KP4:
+                if event.key == pygame.K_KP4 or event.key == pygame.K_LEFT:
                     new_position[0] -= TILE_SIZE
-                elif event.key == pygame.K_KP6:
+                elif event.key == pygame.K_KP6 or event.key == pygame.K_RIGHT:
                     new_position[0] += TILE_SIZE
-                elif event.key == pygame.K_KP8:
+                elif event.key == pygame.K_KP8 or event.key == pygame.K_UP:
                     new_position[1] -= TILE_SIZE
-                elif event.key == pygame.K_KP2:
+                elif event.key == pygame.K_KP2 or event.key == pygame.K_DOWN:
                     new_position[1] += TILE_SIZE
                 elif event.key == pygame.K_KP7:
                     new_position[0] -= TILE_SIZE
@@ -169,12 +169,14 @@ class PlanetaryMode:
         for pos in adjacent_positions:
             is_interactable, objectname = self.is_interactable_at(pos)
             if is_interactable:
-                self.add_log_message(f"You approach a {objectname}")
+                self.add_log_message(f"You approach a {objectname}. Press E to interact.")
                 break  # Add this if you only want one message per move
             
     def is_interactable_at(self, position):
         """
         Check if the tile at the given position is in the 'interactable' layer.
+        add interactable objects layer in the map file, the layer must always be called "Objects".
+        Then place tiles where you want the objects to live. Change the "Name" parameter of the object in tiled.
         """
         y, x = position
         tile_x, tile_y = x // TILE_SIZE, y // TILE_SIZE

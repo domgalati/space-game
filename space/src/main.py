@@ -17,14 +17,14 @@ clock = pygame.time.Clock()
 class SimplePlanet:
     def __init__(self, name):
         self.name = name
-        self.start_pos = [1368, 168]
+        self.start_pos = [1224, 144]
 
 selected_planet = SimplePlanet("Terramonta")
 player = []
 #### END OF DEBUG LOAD ###
 star_system_mode = StarSystemMode()
 planetary_mode = PlanetaryMode(selected_planet, player)
-current_mode = star_system_mode
+current_mode = planetary_mode
 
 
 running = True
@@ -46,8 +46,7 @@ while running:
         planetary_mode.update_animations(dt)
     
     current_mode.draw(screen)
-    planetary_mode.land_on_planet()
-    
+
     pygame.display.flip()
     #clock.tick(60)
 
