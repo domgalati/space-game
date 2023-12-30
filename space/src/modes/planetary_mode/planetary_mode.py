@@ -140,6 +140,8 @@ class PlanetaryMode:
                 elif event.key == pygame.K_KP3:
                     new_position[0] += TILE_SIZE
                     new_position[1] += TILE_SIZE
+                elif event.key == pygame.K_e:
+                    self.interact()
 
                 if new_position != self.player_position:
                     tile_x, tile_y = new_position[0] // TILE_SIZE, new_position[1] // TILE_SIZE
@@ -191,7 +193,6 @@ class PlanetaryMode:
     def update(self, events):
         self.handle_input(events)
         self.update_camera()
-
         # Add additional update logic if necessary
 
     def draw_player(self, surface):
@@ -217,6 +218,32 @@ class PlanetaryMode:
         # Logic to initialize the planetary landing, setting the initial position of the player, etc.
         self.add_log_message(f"You have landed on {self.planet.name}")
         pass
+
+    def interact(self):
+        """
+        Perform an interaction with an adjacent interactable object.
+        """
+        # Check for interactable objects adjacent to the player
+        adjacent_positions = [
+                    (self.player_position[0], self.player_position[1] - TILE_SIZE),  # Up
+                    (self.player_position[0], self.player_position[1] + TILE_SIZE),  # Down
+                    (self.player_position[0] - TILE_SIZE, self.player_position[1]),  # Left
+                    (self.player_position[0] + TILE_SIZE, self.player_position[1])   # Right
+                ]
+
+        for pos in adjacent_positions:
+            is_interactable, objectname = self.is_interactable_at(pos)
+            if is_interactable:
+                self.handle_interaction_with(objectname)
+
+    def handle_interaction_with(self, objectname):
+        """
+        Handle specific interactions based on the object name.
+        """
+        if objectname == "Docking Terminal":
+            self.add_log_message("You dick around with the computa")
+            pass
+        # Add more conditions for different objects
 
 # Usage example
 # planetary_mode = PlanetaryMode(selected_planet, player)
