@@ -24,7 +24,7 @@ player = []
 #### END OF DEBUG LOAD ###
 star_system_mode = StarSystemMode()
 planetary_mode = PlanetaryMode(selected_planet, player)
-current_mode = planetary_mode
+current_mode = star_system_mode
 
 
 running = True
@@ -44,9 +44,10 @@ while running:
     elif isinstance(current_mode, PlanetaryMode):
         current_mode.update(events)
         planetary_mode.update_animations(dt)
-
+    
     current_mode.draw(screen)
-
+    planetary_mode.land_on_planet()
+    
     pygame.display.flip()
     #clock.tick(60)
 

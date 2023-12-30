@@ -44,7 +44,7 @@ class PlanetaryMode:
         visible_messages = self.log_messages[start_index:end_index]
 
         for i, message in enumerate(visible_messages):
-            text_surface = pygame.font.Font("space/assets/fonts/Modern Pixel Round.otf", 16).render(message, True, (255, 255, 255))
+            text_surface = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16).render(message, True, (255, 255, 255))
             self.log_surface.blit(text_surface, (10, i * 20 - (self.log_scroll_position % 20)))
 
     def load_map(self, map_filename):
@@ -126,10 +126,8 @@ class PlanetaryMode:
                     new_position[0] += TILE_SIZE
                 elif event.key == pygame.K_KP8:
                     new_position[1] -= TILE_SIZE
-                    self.add_log_message("North!")
                 elif event.key == pygame.K_KP2:
                     new_position[1] += TILE_SIZE
-                    self.add_log_message("South!")
                 elif event.key == pygame.K_KP7:
                     new_position[0] -= TILE_SIZE
                     new_position[1] -= TILE_SIZE
@@ -153,12 +151,45 @@ class PlanetaryMode:
 
                 if moved:
                     self.update_camera()
+                    self.check_for_adjacent_interactables()
                     print(f"Player position: {self.player_position}")
                     print(f"Camera position: {self.camera}")
+
+    def check_for_adjacent_interactables(self):
+        """
+        Check adjacent tiles for interactable items and log a message if found.
+        """
+        adjacent_positions = [
+            (self.player_position[0], self.player_position[1] - TILE_SIZE),  # Up
+            (self.player_position[0], self.player_position[1] + TILE_SIZE),  # Down
+            (self.player_position[0] - TILE_SIZE, self.player_position[1]),  # Left
+            (self.player_position[0] + TILE_SIZE, self.player_position[1])   # Right
+        ]
+
+        for pos in adjacent_positions:
+            is_interactable, objectname = self.is_interactable_at(pos)
+            if is_interactable:
+                self.add_log_message(f"You approach a {objectname}")
+                break  # Add this if you only want one message per move
+            
+    def is_interactable_at(self, position):
+        """
+        Check if the tile at the given position is in the 'interactable' layer.
+        """
+        y, x = position
+        tile_x, tile_y = x // TILE_SIZE, y // TILE_SIZE
+        if 0 <= tile_x and 0 <= tile_y:
+            objects_layer = self.tmx_data.get_layer_by_name('Objects')
+            for i in range(len(objects_layer)):
+                if objects_layer[i].x == y and objects_layer[i].y == x:
+                    objectname = objects_layer[i].name
+                    return True, objectname
+        return False, None
 
     def update(self, events):
         self.handle_input(events)
         self.update_camera()
+
         # Add additional update logic if necessary
 
     def draw_player(self, surface):
@@ -182,6 +213,7 @@ class PlanetaryMode:
 
     def land_on_planet(self):
         # Logic to initialize the planetary landing, setting the initial position of the player, etc.
+        self.add_log_message(f"You have landed on {self.planet.name}")
         pass
 
 # Usage example
