@@ -17,7 +17,7 @@ clock = pygame.time.Clock()
 class SimplePlanet:
     def __init__(self, name):
         self.name = name
-        self.start_pos = [1224, 144]
+        self.start_pos = [1248, 144]
 
 selected_planet = SimplePlanet("Terramonta")
 player = []

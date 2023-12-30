@@ -1,7 +1,7 @@
 {
     "seed": 12345,
     "planets": [
-        {"name": "Terramonta", "type": "Lava", "image_path": "space/assets/img/planets/Lava.png", "start_pos": [1224, 144]},
+        {"name": "Terramonta", "type": "Lava", "image_path": "space/assets/img/planets/Lava.png", "start_pos": [1248, 144]},
         {"name": "Etheora", "type": "Baren", "image_path": "space/assets/img/planets/Baren.png"},
         {"name": "Arboresia", "type": "Terran", "image_path": "space/assets/img/planets/Terran.png"},
         {"name": "Ageria", "type": "Terran", "image_path": "space/assets/img/planets/Terran.png"},

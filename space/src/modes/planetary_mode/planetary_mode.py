@@ -158,9 +158,7 @@ class PlanetaryMode:
                     print(f"Camera position: {self.camera}")
 
     def check_for_adjacent_interactables(self):
-        """
-        Check adjacent tiles for interactable items and log a message if found.
-        """
+        #Check adjacent tiles for interactable items and log a message if found.
         adjacent_positions = [
             (self.player_position[0], self.player_position[1] - TILE_SIZE),  # Up
             (self.player_position[0], self.player_position[1] + TILE_SIZE),  # Down
@@ -220,17 +218,14 @@ class PlanetaryMode:
         pass
 
     def interact(self):
-        """
-        Perform an interaction with an adjacent interactable object.
-        """
-        # Check for interactable objects adjacent to the player
+        #Perform an interaction with an adjacent interactable object.
+        ## Copies code from check_for_adjacent_interactables, needs to be optimized.
         adjacent_positions = [
                     (self.player_position[0], self.player_position[1] - TILE_SIZE),  # Up
                     (self.player_position[0], self.player_position[1] + TILE_SIZE),  # Down
                     (self.player_position[0] - TILE_SIZE, self.player_position[1]),  # Left
                     (self.player_position[0] + TILE_SIZE, self.player_position[1])   # Right
                 ]
-
         for pos in adjacent_positions:
             is_interactable, objectname = self.is_interactable_at(pos)
             if is_interactable:
