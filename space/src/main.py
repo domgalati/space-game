@@ -24,7 +24,7 @@ player = []
 #### END OF DEBUG LOAD ###
 star_system_mode = StarSystemMode()
 planetary_mode = PlanetaryMode(selected_planet, player)
-current_mode = planetary_mode
+current_mode = star_system_mode
 
 
 running = True
@@ -43,7 +43,7 @@ while running:
             current_mode = PlanetaryMode(selected_planet, player)
     elif isinstance(current_mode, PlanetaryMode):
         current_mode.update(events)
-        planetary_mode.map_manager.update_animations(dt)
+        current_mode.map_manager.update_animations(dt)
     
     current_mode.draw(screen)
 

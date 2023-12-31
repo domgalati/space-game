@@ -25,24 +25,8 @@ class PlanetaryMode:
         #self.sidebar_surface = pygame.Surface((self.sidebar_width, SCREEN_HEIGHT - 200))
         self.log_messages = []
         self.player_position = list(self.planet.start_pos)
-        self.initialize_animation_data()
+        self.map_manager.initialize_animation_data()
         
-    # def draw_sidebar(self):
-    #     # Draw player stats and other relevant information
-    #     # Add logic to display player stats
-    #     pass
-
-    def initialize_animation_data(self):
-        self.animations = {}  # Dictionary to store animation data keyed by tile GID
-        for gid, properties in self.map_manager.tmx_data.tile_properties.items():
-            animation = properties.get('frames', None)
-            self.animations[gid] = {
-                'frames': [frame.gid for frame in animation],
-                'durations': [frame.duration for frame in animation],
-                'current_frame': 0,
-                'timer': 0
-            }
-
     def is_tile_walkable(self, x, y):
         # Access the 'walkable' layer
         walkable_layer = self.map_manager.tmx_data.get_layer_by_name("walkable")

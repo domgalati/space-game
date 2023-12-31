@@ -20,6 +20,17 @@ class MapManager:
         # Add logic here to load individual tiles from the tileset based on the planet type
         return tiles
 
+    def initialize_animation_data(self):
+        self.animations = {}  # Dictionary to store animation data keyed by tile GID
+        for gid, properties in self.tmx_data.tile_properties.items():
+            animation = properties.get('frames', None)
+            self.animations[gid] = {
+                'frames': [frame.gid for frame in animation],
+                'durations': [frame.duration for frame in animation],
+                'current_frame': 0,
+                'timer': 0
+            }
+
     def load_map(self, map_filename):
         tmx_data = load_pygame(map_filename)
         return tmx_data

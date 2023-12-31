@@ -10,6 +10,6 @@
         {"name": "Governus Centralis", "type": "Frost", "image_path": "space/assets/img/planets/Baren.png"}
     ],
     "objects": [
-        {"name": "Nexum Astra", "type": "SpaceStation", "image_path": "space/assets/img/objects/space_station.png", "x": 12420, "y": 8280}
+        {"name": "Nexum Astra", "type": "SpaceStation", "image_path": "space/assets/img/objects/space_station2.png", "x": 12420, "y": 8280}
     ]
 }
