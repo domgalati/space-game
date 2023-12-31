@@ -5,6 +5,7 @@ import random
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
 from .logger import Logger
 from .map_manager import MapManager
+from .ui_planetary import UI_Planetary
 
 class PlanetaryMode:
     def __init__(self, selected_planet, player): 
@@ -12,29 +13,24 @@ class PlanetaryMode:
         self.player = player
         self.player_sprite = pygame.image.load("space/assets/img/objects/player.png").convert_alpha()
         self.tileset = pygame.image.load("space/assets/img/tilesets/planets.png")
-        self.sidebar_width = 200
+        #self.sidebar_width = 200
+        self.ui_planetary = UI_Planetary()  # Create an instance of UI_Planetary       
         self.font = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16)
         self.logger = Logger(log_height=200, screen_width=SCREEN_WIDTH, font=self.font)
-        self.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.logger.log_height)
-        self.map_surface = pygame.Surface((SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.logger.log_height))
-        map_filename = f"space/assets/maps/{self.planet.name}.tmx"
-        self.map_tiles = self.initialize_map_tiles()        
+        self.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height)
+        self.map_surface = pygame.Surface((SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height))
+        map_filename = f"space/assets/maps/{self.planet.name}.tmx"       
         self.map_manager = MapManager(map_filename, self.tileset, (SCREEN_WIDTH, SCREEN_HEIGHT), (SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.sidebar_surface = pygame.Surface((self.sidebar_width, SCREEN_HEIGHT - 200))
+        self.map_tiles = self.map_manager.initialize_map_tiles() 
+        #self.sidebar_surface = pygame.Surface((self.sidebar_width, SCREEN_HEIGHT - 200))
         self.log_messages = []
         self.player_position = list(self.planet.start_pos)
         self.initialize_animation_data()
         
-    def initialize_map_tiles(self):
-        # Load tiles from the tileset and store them in a dictionary
-        tiles = {}
-        # Add logic here to load individual tiles from the tileset based on the planet type
-        return tiles
-
-    def draw_sidebar(self):
-        # Draw player stats and other relevant information
-        # Add logic to display player stats
-        pass
+    # def draw_sidebar(self):
+    #     # Draw player stats and other relevant information
+    #     # Add logic to display player stats
+    #     pass
 
     def initialize_animation_data(self):
         self.animations = {}  # Dictionary to store animation data keyed by tile GID
@@ -164,10 +160,10 @@ class PlanetaryMode:
         # self.draw_map(self.map_surface)
         self.map_manager.draw_map(self.map_surface, self.camera)
         self.draw_player(self.map_surface)
-        self.draw_sidebar()
+        self.ui_planetary.draw_sidebar()
         self.logger.draw_log()
         screen.blit(self.map_surface, (0, 0))
-        screen.blit(self.sidebar_surface, (SCREEN_WIDTH - self.sidebar_width, 0))
+        screen.blit(self.ui_planetary.sidebar_surface, (SCREEN_WIDTH - self.ui_planetary.sidebar_width, 0))
         screen.blit(self.logger.log_surface, (0, SCREEN_HEIGHT - self.logger.log_height))
 
     def land_on_planet(self):

@@ -14,6 +14,12 @@ class MapManager:
         self.animations = {}
         # Other necessary initializations
 
+    def initialize_map_tiles(self):
+        # Load tiles from the tileset and store them in a dictionary
+        tiles = {}
+        # Add logic here to load individual tiles from the tileset based on the planet type
+        return tiles
+
     def load_map(self, map_filename):
         tmx_data = load_pygame(map_filename)
         return tmx_data
