@@ -43,7 +43,7 @@ while running:
             current_mode = PlanetaryMode(selected_planet, player)
     elif isinstance(current_mode, PlanetaryMode):
         current_mode.update(events)
-        planetary_mode.update_animations(dt)
+        planetary_mode.map_manager.update_animations(dt)
     
     current_mode.draw(screen)
 

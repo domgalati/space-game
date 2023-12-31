@@ -1,9 +1,10 @@
 import pygame
-import pytmx
+#import pytmx
 import random
-from pytmx.util_pygame import load_pygame
+#from pytmx.util_pygame import load_pygame
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
 from .logger import Logger
+from .map_manager import MapManager
 
 class PlanetaryMode:
     def __init__(self, selected_planet, player): 
@@ -15,14 +16,15 @@ class PlanetaryMode:
         self.font = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16)
         self.logger = Logger(log_height=200, screen_width=SCREEN_WIDTH, font=self.font)
         self.map_surface = pygame.Surface((SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.logger.log_height))
+        map_filename = f"space/assets/maps/{self.planet.name}.tmx"
+        self.map_tiles = self.initialize_map_tiles()        
+        self.map_manager = MapManager(map_filename, self.tileset, (SCREEN_WIDTH, SCREEN_HEIGHT), (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.sidebar_surface = pygame.Surface((self.sidebar_width, SCREEN_HEIGHT - 200))
-        self.map_tiles = self.initialize_map_tiles()
         self.log_messages = []
-        planet_map_filename = f"space/assets/maps/{self.planet.name}.tmx"
         self.player_position = list(self.planet.start_pos)
-        self.tmx_data = self.load_map(planet_map_filename)
-        self.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.logger.log_height)
-        self.animations = {}
+        #self.tmx_data = self.load_map(planet_map_filename)
+        #self.map_manager.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.logger.log_height)
+        #self.animations = {}
         self.initialize_animation_data()
         
     def initialize_map_tiles(self):
@@ -36,13 +38,13 @@ class PlanetaryMode:
         # Add logic to display player stats
         pass
 
-    def load_map(self, map_filename):
-        tmx_data = load_pygame(map_filename)
-        return tmx_data
+    # def load_map(self, map_filename):
+    #     tmx_data = load_pygame(map_filename)
+    #     return tmx_data
 
     def initialize_animation_data(self):
         self.animations = {}  # Dictionary to store animation data keyed by tile GID
-        for gid, properties in self.tmx_data.tile_properties.items():
+        for gid, properties in self.map_manager.tmx_data.tile_properties.items():
             animation = properties.get('frames', None)
             self.animations[gid] = {
                 'frames': [frame.gid for frame in animation],
@@ -51,31 +53,31 @@ class PlanetaryMode:
                 'timer': 0
             }
 
-    def update_animations(self, dt):
-        for animation in self.animations.values():
-            animation['timer'] += dt
-            if animation['timer'] > animation['durations'][animation['current_frame']]:
-                animation['timer'] -= animation['durations'][animation['current_frame']]
-                animation['current_frame'] = (animation['current_frame'] + 1) % len(animation['frames'])
+    # def update_animations(self, dt):
+    #     for animation in self.animations.values():
+    #         animation['timer'] += dt
+    #         if animation['timer'] > animation['durations'][animation['current_frame']]:
+    #             animation['timer'] -= animation['durations'][animation['current_frame']]
+    #             animation['current_frame'] = (animation['current_frame'] + 1) % len(animation['frames'])
 
-    def draw_map(self, surface):
-        surface.fill((0, 0, 0))
-        for layer in self.tmx_data.visible_layers:
-            if isinstance(layer, pytmx.TiledTileLayer):
-                for x, y, gid in layer:
-                    animation = self.animations.get(gid)
-                    if animation:
-                        tile_gid = animation['frames'][animation['current_frame']]
-                        tile = self.tmx_data.get_tile_image_by_gid(tile_gid)
-                    else:
-                        tile = self.tmx_data.get_tile_image_by_gid(gid)
+    # def draw_map(self, surface):
+    #     surface.fill((0, 0, 0))
+    #     for layer in self.tmx_data.visible_layers:
+    #         if isinstance(layer, pytmx.TiledTileLayer):
+    #             for x, y, gid in layer:
+    #                 animation = self.animations.get(gid)
+    #                 if animation:
+    #                     tile_gid = animation['frames'][animation['current_frame']]
+    #                     tile = self.tmx_data.get_tile_image_by_gid(tile_gid)
+    #                 else:
+    #                     tile = self.tmx_data.get_tile_image_by_gid(gid)
 
-                    if tile:
-                        surface.blit(tile, (x * self.tmx_data.tilewidth - self.camera.x, y * self.tmx_data.tileheight - self.camera.y))
+    #                 if tile:
+    #                     surface.blit(tile, (x * self.tmx_data.tilewidth - self.map_manager.camera.x, y * self.tmx_data.tileheight - self.map_manager.camera.y))
     
     def is_tile_walkable(self, x, y):
         # Access the 'walkable' layer
-        walkable_layer = self.tmx_data.get_layer_by_name("walkable")
+        walkable_layer = self.map_manager.tmx_data.get_layer_by_name("walkable")
         if walkable_layer:
             # The layer is structured as a 2D grid. Check if the tile at (x, y) is walkable
             tile = walkable_layer.data[x][y]
@@ -87,16 +89,16 @@ class PlanetaryMode:
     
     def update_camera(self):
     # Shift the camera if the player passes the edge of the current screen area
-        if self.player_position[0] < self.camera.left:
-            self.camera.move_ip(-self.camera.width, 0)
-        elif self.player_position[0] >= self.camera.right:
-            self.camera.move_ip(self.camera.width, 0)
-        if self.player_position[1] < self.camera.top:
-            self.camera.move_ip(0, -self.camera.height)
-        elif self.player_position[1] >= self.camera.bottom:
-            self.camera.move_ip(0, self.camera.height)
+        if self.player_position[0] < self.map_manager.camera.left:
+            self.map_manager.camera.move_ip(-self.map_manager.camera.width, 0)
+        elif self.player_position[0] >= self.map_manager.camera.right:
+            self.map_manager.camera.move_ip(self.map_manager.camera.width, 0)
+        if self.player_position[1] < self.map_manager.camera.top:
+            self.map_manager.camera.move_ip(0, -self.map_manager.camera.height)
+        elif self.player_position[1] >= self.map_manager.camera.bottom:
+            self.map_manager.camera.move_ip(0, self.map_manager.camera.height)
         # Constrain the camera to the map bounds
-        #self.camera.clamp_ip(pygame.Rect(0, 0, self.tmx_data.width * TILE_SIZE, self.tmx_data.height * TILE_SIZE))
+        #self.map_manager.camera.clamp_ip(pygame.Rect(0, 0, self.tmx_data.width * TILE_SIZE, self.tmx_data.height * TILE_SIZE))
         
     def handle_input(self, events):
         for event in events:
@@ -144,7 +146,7 @@ class PlanetaryMode:
                     self.update_camera()
                     self.check_for_adjacent_interactables()
                     print(f"Player position: {self.player_position}")
-                    print(f"Camera position: {self.camera}")
+                    print(f"Camera position: {self.map_manager.camera}")
 
     def check_for_adjacent_interactables(self):
         #Check adjacent tiles for interactable items and log a message if found.
@@ -170,7 +172,7 @@ class PlanetaryMode:
         y, x = position
         tile_x, tile_y = x // TILE_SIZE, y // TILE_SIZE
         if 0 <= tile_x and 0 <= tile_y:
-            objects_layer = self.tmx_data.get_layer_by_name('Objects')
+            objects_layer = self.map_manager.tmx_data.get_layer_by_name('Objects')
             for i in range(len(objects_layer)):
                 if objects_layer[i].x == y and objects_layer[i].y == x:
                     objectname = objects_layer[i].name
@@ -183,11 +185,12 @@ class PlanetaryMode:
         # Add additional update logic if necessary
 
     def draw_player(self, surface):
-        surface.blit(self.player_sprite, (self.player_position[0] - self.camera.x, self.player_position[1] - self.camera.y))
+        surface.blit(self.player_sprite, (self.player_position[0] - self.map_manager.camera.x, self.player_position[1] - self.map_manager.camera.y))
 
     def draw(self, screen):
         screen.fill((0, 0, 0))
-        self.draw_map(self.map_surface)
+        # self.draw_map(self.map_surface)
+        self.map_manager.draw_map(self.map_surface)
         self.draw_player(self.map_surface)
         self.draw_sidebar()
         self.logger.draw_log()
