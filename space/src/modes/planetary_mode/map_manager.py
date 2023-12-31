@@ -1,13 +1,15 @@
 import pygame
 import pytmx
 from pytmx.util_pygame import load_pygame
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
 
 class MapManager:
     def __init__(self, map_filename, tileset, screen_dimensions, camera_dimensions):
         # Initialize attributes
         self.tmx_data = self.load_map(map_filename)
         self.map_surface = pygame.Surface(screen_dimensions)
-        self.camera = pygame.Rect(0, 0, *camera_dimensions)
+        self.sidebar_width = 200
+        self.log_height = 200
         self.tileset = tileset
         self.animations = {}
         # Other necessary initializations
@@ -16,7 +18,7 @@ class MapManager:
         tmx_data = load_pygame(map_filename)
         return tmx_data
 
-    def draw_map(self, surface):
+    def draw_map(self, surface, camera):
         surface.fill((0, 0, 0))
         for layer in self.tmx_data.visible_layers:
             if isinstance(layer, pytmx.TiledTileLayer):
@@ -29,9 +31,8 @@ class MapManager:
                         tile = self.tmx_data.get_tile_image_by_gid(gid)
 
                     if tile:
-                        surface.blit(tile, (x * self.tmx_data.tilewidth - self.camera.x, y * self.tmx_data.tileheight - self.camera.y))
+                        surface.blit(tile, (x * self.tmx_data.tilewidth - camera.x, y * self.tmx_data.tileheight - camera.y))
     
-
     def update_animations(self, dt):
         for animation in self.animations.values():
             animation['timer'] += dt
