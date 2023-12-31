@@ -6,6 +6,7 @@ from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
 from .logger import Logger
 from .map_manager import MapManager
 from .ui_planetary import UI_Planetary
+from .interaction_manager import InteractionManager
 
 class PlanetaryMode:
     def __init__(self, selected_planet, player): 
@@ -13,7 +14,6 @@ class PlanetaryMode:
         self.player = player
         self.player_sprite = pygame.image.load("space/assets/img/objects/player.png").convert_alpha()
         self.tileset = pygame.image.load("space/assets/img/tilesets/planets.png")
-        #self.sidebar_width = 200
         self.ui_planetary = UI_Planetary()  # Create an instance of UI_Planetary       
         self.font = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16)
         self.logger = Logger(log_height=200, screen_width=SCREEN_WIDTH, font=self.font)
@@ -22,11 +22,11 @@ class PlanetaryMode:
         map_filename = f"space/assets/maps/{self.planet.name}.tmx"       
         self.map_manager = MapManager(map_filename, self.tileset, (SCREEN_WIDTH, SCREEN_HEIGHT), (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.map_tiles = self.map_manager.initialize_map_tiles() 
-        #self.sidebar_surface = pygame.Surface((self.sidebar_width, SCREEN_HEIGHT - 200))
         self.log_messages = []
         self.player_position = list(self.planet.start_pos)
         self.map_manager.initialize_animation_data()
-        
+        self.interaction_manager = InteractionManager(self.map_manager, self.logger)
+   
     def is_tile_walkable(self, x, y):
         # Access the 'walkable' layer
         walkable_layer = self.map_manager.tmx_data.get_layer_by_name("walkable")
@@ -84,7 +84,7 @@ class PlanetaryMode:
                     new_position[0] += TILE_SIZE
                     new_position[1] += TILE_SIZE
                 elif event.key == pygame.K_e:
-                    self.interact()
+                    self.interaction_manager.interact(self.player_position, TILE_SIZE)
 
                 if new_position != self.player_position:
                     tile_x, tile_y = new_position[0] // TILE_SIZE, new_position[1] // TILE_SIZE
@@ -96,40 +96,9 @@ class PlanetaryMode:
 
                 if moved:
                     self.update_camera()
-                    self.check_for_adjacent_interactables()
+                    self.interaction_manager.check_for_adjacent_interactables(self.player_position, TILE_SIZE)
                     print(f"Player position: {self.player_position}")
                     print(f"Camera position: {self.camera}")
-
-    def check_for_adjacent_interactables(self):
-        #Check adjacent tiles for interactable items and log a message if found.
-        adjacent_positions = [
-            (self.player_position[0], self.player_position[1] - TILE_SIZE),  # Up
-            (self.player_position[0], self.player_position[1] + TILE_SIZE),  # Down
-            (self.player_position[0] - TILE_SIZE, self.player_position[1]),  # Left
-            (self.player_position[0] + TILE_SIZE, self.player_position[1])   # Right
-        ]
-
-        for pos in adjacent_positions:
-            is_interactable, objectname = self.is_interactable_at(pos)
-            if is_interactable:
-                self.logger.add_log_message(f"You approach a {objectname}. Press E to interact. Testing message display length. This message is really long.")
-                break  # Add this if you only want one message per move
-            
-    def is_interactable_at(self, position):
-        """
-        Check if the tile at the given position is in the 'interactable' layer.
-        add interactable objects layer in the map file, the layer must always be called "Objects".
-        Then place tiles where you want the objects to live. Change the "Name" parameter of the object in tiled.
-        """
-        y, x = position
-        tile_x, tile_y = x // TILE_SIZE, y // TILE_SIZE
-        if 0 <= tile_x and 0 <= tile_y:
-            objects_layer = self.map_manager.tmx_data.get_layer_by_name('Objects')
-            for i in range(len(objects_layer)):
-                if objects_layer[i].x == y and objects_layer[i].y == x:
-                    objectname = objects_layer[i].name
-                    return True, objectname
-        return False, None
 
     def update(self, events):
         self.handle_input(events)
@@ -153,40 +122,6 @@ class PlanetaryMode:
     def land_on_planet(self):
         # Logic to initialize the planetary landing, setting the initial position of the player, etc.
         self.logger.add_log_message(f"You have landed on {self.planet.name}")
-        pass
-
-    def interact(self):
-        #Perform an interaction with an adjacent interactable object.
-        ## Copies code from check_for_adjacent_interactables, needs to be optimized.
-        adjacent_positions = [
-                    (self.player_position[0], self.player_position[1] - TILE_SIZE),  # Up
-                    (self.player_position[0], self.player_position[1] + TILE_SIZE),  # Down
-                    (self.player_position[0] - TILE_SIZE, self.player_position[1]),  # Left
-                    (self.player_position[0] + TILE_SIZE, self.player_position[1])   # Right
-                ]
-        for pos in adjacent_positions:
-            is_interactable, objectname = self.is_interactable_at(pos)
-            if is_interactable:
-                self.handle_interaction_with(objectname)
-
-    def handle_interaction_with(self, objectname):
-        """
-        Handle specific interactions based on the object name.
-        """
-        if objectname == "Docking Terminal":
-            self.docking_terminal()
-            pass
-        # Add more conditions for different objects
-
-    def docking_terminal(self):
-        # Load the docking terminal interface image
-        terminal_image = pygame.image.load("space/assets/img/objects/terminal_screen.png").convert_alpha() 
-        # Resize the image to fit the map_surface
-        #terminal_image = pygame.transform.scale(terminal_image, (SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height))   
-        # Draw the image onto the map_surface
-        self.map_surface.blit(terminal_image, (0, 0))   
-        # Call method to handle player input and feedback (to be implemented)
-        #self.handle_terminal_input()        
         pass
 
 # Usage example

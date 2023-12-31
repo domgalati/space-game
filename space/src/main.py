@@ -24,7 +24,7 @@ player = []
 #### END OF DEBUG LOAD ###
 star_system_mode = StarSystemMode()
 planetary_mode = PlanetaryMode(selected_planet, player)
-current_mode = star_system_mode
+current_mode = planetary_mode
 
 
 running = True
