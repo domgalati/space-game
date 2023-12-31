@@ -1,5 +1,6 @@
 import pygame
 import pytmx
+import random
 from pytmx.util_pygame import load_pygame
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
 
@@ -23,6 +24,7 @@ class PlanetaryMode:
         self.log_scroll_position = 0
         self.max_log_scroll = 0
         self.animations = {}
+        self.font = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16)
         self.initialize_animation_data()
         
     def initialize_map_tiles(self):
@@ -36,16 +38,67 @@ class PlanetaryMode:
         # Add logic to display player stats
         pass
 
+    # def add_log_message(self, message):
+    #     self.log_messages.append(message)
+    #     self.max_log_scroll = max(0, len(self.log_messages) * 20 - self.log_height)  # Assuming each message is 20 pixels high
+    #     # Auto-scroll to the bottom to show the latest message
+    #     self.log_scroll_position = self.max_log_scroll
+
+    def add_log_message(self, message):
+        self.log_messages.append(message)
+        total_line_count = sum(len(self.wrap_text(msg, SCREEN_WIDTH - 20, self.font)) for msg in self.log_messages)
+        self.max_log_scroll = max(0, total_line_count * 20 - self.log_height)
+        self.log_scroll_position = self.max_log_scroll
+
+    # def draw_log(self):
+    #     self.log_surface.fill((0, 0, 0))  # Clear the log surface
+
+    #     start_index = max(0, self.log_scroll_position // 20)
+    #     end_index = start_index + 10
+    #     visible_messages = self.log_messages[start_index:end_index]
+
+    #     for i, message in enumerate(visible_messages):
+    #         text_surface = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16).render(message, True, (255, 255, 255))
+    #         self.log_surface.blit(text_surface, (10, i * 20 - (self.log_scroll_position % 20)))
+
+    def wrap_text(self, text, max_width, font):
+        """
+        Splits the text into lines so that each line fits within the max_width.
+        Returns a list of lines.
+        """
+        words = text.split(' ')
+        lines = []
+        current_line = ""
+
+        for word in words:
+            # Check the width of the line with the new word added
+            line_width = font.size(current_line + word)[0]
+            if line_width <= max_width:
+                current_line += word + " "
+            else:
+                # If the line is too long, start a new line
+                lines.append(current_line)
+                current_line = "    " + word + " "  # Indent wrapped lines
+
+        # Add the last line
+        lines.append(current_line)
+        return lines
+
     def draw_log(self):
         self.log_surface.fill((0, 0, 0))  # Clear the log surface
 
-        start_index = max(0, self.log_scroll_position // 20)
-        end_index = start_index + 10
-        visible_messages = self.log_messages[start_index:end_index]
+        font = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16)
+        line_height = 20  # Adjust as needed for your font size
+        max_line_width = SCREEN_WIDTH - 20  # Adjust as needed for your sidebar size
 
-        for i, message in enumerate(visible_messages):
-            text_surface = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16).render(message, True, (255, 255, 255))
-            self.log_surface.blit(text_surface, (10, i * 20 - (self.log_scroll_position % 20)))
+        current_line = 0
+        for message in self.log_messages:
+            wrapped_lines = self.wrap_text(message, max_line_width, font)
+            for line in wrapped_lines:
+                if current_line * line_height >= self.log_scroll_position and current_line * line_height < self.log_scroll_position + self.log_height:
+                    text_surface = font.render(line, True, (255, 255, 255))
+                    self.log_surface.blit(text_surface, (10, current_line * line_height - self.log_scroll_position))
+                current_line += 1
 
     def load_map(self, map_filename):
         tmx_data = load_pygame(map_filename)
@@ -149,7 +202,7 @@ class PlanetaryMode:
                         self.player_position = new_position
                         moved = True
                     else:
-                        self.add_log_message("Your helmet bounces off the hard surface!")
+                        self.add_log_message(f"Your helmet bounces off the hard surface!{random.randint(5,200)}")
 
                 if moved:
                     self.update_camera()
@@ -169,7 +222,7 @@ class PlanetaryMode:
         for pos in adjacent_positions:
             is_interactable, objectname = self.is_interactable_at(pos)
             if is_interactable:
-                self.add_log_message(f"You approach a {objectname}. Press E to interact.")
+                self.add_log_message(f"You approach a {objectname}. Press E to interact. Testing message display length. This message is really long.")
                 break  # Add this if you only want one message per move
             
     def is_interactable_at(self, position):
@@ -206,12 +259,6 @@ class PlanetaryMode:
         screen.blit(self.sidebar_surface, (SCREEN_WIDTH - self.sidebar_width, 0))
         screen.blit(self.log_surface, (0, SCREEN_HEIGHT - self.log_height))
 
-    def add_log_message(self, message):
-        self.log_messages.append(message)
-        self.max_log_scroll = max(0, len(self.log_messages) * 20 - 200)  # Assuming each message is 20 pixels high
-        # Auto-scroll to the bottom to show the latest message
-        self.log_scroll_position = self.max_log_scroll
-
     def land_on_planet(self):
         # Logic to initialize the planetary landing, setting the initial position of the player, etc.
         self.add_log_message(f"You have landed on {self.planet.name}")
@@ -236,9 +283,20 @@ class PlanetaryMode:
         Handle specific interactions based on the object name.
         """
         if objectname == "Docking Terminal":
-            self.add_log_message("You dick around with the computa")
+            self.docking_terminal()
             pass
         # Add more conditions for different objects
+
+    def docking_terminal(self):
+        # Load the docking terminal interface image
+        terminal_image = pygame.image.load("space/assets/img/objects/terminal_screen.png").convert_alpha() 
+        # Resize the image to fit the map_surface
+        #terminal_image = pygame.transform.scale(terminal_image, (SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height))   
+        # Draw the image onto the map_surface
+        self.map_surface.blit(terminal_image, (0, 0))   
+        # Call method to handle player input and feedback (to be implemented)
+        #self.handle_terminal_input()        
+        pass
 
 # Usage example
 # planetary_mode = PlanetaryMode(selected_planet, player)

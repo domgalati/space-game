@@ -527,6 +527,6 @@
   <object id="28" name="Docking Terminal" gid="1253" x="984" y="360" width="24" height="24"/>
   <object id="29" name="Docking Terminal" gid="1253" x="888" y="360" width="24" height="24"/>
   <object id="30" name="Docking Terminal" gid="1253" x="792" y="360" width="24" height="24"/>
-  <object id="32" gid="1253" x="1128" y="144" width="24" height="24"/>
+  <object id="32" name="Docking Terminal" gid="1253" x="1128" y="144" width="24" height="24"/>
  </objectgroup>
 </map>
