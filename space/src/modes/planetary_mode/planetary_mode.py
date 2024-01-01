@@ -26,6 +26,13 @@ class PlanetaryMode:
         self.player_position = list(self.planet.start_pos)
         self.map_manager.initialize_animation_data()
         self.interaction_manager = InteractionManager(self.map_manager, self.logger)
+        self.interaction_manager.set_docking_terminal_callback(self.docking_terminal)
+
+        
+        self.player_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        self.ui_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        self.interaction_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        self.interaction_active = False  # Flag to indicate if an interaction layer is active
    
     def is_tile_walkable(self, x, y):
         # Access the 'walkable' layer
@@ -105,14 +112,34 @@ class PlanetaryMode:
         self.update_camera()
         # Add additional update logic if necessary
 
-    def draw_player(self, surface):
-        surface.blit(self.player_sprite, (self.player_position[0] - self.camera.x, self.player_position[1] - self.camera.y))
+    def draw_player(self):
+        self.player_layer.fill((0, 0, 0, 0))  # Clear the layer
+        self.player_layer.fill((0, 0, 0, 0))  # Clear the layer (with transparency)
+        player_x = self.player_position[0] - self.camera.x
+        player_y = self.player_position[1] - self.camera.y
+        self.player_layer.blit(self.player_sprite, (player_x, player_y))
+
+    def draw_ui(self):
+        ## Pretty sure this won't get called but implementing just in case.
+        self.ui_layer.fill((0, 0, 0, 0))
 
     def draw(self, screen):
         screen.fill((0, 0, 0))
         # self.draw_map(self.map_surface)
         self.map_manager.draw_map(self.map_surface, self.camera)
-        self.draw_player(self.map_surface)
+        #self.draw_player(self.map_surface)
+
+        self.draw_player()
+        self.map_surface.blit(self.player_layer, (0, 0))
+
+        self.draw_ui()
+        self.map_surface.blit(self.ui_layer, (0, 0))
+
+        if self.interaction_active:
+            self.map_surface.blit(self.interaction_layer, (0, 0))
+        
+        screen.blit(self.map_surface, (0, 0))
+
         self.ui_planetary.draw_sidebar()
         self.logger.draw_log()
         screen.blit(self.map_surface, (0, 0))
@@ -122,6 +149,19 @@ class PlanetaryMode:
     def land_on_planet(self):
         # Logic to initialize the planetary landing, setting the initial position of the player, etc.
         self.logger.add_log_message(f"You have landed on {self.planet.name}")
+        pass
+
+    def docking_terminal(self):
+        self.interaction_layer.fill((0, 0, 0, 0))  # Clear the layer
+        # Load the docking terminal interface image
+        terminal_image = pygame.image.load("space/assets/img/objects/terminal_screen.png").convert_alpha() 
+        # Resize the image to fit the map_surface
+        #terminal_image = pygame.transform.scale(terminal_image, (SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height))   
+        # Draw the image onto the map_surface
+        self.interaction_layer.blit(terminal_image, (0, 0))
+        self.interaction_active = True
+        # Call method to handle player input and feedback (to be implemented)
+        #self.handle_terminal_input()
         pass
 
 # Usage example

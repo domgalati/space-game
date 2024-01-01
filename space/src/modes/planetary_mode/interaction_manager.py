@@ -1,10 +1,13 @@
 import pygame
 from .map_manager import MapManager
+
 class InteractionManager:
     def __init__(self, map_manager, logger):
         self.map_manager = map_manager
         self.logger = logger
         self.interacted = False
+        self.docking_terminal_callback = None
+
     pass
 
     def is_interactable_at(self, position, TILE_SIZE):
@@ -57,19 +60,10 @@ class InteractionManager:
         """
         Handle specific interactions based on the object name.
         """
-        if objectname == "Docking Terminal":
-            self.docking_terminal()
+        if objectname == "Docking Terminal" or objectname == "Refinery Computer":
+            self.docking_terminal_callback()
             pass
         # Add more conditions for different objects
 
-    def docking_terminal(self):
-        # Load the docking terminal interface image
-        terminal_image = pygame.image.load("space/assets/img/objects/terminal_screen.png").convert_alpha() 
-        # Resize the image to fit the map_surface
-        #terminal_image = pygame.transform.scale(terminal_image, (SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height))   
-        # Draw the image onto the map_surface
-        self.map_manager.map_surface.blit(terminal_image, (0, 0))
-        self.interacted = True
-        # Call method to handle player input and feedback (to be implemented)
-        #self.handle_terminal_input()
-        pass
+    def set_docking_terminal_callback(self, callback):
+        self.docking_terminal_callback = callback
