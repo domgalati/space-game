@@ -6,7 +6,7 @@ class InteractionManager:
         self.map_manager = map_manager
         self.logger = logger
         self.interacted = False
-        self.docking_terminal_callback = None
+        self.activate_terminal_callback = None
 
     pass
 
@@ -61,9 +61,9 @@ class InteractionManager:
         Handle specific interactions based on the object name.
         """
         if objectname == "Docking Terminal" or objectname == "Refinery Computer":
-            self.docking_terminal_callback()
+            self.activate_terminal_callback()
             pass
         # Add more conditions for different objects
 
-    def set_docking_terminal_callback(self, callback):
-        self.docking_terminal_callback = callback
+    def set_terminal_callback(self, callback):
+        self.activate_terminal_callback = callback

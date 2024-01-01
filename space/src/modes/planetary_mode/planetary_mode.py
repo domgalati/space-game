@@ -1,12 +1,14 @@
 import pygame
 #import pytmx
 import random
+import time
 #from pytmx.util_pygame import load_pygame
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
 from .logger import Logger
 from .map_manager import MapManager
 from .ui_planetary import UI_Planetary
 from .interaction_manager import InteractionManager
+from .terminal import Terminal
 
 class PlanetaryMode:
     def __init__(self, selected_planet, player): 
@@ -26,9 +28,10 @@ class PlanetaryMode:
         self.player_position = list(self.planet.start_pos)
         self.map_manager.initialize_animation_data()
         self.interaction_manager = InteractionManager(self.map_manager, self.logger)
-        self.interaction_manager.set_docking_terminal_callback(self.docking_terminal)
+        self.interaction_manager.set_terminal_callback(self.activate_terminal)
+        self.terminal = None
+        self.clock = pygame.time.Clock()
 
-        
         self.player_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         self.ui_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         self.interaction_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
@@ -60,54 +63,62 @@ class PlanetaryMode:
         #self.map_manager.camera.clamp_ip(pygame.Rect(0, 0, self.tmx_data.width * TILE_SIZE, self.tmx_data.height * TILE_SIZE))
         
     def handle_input(self, events):
-        for event in events:
-            if event.type == pygame.MOUSEWHEEL:
-                # Adjust the log scroll position
-                self.logger.log_scroll_position -= event.y * 20  # Adjust the multiplier as needed
-                self.logger.log_scroll_position = max(0, min(self.logger.log_scroll_position, self.logger.max_log_scroll))
+        if self.terminal and self.terminal.active:
+            for event in events:
+                if event.type == pygame.KEYDOWN:
+                    self.terminal.process_input(event)
+        else:
+            for event in events:
+                if event.type == pygame.MOUSEWHEEL:
+                    # Adjust the log scroll position
+                    self.logger.log_scroll_position -= event.y * 20  # Adjust the multiplier as needed
+                    self.logger.log_scroll_position = max(0, min(self.logger.log_scroll_position, self.logger.max_log_scroll))
 
-            if event.type == pygame.KEYDOWN:
-                new_position = self.player_position.copy()
-                moved = False
+                if event.type == pygame.KEYDOWN:
+                    new_position = self.player_position.copy()
+                    moved = False
 
-                if event.key == pygame.K_KP4 or event.key == pygame.K_LEFT:
-                    new_position[0] -= TILE_SIZE
-                elif event.key == pygame.K_KP6 or event.key == pygame.K_RIGHT:
-                    new_position[0] += TILE_SIZE
-                elif event.key == pygame.K_KP8 or event.key == pygame.K_UP:
-                    new_position[1] -= TILE_SIZE
-                elif event.key == pygame.K_KP2 or event.key == pygame.K_DOWN:
-                    new_position[1] += TILE_SIZE
-                elif event.key == pygame.K_KP7:
-                    new_position[0] -= TILE_SIZE
-                    new_position[1] -= TILE_SIZE
-                elif event.key == pygame.K_KP9:
-                    new_position[0] += TILE_SIZE
-                    new_position[1] -= TILE_SIZE
-                elif event.key == pygame.K_KP1:
-                    new_position[0] -= TILE_SIZE
-                    new_position[1] += TILE_SIZE
-                elif event.key == pygame.K_KP3:
-                    new_position[0] += TILE_SIZE
-                    new_position[1] += TILE_SIZE
-                elif event.key == pygame.K_e:
-                    self.interaction_manager.interact(self.player_position, TILE_SIZE)
+                    if event.key == pygame.K_KP4 or event.key == pygame.K_LEFT:
+                        new_position[0] -= TILE_SIZE
+                    elif event.key == pygame.K_KP6 or event.key == pygame.K_RIGHT:
+                        new_position[0] += TILE_SIZE
+                    elif event.key == pygame.K_KP8 or event.key == pygame.K_UP:
+                        new_position[1] -= TILE_SIZE
+                    elif event.key == pygame.K_KP2 or event.key == pygame.K_DOWN:
+                        new_position[1] += TILE_SIZE
+                    elif event.key == pygame.K_KP7:
+                        new_position[0] -= TILE_SIZE
+                        new_position[1] -= TILE_SIZE
+                    elif event.key == pygame.K_KP9:
+                        new_position[0] += TILE_SIZE
+                        new_position[1] -= TILE_SIZE
+                    elif event.key == pygame.K_KP1:
+                        new_position[0] -= TILE_SIZE
+                        new_position[1] += TILE_SIZE
+                    elif event.key == pygame.K_KP3:
+                        new_position[0] += TILE_SIZE
+                        new_position[1] += TILE_SIZE
+                    elif event.key == pygame.K_e:
+                        self.interaction_manager.interact(self.player_position, TILE_SIZE)
 
-                if new_position != self.player_position:
-                    tile_x, tile_y = new_position[0] // TILE_SIZE, new_position[1] // TILE_SIZE
-                    if self.is_tile_walkable(tile_y, tile_x):
-                        self.player_position = new_position
-                        moved = True
-                    else:
-                        self.logger.add_log_message(f"Your helmet bounces off the hard surface!{random.randint(5,200)}")
+                    if new_position != self.player_position:
+                        tile_x, tile_y = new_position[0] // TILE_SIZE, new_position[1] // TILE_SIZE
+                        if self.is_tile_walkable(tile_y, tile_x):
+                            self.player_position = new_position
+                            moved = True
+                        else:
+                            self.logger.add_log_message(f"Your helmet bounces off the hard surface!{random.randint(5,200)}")
 
-                if moved:
-                    self.update_camera()
-                    self.interaction_manager.check_for_adjacent_interactables(self.player_position, TILE_SIZE)
-                    print(f"Player position: {self.player_position}")
-                    print(f"Camera position: {self.camera}")
+                    if moved:
+                        self.update_camera()
+                        self.interaction_manager.check_for_adjacent_interactables(self.player_position, TILE_SIZE)
+                        print(f"Player position: {self.player_position}")
+                        print(f"Camera position: {self.camera}")
 
     def update(self, events):
+        dt = self.clock.tick(60) / 1000.0  # Convert milliseconds to seconds
+        if self.terminal and self.terminal.active:
+            self.terminal.update(dt)
         self.handle_input(events)
         self.update_camera()
         # Add additional update logic if necessary
@@ -145,13 +156,14 @@ class PlanetaryMode:
         screen.blit(self.map_surface, (0, 0))
         screen.blit(self.ui_planetary.sidebar_surface, (SCREEN_WIDTH - self.ui_planetary.sidebar_width, 0))
         screen.blit(self.logger.log_surface, (0, SCREEN_HEIGHT - self.logger.log_height))
-
+        if self.terminal and self.terminal.active:
+            self.terminal.display(screen)
     def land_on_planet(self):
         # Logic to initialize the planetary landing, setting the initial position of the player, etc.
         self.logger.add_log_message(f"You have landed on {self.planet.name}")
         pass
 
-    def docking_terminal(self):
+    def activate_terminal(self):
         self.interaction_layer.fill((0, 0, 0, 0))  # Clear the layer
         # Load the docking terminal interface image
         terminal_image = pygame.image.load("space/assets/img/objects/terminal_screen.png").convert_alpha() 
@@ -160,8 +172,8 @@ class PlanetaryMode:
         # Draw the image onto the map_surface
         self.interaction_layer.blit(terminal_image, (0, 0))
         self.interaction_active = True
-        # Call method to handle player input and feedback (to be implemented)
-        #self.handle_terminal_input()
+        self.terminal = Terminal(terminal_type="docking")
+        self.terminal.activate()
         pass
 
 # Usage example
