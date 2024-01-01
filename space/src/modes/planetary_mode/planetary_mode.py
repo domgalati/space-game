@@ -11,9 +11,10 @@ from .interaction_manager import InteractionManager
 from .terminal import Terminal
 
 class PlanetaryMode:
-    def __init__(self, selected_planet, player): 
+    def __init__(self, selected_planet, player, screen): 
         self.planet = selected_planet
         self.player = player
+        self.screen = screen
         self.player_sprite = pygame.image.load("space/assets/img/objects/player.png").convert_alpha()
         self.tileset = pygame.image.load("space/assets/img/tilesets/planets.png")
         self.ui_planetary = UI_Planetary()  # Create an instance of UI_Planetary       
@@ -136,14 +137,11 @@ class PlanetaryMode:
         self.player_layer.blit(self.player_sprite, (player_x, player_y))
 
     def draw_ui(self):
-        ## Pretty sure this won't get called but implementing just in case.
         self.ui_layer.fill((0, 0, 0, 0))
 
     def draw(self, screen):
         screen.fill((0, 0, 0))
-        # self.draw_map(self.map_surface)
         self.map_manager.draw_map(self.map_surface, self.camera)
-        #self.draw_player(self.map_surface)
 
         self.draw_player()
         self.map_surface.blit(self.player_layer, (0, 0))
@@ -161,8 +159,10 @@ class PlanetaryMode:
         screen.blit(self.map_surface, (0, 0))
         screen.blit(self.ui_planetary.sidebar_surface, (SCREEN_WIDTH - self.ui_planetary.sidebar_width, 0))
         screen.blit(self.logger.log_surface, (0, SCREEN_HEIGHT - self.logger.log_height))
+        
         if self.terminal and self.terminal.active:
             self.terminal.display(screen)
+
     def land_on_planet(self):
         # Logic to initialize the planetary landing, setting the initial position of the player, etc.
         self.logger.add_log_message(f"You have landed on {self.planet.name}")
@@ -177,9 +177,15 @@ class PlanetaryMode:
         # Draw the image onto the map_surface
         self.interaction_layer.blit(terminal_image, (0, 0))
         self.interaction_active = True
-        self.terminal = Terminal(terminal_type="docking")
+        self.terminal = Terminal(terminal_type="docking", planetary_mode=self)
         self.terminal.activate()
         pass
+
+    def deactivate_terminal(self):
+        self.terminal = None
+        self.interaction_active = False
+        self.draw(self.screen)
+        
 
 # Usage example
 # planetary_mode = PlanetaryMode(selected_planet, player)

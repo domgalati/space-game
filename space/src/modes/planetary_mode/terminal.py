@@ -2,8 +2,9 @@ import pygame
 from .terminals import docking_terminal
 
 class Terminal:
-    def __init__(self, terminal_type):
+    def __init__(self, terminal_type, planetary_mode):
         self.terminal_type = terminal_type
+        self.planetary_mode = planetary_mode
         self.input_buffer = ""
         self.output_buffer = []
         self.active = False
@@ -19,6 +20,9 @@ class Terminal:
 
     def deactivate(self):
         self.active = False
+        ## Call deactivate_terminal() from PlanetaryMode
+        if self.planetary_mode:
+            self.planetary_mode.deactivate_terminal()
 
     def process_input(self, event):
         if self.active:
@@ -37,13 +41,15 @@ class Terminal:
 
     def execute_command(self, command):
         self.output_buffer.append(f"> {command}")
-
         # Process the command based on terminal type
         if self.terminal_type == "docking":
             result = docking_terminal.handle_command(command)
         else:
             # Default or other terminal types
             result = "Command not recognized in this terminal."
+
+        if command == "exit":
+            self.deactivate()
 
         self.output_buffer.append(result)
 

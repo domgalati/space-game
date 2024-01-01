@@ -23,7 +23,7 @@ selected_planet = SimplePlanet("Terramonta")
 player = []
 #### END OF DEBUG LOAD ###
 star_system_mode = StarSystemMode()
-planetary_mode = PlanetaryMode(selected_planet, player)
+planetary_mode = PlanetaryMode(selected_planet, player, screen)
 current_mode = planetary_mode
 
 
@@ -40,7 +40,7 @@ while running:
         if current_mode.landing_requested:  # Check if landing was requested
             selected_planet = current_mode.get_selected_planet()  # Implement this method in StarSystemMode
             player = current_mode.get_player()  # Get the player object, implement this in StarSystemMode
-            current_mode = PlanetaryMode(selected_planet, player)
+            current_mode = PlanetaryMode(selected_planet, player, screen)
     elif isinstance(current_mode, PlanetaryMode):
         current_mode.update(events)
         current_mode.map_manager.update_animations(dt)
