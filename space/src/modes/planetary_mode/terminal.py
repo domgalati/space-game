@@ -1,4 +1,5 @@
 import pygame
+from .terminals import docking_terminal
 
 class Terminal:
     def __init__(self, terminal_type):
@@ -35,13 +36,17 @@ class Terminal:
                     self.input_buffer += event.unicode
 
     def execute_command(self, command):
-        # Add the entered command to the output_buffer
         self.output_buffer.append(f"> {command}")
-        
-        # Process the command
-        # For example, let's just echo the command back
-        result = f"Executed: {command}"
+
+        # Process the command based on terminal type
+        if self.terminal_type == "docking":
+            result = docking_terminal.handle_command(command)
+        else:
+            # Default or other terminal types
+            result = "Command not recognized in this terminal."
+
         self.output_buffer.append(result)
+
 
     def update(self, dt):
         if self.active:
