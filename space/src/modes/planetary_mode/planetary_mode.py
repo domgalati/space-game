@@ -67,6 +67,11 @@ class PlanetaryMode:
             for event in events:
                 if event.type == pygame.KEYDOWN:
                     self.terminal.process_input(event)
+                elif event.type == pygame.MOUSEWHEEL:
+                    if event.y > 0:
+                        self.terminal.scroll_up()
+                    elif event.y < 0:
+                        self.terminal.scroll_down()
         else:
             for event in events:
                 if event.type == pygame.MOUSEWHEEL:

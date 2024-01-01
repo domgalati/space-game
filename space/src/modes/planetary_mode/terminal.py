@@ -10,6 +10,7 @@ class Terminal:
         self.blink_timer = 0
         self.blink_interval = 50  # milliseconds
         self.max_lines = 13  # Adjust as needed for your map_surface size
+        self.scroll_position = 0
 
     def activate(self):
         self.active = True
@@ -41,10 +42,6 @@ class Terminal:
         # For example, let's just echo the command back
         result = f"Executed: {command}"
         self.output_buffer.append(result)
-        # ... actual command execution logic ...
-
-        if len(self.output_buffer) > self.max_lines:
-            self.output_buffer = self.output_buffer[-self.max_lines:]
 
     def update(self, dt):
         if self.active:
@@ -53,13 +50,24 @@ class Terminal:
                 self.blink_timer = 0
                 self.cursor_visible = not self.cursor_visible
 
+    def scroll_up(self):
+        self.scroll_position = min(self.scroll_position + 1, max(0, len(self.output_buffer) - self.max_lines))
+        
+
+    def scroll_down(self):
+        self.scroll_position = max(self.scroll_position - 1, 0)
+        
+    
     def display(self, surface):
         if self.active:
             font = pygame.font.Font("space/assets/fonts/TeleSys.ttf", 16)
-
             y_position = 100  # Adjust as needed
 
-            for line in self.output_buffer:
+            start_line = max(0, len(self.output_buffer) - self.max_lines - self.scroll_position)
+            end_line = min(start_line + self.max_lines, len(self.output_buffer))
+
+            for line in self.output_buffer[start_line:end_line]:
+            #for line in self.output_buffer:
                 text_surface = font.render(line, True, (46, 139, 87))
                 surface.blit(text_surface, (100, y_position))
                 y_position += text_surface.get_height() + 5
