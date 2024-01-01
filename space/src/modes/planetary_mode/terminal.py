@@ -6,13 +6,10 @@ class Terminal:
         self.input_buffer = ""
         self.output_buffer = []
         self.active = False
-        self.terminal_type = terminal_type
-        self.input_buffer = ""
-        self.output_buffer = []
-        self.active = False
         self.cursor_visible = True
         self.blink_timer = 0
         self.blink_interval = 50  # milliseconds
+        self.max_lines = 13  # Adjust as needed for your map_surface size
 
     def activate(self):
         self.active = True
@@ -45,6 +42,9 @@ class Terminal:
         result = f"Executed: {command}"
         self.output_buffer.append(result)
         # ... actual command execution logic ...
+
+        if len(self.output_buffer) > self.max_lines:
+            self.output_buffer = self.output_buffer[-self.max_lines:]
 
     def update(self, dt):
         if self.active:
