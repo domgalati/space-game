@@ -44,6 +44,9 @@ while running:
     elif isinstance(current_mode, PlanetaryMode):
         current_mode.update(events)
         current_mode.map_manager.update_animations(dt)
+        if current_mode.switch_to_star_system_mode:
+            current_mode = star_system_mode  # Switch back to StarSystemMode
+            continue  # Skip drawing and immediately continue to the next loop iteration
     
     current_mode.draw(screen)
 

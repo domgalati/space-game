@@ -31,6 +31,8 @@ class PlanetaryMode:
         self.interaction_manager = InteractionManager(self.map_manager, self.logger)
         self.interaction_manager.set_terminal_callback(self.activate_terminal)
         self.terminal = None
+        self.switch_to_star_system_mode = False  # Initialize the attribute here
+
         self.clock = pygame.time.Clock()
 
         self.player_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
@@ -167,6 +169,13 @@ class PlanetaryMode:
         # Logic to initialize the planetary landing, setting the initial position of the player, etc.
         self.logger.add_log_message(f"You have landed on {self.planet.name}")
         pass
+
+    def return_to_star_system_mode(self):
+        # Any necessary cleanup or state saving goes here
+        # ...
+
+        # Signal to switch back to StarSystemMode
+        self.switch_to_star_system_mode = True
 
     def activate_terminal(self):
         self.interaction_layer.fill((0, 0, 0, 0))  # Clear the layer

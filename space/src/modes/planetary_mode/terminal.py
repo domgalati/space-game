@@ -24,6 +24,10 @@ class Terminal:
         if self.planetary_mode:
             self.planetary_mode.deactivate_terminal()
 
+    def depart(self):
+        if self.planetary_mode:
+            self.planetary_mode.return_to_star_system_mode()
+
     def process_input(self, event):
         if self.active:
             if event.type == pygame.KEYDOWN:
@@ -39,6 +43,21 @@ class Terminal:
                     # You might want to filter which characters are allowed
                     self.input_buffer += event.unicode
 
+    def wrap_text(self, text, max_length):
+        wrapped_lines = []
+        while len(text) > max_length:
+            # Find the nearest space before the max_length
+            split_index = text.rfind(' ', 0, max_length)
+            if split_index == -1:  # No spaces found, force split
+                split_index = max_length
+
+            # Split the line and add to the list
+            wrapped_lines.append(text[:split_index])
+            text = text[split_index:].lstrip()  # Remove leading spaces from the rest
+
+        wrapped_lines.append(text)  # Add the last part of the text
+        return wrapped_lines
+
     def execute_command(self, command):
         self.output_buffer.append(f"> {command}")
         # Process the command based on terminal type
@@ -50,8 +69,13 @@ class Terminal:
 
         if command == "exit":
             self.deactivate()
+       
+        if command == "depart":
+            self.depart()
 
-        self.output_buffer.append(result)
+        max_line_length = 80  # Set your desired maximum line length here
+        wrapped_result = self.wrap_text(result, max_line_length)
+        self.output_buffer.extend(wrapped_result)
 
 
     def update(self, dt):
