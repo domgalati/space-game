@@ -1,0 +1,62 @@
+---
+Terramonta:
+  goods:
+    Raw Minerals:
+      basePrice: 100
+      currentPrice: 100
+    Refined Metals:
+      basePrice: 200
+      currentPrice: 200
+    Mining Equipment:
+      basePrice: 300
+      currentPrice: 300
+    Thermal Suits:
+      basePrice: 500
+      currentPrice: 500
+    Industrial Machinery:
+      basePrice: 1200
+      currentPrice: 1200
+    Energy Cells:
+      basePrice: 200
+      currentPrice: 200
+    Geothermal Devices:
+      basePrice: 500
+      currentPrice: 500
+    Durable Tools:
+      basePrice: 100
+      currentPrice: 100
+    Cheap Tools:
+      basePrice: 75
+      currentPrice: 75
+    Rare Gems:
+      basePrice: 5000
+      currentPrice: 5000
+    Construction Alloys:
+      basePrice: 800
+      currentPrice: 800
+  events:
+    Mining Accident:
+      Raw Minerals:
+        priceChange: "+20%"
+      Refined Metals:
+        priceChange: "-10%"
+    Major Vein Discovery:
+    Mining Accident:
+    Industrial Espionage:
+    Labor Strike:
+    Machinery Breakdown:
+    Environmental Protest:
+    Trade Union Rally:
+    Geological Survey Results:
+    Ore Depletion:
+    Breakthrough in Refining Technique:
+    New Mineral Discovery:
+    Mining Regulation Change:
+    Power Outage in Mining District:
+    Industrial Accident:
+    Resource Scarcity:
+    Equipment Upgrade:
+    Ore Price Fluctuation:
+    Industrial Merger:
+    Smuggling Crackdown:
+    Advanced Mining Tech Unveiled:
