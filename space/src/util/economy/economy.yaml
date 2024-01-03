@@ -32,8 +32,8 @@ Terramonta:
       basePrice: 5000
       currentPrice: 5000
     Construction Alloys:
-      basePrice: 800
-      currentPrice: 800
+      basePrice: 500
+      currentPrice: 500
   events:
     Mining Accident:
       Raw Minerals:
@@ -41,22 +41,134 @@ Terramonta:
       Refined Metals:
         priceChange: "-10%"
     Major Vein Discovery:
-    Mining Accident:
-    Industrial Espionage:
+      Raw Minerals:
+        priceChange: "-20%"     
+      Refined Metals:
+        priceChange: "-20%"         
     Labor Strike:
+      Raw Minerals:
+        priceChange: "+30%"
+        Refind Metals: "+30%"
     Machinery Breakdown:
-    Environmental Protest:
+      Mining Equipment:
+        priceChange: "+50%"
+      Industrial Machinery:
+        priceChange: "+50%"
     Trade Union Rally:
-    Geological Survey Results:
+      Thermal Suits:
+        priceChange: "+20%"
+      Energy Cells:
+        priceChange: "+20%"
+      Geothermal Devices:
+        priceChange: "+20%"
+      Durable Tools:
+        priceChange: "+20%"  
     Ore Depletion:
+        Refined Metals:
+          priceChange: "+80%"
+        Raw Minerals:
+          priceChange: "+80%"
+        Construction Alloys:
+          priceChange: "+20%"
+        Rare Gems:
+          priceChange: "80%"
     Breakthrough in Refining Technique:
-    New Mineral Discovery:
-    Mining Regulation Change:
-    Power Outage in Mining District:
-    Industrial Accident:
-    Resource Scarcity:
-    Equipment Upgrade:
-    Ore Price Fluctuation:
-    Industrial Merger:
-    Smuggling Crackdown:
-    Advanced Mining Tech Unveiled:
+      Refined Metals:
+        priceChange: "-60%"
+      Construction Alloys:
+        priceChange: "-60%"
+    Mining Subsidy Contract Signing:
+      Raw Minerals:
+        priceChange: "-45%"
+      Refined Metals:
+        priceChange: "-45%"
+      Mining Equipment:
+        priceChange: "-45%"
+      Thermal Suits:
+        priceChange: "-45%"
+      Industrial Machinery:
+        priceChange: "-45%"
+      Energy Cells: 
+        priceChange: "-45%"
+      Geothermal Devices:
+        priceChange: "-45%"
+      Durable Tools:
+        priceChange: "-45%"
+      Rare Gems:
+        priceChange: "-45%"
+      Construction Alloys:
+        priceChange: "-45%"
+    Mining Subsidy Contract Expiration:
+      Raw Minerals:
+        priceChange: "+45%"
+      Refined Metals:
+        priceChange: "+45%"
+      Mining Equipment:
+        priceChange: "+45%"
+      Thermal Suits:
+        priceChange: "+45%"
+      Industrial Machinery:
+        priceChange: "+45%"
+      Energy Cells:
+        priceChange: "+45%"
+      Geothermal Devices:
+        priceChange: "+45%"
+      Durable Tools:
+        priceChange: "+45%"
+      Rare Gems:
+        priceChange: "+45%"
+      Construction Alloys:
+        priceChange: "+45%"
+Etheora:
+  goods:
+    Advanced Electronics:
+      basePrice: 100
+      currentPrice: 100
+    Software Suites:
+      basePrice: 100
+      currentPrice: 100
+    Robotics Components:
+      basePrice: 100
+      currentPrice: 100
+    Virtual Reality Gear:
+      basePrice: 100
+      currentPrice: 100
+    Nanotechnology:
+      basePrice: 100
+      currentPrice: 100
+    Biotech Products:
+      basePrice: 100
+      currentPrice: 100
+    AI Processors:
+      basePrice: 100
+      currentPrice: 100
+    Renewable Energy Tech:
+      basePrice: 100
+      currentPrice: 100
+    Experimental Gadgets:
+      basePrice: 100
+      currentPrice: 100
+  events:
+    AI Breakthrough:
+      AI Processors:
+        priceChange: "-20%"
+      Software Suites:
+        priceChange: "-20%"
+      Advanced Electronics:
+        priceChange: "-20%"
+    Software Voulnerability Discovery:
+      Software Suites:
+        priceChange: "-25%"
+      Advanced Electronics:
+        priceChange: "-25%"
+    Software Voulnerability Patch:
+      Software Suites:
+        priceChange: "+20%"
+      Advanced Electronics:
+        priceChange: "+20%"
+    Patent War Escalation:
+    Tech Industry Scandal:
+    Major Cybersecurity Attack:
+    Science Grant Awards:
+    Nanotech Advancement:
+    Biotech Breakthrough:
