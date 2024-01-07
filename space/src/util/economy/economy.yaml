@@ -1,4 +1,3 @@
----
 Terramonta:
   goods:
     Raw Minerals:
@@ -48,7 +47,8 @@ Terramonta:
     Labor Strike:
       Raw Minerals:
         priceChange: "+30%"
-        Refind Metals: "+30%"
+      Refined Metals:
+        priceChange: "+30%"
     Machinery Breakdown:
       Mining Equipment:
         priceChange: "+50%"
@@ -64,14 +64,14 @@ Terramonta:
       Durable Tools:
         priceChange: "+20%"  
     Ore Depletion:
-        Refined Metals:
-          priceChange: "+80%"
-        Raw Minerals:
-          priceChange: "+80%"
-        Construction Alloys:
-          priceChange: "+20%"
-        Rare Gems:
-          priceChange: "80%"
+      Refined Metals:
+        priceChange: "+80%"
+      Raw Minerals:
+        priceChange: "+80%"
+      Construction Alloys:
+        priceChange: "+20%"
+      Rare Gems:
+        priceChange: "+80%"
     Breakthrough in Refining Technique:
       Refined Metals:
         priceChange: "-60%"
@@ -88,7 +88,7 @@ Terramonta:
         priceChange: "-45%"
       Industrial Machinery:
         priceChange: "-45%"
-      Energy Cells: 
+      Energy Cells:
         priceChange: "-45%"
       Geothermal Devices:
         priceChange: "-45%"
@@ -119,6 +119,7 @@ Terramonta:
         priceChange: "+45%"
       Construction Alloys:
         priceChange: "+45%"
+
 Etheora:
   goods:
     Advanced Electronics:
@@ -156,19 +157,83 @@ Etheora:
         priceChange: "-20%"
       Advanced Electronics:
         priceChange: "-20%"
-    Software Voulnerability Discovery:
+    Software Vulnerability Discovery:
       Software Suites:
         priceChange: "-25%"
       Advanced Electronics:
         priceChange: "-25%"
-    Software Voulnerability Patch:
+    Software Vulnerability Patch:
       Software Suites:
         priceChange: "+20%"
       Advanced Electronics:
         priceChange: "+20%"
     Patent War Escalation:
+      Robotics Components:
+        priceChange: "+15%"
+      Nanotechnology:
+        priceChange: "+10%"
+      AI Processors:
+        priceChange: "+10%"
     Tech Industry Scandal:
+      Advanced Electronics:
+        priceChange: "-15%"
+      Virtual Reality Gear:
+        priceChange: "-10%"
+      Biotech Products:
+        priceChange: "-10%"
     Major Cybersecurity Attack:
+      Software Suites:
+        priceChange: "-20%"
+      AI Processors:
+        priceChange: "-15%"
+      Renewable Energy Tech:
+        priceChange: "-10%"
     Science Grant Awards:
+      Nanotechnology:
+        priceChange: "+20%"
+      Biotech Products:
+        priceChange: "+15%"
+      Experimental Gadgets:
+        priceChange: "+15%"
     Nanotech Advancement:
+      Nanotechnology:
+        priceChange: "+25%"
+      Robotics Components:
+        priceChange: "+10%"
+      Renewable Energy Tech:
+        priceChange: "+10%"
     Biotech Breakthrough:
+      Biotech Products:
+        priceChange: "+30%"
+      Nanotechnology:
+        priceChange: "+15%"
+      AI Processors:
+        priceChange: "+10%"
+    Global Energy Shift:
+      Renewable Energy Tech:
+        priceChange: "+20%"
+      Experimental Gadgets:
+        priceChange: "+10%"
+      Software Suites:
+        priceChange: "-10%"
+    Virtual Reality Revolution:
+      Virtual Reality Gear:
+        priceChange: "+25%"
+      Software Suites:
+        priceChange: "+15%"
+      Advanced Electronics:
+        priceChange: "+15%"
+    Robotics Industry Boom:
+      Robotics Components:
+        priceChange: "+20%"
+      Advanced Electronics:
+        priceChange: "+10%"
+      AI Processors:
+        priceChange: "+10%"
+    AI Ethics Reform:
+      AI Processors:
+        priceChange: "-15%"
+      Robotics Components:
+        priceChange: "-10%"
+      Software Suites:
+        priceChange: "-10%"
