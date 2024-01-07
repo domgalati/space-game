@@ -186,7 +186,7 @@ class PlanetaryMode:
         # Draw the image onto the map_surface
         self.interaction_layer.blit(terminal_image, (0, 0))
         self.interaction_active = True
-        self.terminal = Terminal(terminal_type="docking", planetary_mode=self)
+        self.terminal = Terminal(terminal_type="docking", planetary_mode=self, planet_name=self.planet)
         self.terminal.activate()
         pass
 

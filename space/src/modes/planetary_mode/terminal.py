@@ -2,9 +2,10 @@ import pygame
 from .terminals import docking_terminal
 
 class Terminal:
-    def __init__(self, terminal_type, planetary_mode):
+    def __init__(self, terminal_type, planetary_mode, planet_name):
         self.terminal_type = terminal_type
         self.planetary_mode = planetary_mode
+        self.planet_name = planet_name  # Store the planet name
         self.input_buffer = ""
         self.output_buffer = []
         self.active = False
@@ -47,7 +48,10 @@ class Terminal:
         wrapped_lines = []
         while len(text) > max_length:
             # Find the nearest space before the max_length
-            split_index = text.rfind(' ', 0, max_length)
+            if text.find('\n') > 0: #if text contains \n
+                split_index = text.rfind('\n', 0, max_length)
+            else:
+                split_index = text.rfind(' ', 0, max_length)
             if split_index == -1:  # No spaces found, force split
                 split_index = max_length
 
@@ -62,7 +66,7 @@ class Terminal:
         self.output_buffer.append(f"> {command}")
         # Process the command based on terminal type
         if self.terminal_type == "docking":
-            result = docking_terminal.handle_command(command)
+            result = docking_terminal.handle_command(command, self.planet_name)
         else:
             # Default or other terminal types
             result = "Command not recognized in this terminal."
@@ -85,24 +89,25 @@ class Terminal:
                 self.blink_timer = 0
                 self.cursor_visible = not self.cursor_visible
 
-    def scroll_up(self):
-        self.scroll_position = min(self.scroll_position + 1, max(0, len(self.output_buffer) - self.max_lines))
-        
+    def flatten_output_buffer(self):
+        # Flatten the output buffer with respect to newline characters
+        flattened_output = []
+        for line in self.output_buffer:
+            flattened_output.extend(line.split('\n'))
+        return flattened_output
 
-    def scroll_down(self):
-        self.scroll_position = max(self.scroll_position - 1, 0)
-        
-    
     def display(self, surface):
         if self.active:
             font = pygame.font.Font("space/assets/fonts/TeleSys.ttf", 16)
             y_position = 100  # Adjust as needed
 
-            start_line = max(0, len(self.output_buffer) - self.max_lines - self.scroll_position)
-            end_line = min(start_line + self.max_lines, len(self.output_buffer))
+            flattened_output = self.flatten_output_buffer()
+            total_line_count = len(flattened_output)
 
-            for line in self.output_buffer[start_line:end_line]:
-            #for line in self.output_buffer:
+            start_line = max(0, total_line_count - self.max_lines - self.scroll_position)
+            end_line = min(start_line + self.max_lines, total_line_count)
+
+            for line in flattened_output[start_line:end_line]:
                 text_surface = font.render(line, True, (46, 139, 87))
                 surface.blit(text_surface, (100, y_position))
                 y_position += text_surface.get_height() + 5
@@ -114,3 +119,9 @@ class Terminal:
 
             input_surface = font.render(input_text, True, (107, 142, 35))
             surface.blit(input_surface, (100, y_position))
+
+    def scroll_up(self):
+        self.scroll_position = min(self.scroll_position + 1, max(0, len(self.flatten_output_buffer()) - self.max_lines))
+
+    def scroll_down(self):
+        self.scroll_position = max(self.scroll_position - 1, 0)
