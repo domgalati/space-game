@@ -22,7 +22,7 @@ class SimplePlanet:
 selected_planet = SimplePlanet("Terramonta")
 player = []
 #### END OF DEBUG LOAD ###
-star_system_mode = StarSystemMode()
+star_system_mode = StarSystemMode(player)
 planetary_mode = PlanetaryMode(selected_planet, player, screen)
 current_mode = planetary_mode
 

@@ -1,0 +1,227 @@
+# GOODS: 
+Governus Centralis (Frost Climate, Political Hub)
+ Legal Documents
+ Diplomatic Gifts
+ Encrypted Data Chips
+ Luxury Office Supplies
+ Government Bonds
+ Rare Artifacts
+ High-End Fashion
+ Gourmet Foodstuffs
+ Security Equipment
+ Political Literature
+Cosmopolara (Earthlike Climate, Metropolitan)
+ Fashion Apparel
+ Electronic Gadgets
+ Cultural Artifacts
+ Street Food Delicacies
+ Entertainment Media
+ Nightlife Equipment
+ Urban Art Supplies
+ Tourism Souvenirs
+ Luxury Watches
+ Cosmopolitan Furniture
+Terramonta (Lava Planet, Mining Town)
+ Raw Minerals
+ Refined Metals
+ Mining Equipment
+ Thermal Suits
+ Industrial Machinery
+ Energy Cells
+ Geothermal Devices
+ Durable Tools
+ Rare Gems
+ Construction Alloys
+Ageria (Earthlike Climate, Agricultural)
+ Grain and Cereals
+ Fresh Produce
+ Livestock
+ Agricultural Machinery
+ Organic Fertilizers
+ Farming Drones
+ Seed Varieties
+ Processed Foods
+ Herbal Medicines
+Biofuels
+Ferrica (Frost Climate, Industrial)
+ Heavy Machinery
+ Factory Equipment
+ Vehicle Parts
+ Steel and Iron
+ Chemical Supplies
+ Industrial Robots
+ Recycled Materials
+ Engineering Tools
+ Safety Gear
+ Construction Materials
+Arboresia (Earthlike Climate, Suburban)
+ Home Appliances
+ Gardening Supplies
+ Decorative Items
+ Educational Materials
+ Personal Vehicles
+ Recreational Equipment
+ Packaged Foods
+ Home Electronics
+ Clothing and Accessories
+ Health and Wellness Products
+Etheora (Marslike Climate, Tech Hub)
+ Advanced Electronics
+ Software Suites
+ Robotics Components
+ Virtual Reality Gear
+ Nanotechnology
+ Biotech Products
+ Communication Devices
+ AI Processors
+ Renewable Energy Tech
+ Experimental Gadgets
+
+# EVENTS:
+Governus Centralis (Political Events)
+ Political Election
+ Anti-Corruption Drive
+ Tax Reform Announcement
+ Diplomatic Summit
+ Political Scandal
+ Trade Embargo
+ Government Shutdown
+ Political Protest
+ Cybersecurity Breach
+ International Treaty Signing
+ VIP Assassination Attempt
+ Espionage Incident
+ Legislative Breakthrough
+ Political Coup
+ Transparency Law Enacted
+ Historic Court Ruling
+ Security Alert
+ Intelligence Leak
+ Foreign Diplomat Visit
+ National Holiday
+Cosmopolara (Metropolitan Events)
+ Major Sports Event
+ Cultural Festival
+ Infrastructure Upgrade
+ Public Transportation Strike
+ Celebrity Scandal
+ Major Concert
+ Art Exhibition Opening
+ Tech Expo
+ Urban Renewal Project
+ Power Grid Failure
+ Trending Fashion Launch
+ Nightclub Boom
+ Gourmet Food Fair
+ Reality Show Filming
+ Blockbuster Movie Premiere
+ Fashion Week
+ Urban Art Movement
+ Luxury Brand Sale
+ High-Profile Wedding
+ Large-Scale Parade
+Terramonta (Mining and Industrial Events)
+ Major Vein Discovery
+ Mining Accident
+ Industrial Espionage
+ Labor Strike
+ Machinery Breakdown
+ Environmental Protest
+ Trade Union Rally
+ Geological Survey Results
+ Ore Depletion
+ Breakthrough in Refining Technique
+ New Mineral Discovery
+ Mining Regulation Change
+ Power Outage in Mining District
+ Industrial Accident
+ Resource Scarcity
+ Equipment Upgrade
+ Ore Price Fluctuation
+ Industrial Merger
+ Smuggling Crackdown
+ Advanced Mining Tech Unveiled
+Ageria (Agricultural Events)
+ Bumper Crop Harvest
+ Crop Disease Outbreak
+ Organic Movement Rise
+ Severe Drought
+ Floods
+ Farming Technology Breakthrough
+ Pesticide Ban
+ Livestock Epidemic
+ Agricultural Fair
+ GMO Controversy
+ Biofuel Production Increase
+ Farmers' Strike
+ Land Reformation Policy
+ Irrigation Project Completion
+ Trade Tariffs on Produce
+ Vegan Trend Surge
+ Food Safety Scandal
+ Harvest Festival
+ Surplus Production
+ Seed Bank Establishment
+Ferrica (Manufacturing and Industry Events)
+ Factory Modernization
+ Industrial Pollution Scandal
+ Robotization of Workforce
+ New Trade Agreements
+ Manufacturing Process Breakthrough
+ Commodity Price Hike
+ Energy Crisis
+ Industrial Park Expansion
+ Import/Export Regulation Changes
+ Factory Fire
+ Supply Chain Disruption
+ Skilled Labor Shortage
+ Wage Negotiations
+ Worker Safety Law Changes
+ Product Recall
+ Tech Manufacturing Boom
+ International Manufacturing Contract
+ Economic Downturn
+ Industrial Strike
+ Energy Efficient Tech Adoption
+Arboresia (Suburban and Lifestyle Events)
+ Real Estate Boom
+ Education Reform
+ Health and Wellness Trend
+ Home Automation Breakthrough
+ Community Festival
+ Eco-Friendly Movement
+ Internet Outage
+ Local Election
+ School Opening
+ Power Line Upgrades
+ Public Park Renovation
+ Neighborhood Watch Implementation
+ Water Conservation Measures
+ Recycling Campaign
+ Suburban Expansion
+ Local Crime Wave
+ Public Health Initiative
+ Community Art Project
+ School Sports Championship
+ Property Tax Reform
+Etheora (Tech and Innovation Events)
+ AI Breakthrough
+ Tech Startup IPO
+ Cybersecurity Upgrade
+ Virtual Reality Experience Launch
+ Innovation Conference
+ Patent War Escalation
+ Breakthrough in Clean Energy
+ Tech Industry Scandal
+ Major Hack Attack
+ Science Grant Awards
+ Robotics Competition
+ Tech Education Initiative
+ Quantum Computing Milestone
+ Space Exploration Mission
+ Nanotech Advancement
+ Biotech Breakthrough
+ Smart City Initiative
+ 5G Network Expansion
+ Renewable Energy Project
+ Augmented Reality Game Craze

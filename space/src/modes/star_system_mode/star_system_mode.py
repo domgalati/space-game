@@ -8,7 +8,7 @@ from util.sprite_animation import AnimatedSprite
 from .star_systems import StarSystem
 
 class StarSystemMode:
-    def __init__(self):
+    def __init__(self, player):
         self.sol_system = StarSystem('space/star_systems/sol.json')
         self.input_handler = InputHandler(self.sol_system, self)  # Instantiate InputHandler
         self.grid_size = (self.sol_system.MAP_WIDTH // TILE_SIZE, self.sol_system.MAP_HEIGHT // TILE_SIZE)
@@ -27,7 +27,7 @@ class StarSystemMode:
         self.parallax_velocity_x, self.parallax_velocity_y = 0, 0
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
         self.landing_requested = False
-        self.player = [] ## Should store changes that happen to the player in star system mode. I think.
+        self.player = player
         self.selected_planet = None
 
     def handle_input(self):

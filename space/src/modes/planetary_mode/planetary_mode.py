@@ -1,3 +1,4 @@
+import yaml
 import pygame
 #import pytmx
 import random
@@ -9,9 +10,14 @@ from .map_manager import MapManager
 from .ui_planetary import UI_Planetary
 from .interaction_manager import InteractionManager
 from .terminal import Terminal
+from util.economy.economy import Economy    
 
 class PlanetaryMode:
     def __init__(self, selected_planet, player, screen): 
+        economy_file_path = 'space/src/util/economy/economy.yaml'
+        with open(economy_file_path, 'r') as file:
+            economy_data = yaml.safe_load(file)
+
         self.planet = selected_planet
         self.player = player
         self.screen = screen
@@ -32,6 +38,8 @@ class PlanetaryMode:
         self.interaction_manager.set_terminal_callback(self.activate_terminal)
         self.terminal = None
         self.switch_to_star_system_mode = False  # Initialize the attribute here
+        self.economy = Economy(selected_planet.name, economy_data)
+        self.economy.set_log_callback(self.logger.add_log_message)
 
         self.clock = pygame.time.Clock()
 
@@ -115,11 +123,13 @@ class PlanetaryMode:
                             self.player_position = new_position
                             moved = True
                         else:
-                            self.logger.add_log_message(f"Your helmet bounces off the hard surface!{random.randint(5,200)}")
+                            self.logger.add_log_message(f"You can't go that way!")
 
                     if moved:
                         self.update_camera()
                         self.interaction_manager.check_for_adjacent_interactables(self.player_position, TILE_SIZE)
+                        self.economy.fire_event()
+                        self.economy.dump_updated_data('space/src/util/economy/economy_generated.yaml')
                         print(f"Player position: {self.player_position}")
                         print(f"Camera position: {self.camera}")
 

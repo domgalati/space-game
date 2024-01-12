@@ -1,0 +1,238 @@
+Etheora:
+  events:
+    AI Breakthrough:
+      AI Processors:
+        priceChange: -20%
+      Advanced Electronics:
+        priceChange: -20%
+      Software Suites:
+        priceChange: -20%
+    AI Ethics Reform:
+      AI Processors:
+        priceChange: -15%
+      Robotics Components:
+        priceChange: -10%
+      Software Suites:
+        priceChange: -10%
+    Biotech Breakthrough:
+      AI Processors:
+        priceChange: +10%
+      Biotech Products:
+        priceChange: +30%
+      Nanotechnology:
+        priceChange: +15%
+    Global Energy Shift:
+      Experimental Gadgets:
+        priceChange: +10%
+      Renewable Energy Tech:
+        priceChange: +20%
+      Software Suites:
+        priceChange: -10%
+    Major Cybersecurity Attack:
+      AI Processors:
+        priceChange: -15%
+      Renewable Energy Tech:
+        priceChange: -10%
+      Software Suites:
+        priceChange: -20%
+    Nanotech Advancement:
+      Nanotechnology:
+        priceChange: +25%
+      Renewable Energy Tech:
+        priceChange: +10%
+      Robotics Components:
+        priceChange: +10%
+    Patent War Escalation:
+      AI Processors:
+        priceChange: +10%
+      Nanotechnology:
+        priceChange: +10%
+      Robotics Components:
+        priceChange: +15%
+    Robotics Industry Boom:
+      AI Processors:
+        priceChange: +10%
+      Advanced Electronics:
+        priceChange: +10%
+      Robotics Components:
+        priceChange: +20%
+    Science Grant Awards:
+      Biotech Products:
+        priceChange: +15%
+      Experimental Gadgets:
+        priceChange: +15%
+      Nanotechnology:
+        priceChange: +20%
+    Software Vulnerability Discovery:
+      Advanced Electronics:
+        priceChange: -25%
+      Software Suites:
+        priceChange: -25%
+    Software Vulnerability Patch:
+      Advanced Electronics:
+        priceChange: +20%
+      Software Suites:
+        priceChange: +20%
+    Tech Industry Scandal:
+      Advanced Electronics:
+        priceChange: -15%
+      Biotech Products:
+        priceChange: -10%
+      Virtual Reality Gear:
+        priceChange: -10%
+    Virtual Reality Revolution:
+      Advanced Electronics:
+        priceChange: +15%
+      Software Suites:
+        priceChange: +15%
+      Virtual Reality Gear:
+        priceChange: +25%
+  goods:
+    AI Processors:
+      basePrice: 100
+      currentPrice: 100
+    Advanced Electronics:
+      basePrice: 100
+      currentPrice: 100
+    Biotech Products:
+      basePrice: 100
+      currentPrice: 100
+    Experimental Gadgets:
+      basePrice: 100
+      currentPrice: 100
+    Nanotechnology:
+      basePrice: 100
+      currentPrice: 100
+    Renewable Energy Tech:
+      basePrice: 100
+      currentPrice: 100
+    Robotics Components:
+      basePrice: 100
+      currentPrice: 100
+    Software Suites:
+      basePrice: 100
+      currentPrice: 100
+    Virtual Reality Gear:
+      basePrice: 100
+      currentPrice: 100
+Terramonta:
+  events:
+    Breakthrough in Refining Technique:
+      Construction Alloys:
+        priceChange: -60%
+      Refined Metals:
+        priceChange: -60%
+    Labor Strike:
+      Raw Minerals:
+        priceChange: +30%
+      Refined Metals:
+        priceChange: +30%
+    Machinery Breakdown:
+      Industrial Machinery:
+        priceChange: +50%
+      Mining Equipment:
+        priceChange: +50%
+    Major Vein Discovery:
+      Raw Minerals:
+        priceChange: -20%
+      Refined Metals:
+        priceChange: -20%
+    Mining Accident:
+      Raw Minerals:
+        priceChange: +20%
+      Refined Metals:
+        priceChange: -10%
+    Mining Subsidy Contract Expiration:
+      Construction Alloys:
+        priceChange: +45%
+      Durable Tools:
+        priceChange: +45%
+      Energy Cells:
+        priceChange: +45%
+      Geothermal Devices:
+        priceChange: +45%
+      Industrial Machinery:
+        priceChange: +45%
+      Mining Equipment:
+        priceChange: +45%
+      Rare Gems:
+        priceChange: +45%
+      Raw Minerals:
+        priceChange: +45%
+      Refined Metals:
+        priceChange: +45%
+      Thermal Suits:
+        priceChange: +45%
+    Mining Subsidy Contract Signing:
+      Construction Alloys:
+        priceChange: -45%
+      Durable Tools:
+        priceChange: -45%
+      Energy Cells:
+        priceChange: -45%
+      Geothermal Devices:
+        priceChange: -45%
+      Industrial Machinery:
+        priceChange: -45%
+      Mining Equipment:
+        priceChange: -45%
+      Rare Gems:
+        priceChange: -45%
+      Raw Minerals:
+        priceChange: -45%
+      Refined Metals:
+        priceChange: -45%
+      Thermal Suits:
+        priceChange: -45%
+    Ore Depletion:
+      Construction Alloys:
+        priceChange: +20%
+      Rare Gems:
+        priceChange: +80%
+      Raw Minerals:
+        priceChange: +80%
+      Refined Metals:
+        priceChange: +80%
+    Trade Union Rally:
+      Durable Tools:
+        priceChange: +20%
+      Energy Cells:
+        priceChange: +20%
+      Geothermal Devices:
+        priceChange: +20%
+      Thermal Suits:
+        priceChange: +20%
+  goods:
+    Cheap Tools:
+      basePrice: 75
+      currentPrice: 75
+    Construction Alloys:
+      basePrice: 500
+      currentPrice: 500
+    Durable Tools:
+      basePrice: 100
+      currentPrice: 100
+    Energy Cells:
+      basePrice: 200
+      currentPrice: 200
+    Geothermal Devices:
+      basePrice: 500
+      currentPrice: 500
+    Industrial Machinery:
+      basePrice: 1200
+      currentPrice: 1200
+    Mining Equipment:
+      basePrice: 300
+      currentPrice: 300
+    Rare Gems:
+      basePrice: 5000
+      currentPrice: 5000
+    Raw Minerals:
+      basePrice: 100
+      currentPrice: 100
+    Refined Metals:
+      basePrice: 200
+      currentPrice: 200
+    Thermal Suits:
+      basePrice: 500
+      currentPrice: 500

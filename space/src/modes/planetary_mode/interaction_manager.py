@@ -39,7 +39,7 @@ class InteractionManager:
         for pos in adjacent_positions:
             is_interactable, objectname = self.is_interactable_at(pos, TILE_SIZE)
             if is_interactable:
-                self.logger.add_log_message(f"You approach a {objectname}. Press E to interact. Testing message display length. This message is really long.")
+                self.logger.add_log_message(f"You approach a {objectname}. Press E to interact.")
                 break  # Add this if you only want one message per move
             
     def interact(self, player_position, TILE_SIZE):
