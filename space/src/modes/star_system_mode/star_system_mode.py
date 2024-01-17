@@ -8,13 +8,13 @@ from util.sprite_animation import AnimatedSprite
 from .star_systems import StarSystem
 
 class StarSystemMode:
-    def __init__(self, player):
-        self.sol_system = StarSystem('space/star_systems/sol.json')
-        self.input_handler = InputHandler(self.sol_system, self)  # Instantiate InputHandler
-        self.grid_size = (self.sol_system.MAP_WIDTH // TILE_SIZE, self.sol_system.MAP_HEIGHT // TILE_SIZE)
+    def __init__(self, player, starsystem): 
+        self.selected_system = StarSystem(f'space/star_systems/{starsystem}.json')
+        self.input_handler = InputHandler(self.selected_system, self)  # Instantiate InputHandler
+        self.grid_size = (self.selected_system.MAP_WIDTH // TILE_SIZE, self.selected_system.MAP_HEIGHT // TILE_SIZE)
         self.white_stars, self.purple_stars, self.blue_stars = initialize_stars(SCREEN_WIDTH, SCREEN_HEIGHT)
-        self.map_center_x = self.sol_system.MAP_WIDTH // 2
-        self.map_center_y = self.sol_system.MAP_HEIGHT // 2
+        self.map_center_x = self.selected_system.MAP_WIDTH // 2
+        self.map_center_y = self.selected_system.MAP_HEIGHT // 2
         self.cargo_sheet = 'space/assets/img/cargo6frame.png'
         self.frame_dimensions = (48, 48)
         self.num_frames = 6
@@ -39,10 +39,10 @@ class StarSystemMode:
 
     def check_collision(self):
         ship_rect = pygame.Rect(self.x_position * TILE_SIZE, self.y_position * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-        for planet in self.sol_system.planets:
+        for planet in self.selected_system.planets:
             if ship_rect.colliderect(planet.get_rect()):
                 return planet
-        for obj in self.sol_system.objects:
+        for obj in self.selected_system.objects:
             if ship_rect.colliderect(obj.get_rect()):
                 return obj
         return None
@@ -87,8 +87,8 @@ class StarSystemMode:
                     )
         self.previous_x, self.previous_y = self.x_position, self.y_position
         self.animated_cargoship.update()
-        self.camera.x = max(0, min(self.x_position * TILE_SIZE - SCREEN_WIDTH // 2, self.sol_system.MAP_WIDTH - SCREEN_WIDTH))
-        self.camera.y = max(0, min(self.y_position * TILE_SIZE - SCREEN_HEIGHT // 2, self.sol_system.MAP_HEIGHT - SCREEN_HEIGHT))
+        self.camera.x = max(0, min(self.x_position * TILE_SIZE - SCREEN_WIDTH // 2, self.selected_system.MAP_WIDTH - SCREEN_WIDTH))
+        self.camera.y = max(0, min(self.y_position * TILE_SIZE - SCREEN_HEIGHT // 2, self.selected_system.MAP_HEIGHT - SCREEN_HEIGHT))
         self.input_handler.handle_interaction(self.x_position, self.y_position, TILE_SIZE)
         # Update the interaction menu if it's active
         if hasattr(self, 'interaction_menu') and self.interaction_menu.active:
@@ -98,7 +98,7 @@ class StarSystemMode:
     def draw(self, screen):
         # Draw logic specific to star system mode
         screen.fill((0, 0, 0))
-        self.sol_system.draw(screen, self.camera)
+        self.selected_system.draw(screen, self.camera)
         draw_stars(screen, self.white_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 2, self.parallax_offset_y * 2))
         draw_stars(screen, self.purple_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 3, self.parallax_offset_y * 3))
         draw_stars(screen, self.blue_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 4, self.parallax_offset_y * 4))
