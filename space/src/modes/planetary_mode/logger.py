@@ -42,7 +42,8 @@ class Logger:
     def draw_log(self):
         self.log_surface.fill((0, 0, 0))  # Clear the log surface
 
-        font = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16)
+        #font = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16)
+        font = pygame.font.Font("space/assets/fonts/rogue.otf", 24)
         line_height = 20  # Adjust as needed for your font size
         max_line_width = SCREEN_WIDTH - 20  # Adjust as needed for your sidebar size
 

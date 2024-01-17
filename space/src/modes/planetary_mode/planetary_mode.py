@@ -10,7 +10,8 @@ from .map_manager import MapManager
 from .ui_planetary import UI_Planetary
 from .interaction_manager import InteractionManager
 from .terminal import Terminal
-from util.economy.economy import Economy    
+from util.economy.economy import Economy
+
 
 class PlanetaryMode:
     def __init__(self, selected_planet, player, screen): 
@@ -22,15 +23,13 @@ class PlanetaryMode:
         self.player = player
         self.screen = screen
         self.player_sprite = pygame.image.load("space/assets/img/objects/player.png").convert_alpha()
-        self.tileset = pygame.image.load("space/assets/img/tilesets/planets.png")
         self.ui_planetary = UI_Planetary()  # Create an instance of UI_Planetary       
         self.font = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16)
         self.logger = Logger(log_height=200, screen_width=SCREEN_WIDTH, font=self.font)
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height)
         self.map_surface = pygame.Surface((SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height))
         map_filename = f"space/assets/maps/{self.planet.name}.tmx"       
-        self.map_manager = MapManager(map_filename, self.tileset, (SCREEN_WIDTH, SCREEN_HEIGHT), (SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.map_tiles = self.map_manager.initialize_map_tiles() 
+        self.map_manager = MapManager(map_filename, (SCREEN_WIDTH, SCREEN_HEIGHT), (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.log_messages = []
         self.player_position = list(self.planet.start_pos)
         self.map_manager.initialize_animation_data()
@@ -47,7 +46,8 @@ class PlanetaryMode:
         self.ui_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         self.interaction_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         self.interaction_active = False  # Flag to indicate if an interaction layer is active
-   
+
+
     def is_tile_walkable(self, x, y):
         # Access the 'walkable' layer
         walkable_layer = self.map_manager.tmx_data.get_layer_by_name("walkable")
@@ -139,6 +139,7 @@ class PlanetaryMode:
             self.terminal.update(dt)
         self.handle_input(events)
         self.update_camera()
+        self.ui_planetary.update_player_stats(self.player)
         # Add additional update logic if necessary
 
     def draw_player(self):
