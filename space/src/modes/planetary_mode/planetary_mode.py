@@ -11,6 +11,7 @@ from .ui_planetary import UI_Planetary
 from .interaction_manager import InteractionManager
 from .terminal import Terminal
 from util.economy.economy import Economy
+from entities.player import Player
 
 
 class PlanetaryMode:
@@ -20,7 +21,7 @@ class PlanetaryMode:
             economy_data = yaml.safe_load(file)
 
         self.planet = selected_planet
-        self.player = player
+        self.player = Player()
         self.screen = screen
         self.player_sprite = pygame.image.load("space/assets/img/objects/player.png").convert_alpha()
         self.ui_planetary = UI_Planetary()  # Create an instance of UI_Planetary       
