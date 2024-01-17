@@ -24,7 +24,7 @@ class Economy:
         self.data[self.planet_name]['goods'][item]['currentPrice'] = new_price
 
     def fire_event(self):
-        if random.randint(0, 100) < 36:  # 36% chance to trigger an event
+        if random.uniform(0, 100) < 1.5:  # 2% chance to trigger an event
             event = random.choice(list(self.data[self.planet_name]['events']))
             print(f"Prices on {self.planet_name} have changed due to {event}")
             event_message = f"Prices on {self.planet_name} have changed due to {event}"

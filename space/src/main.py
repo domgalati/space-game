@@ -3,6 +3,7 @@ import pygame
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
 from modes.star_system_mode.star_system_mode import StarSystemMode
 from modes.planetary_mode.planetary_mode import PlanetaryMode
+from entities.player import Player
 
 pygame.init()
 pygame.font.init()  # Initialize the font module
@@ -20,7 +21,7 @@ class SimplePlanet:
         self.start_pos = [1248, 144]
 
 selected_planet = SimplePlanet("Terramonta")
-player = []
+player = Player()
 #### END OF DEBUG LOAD ###
 star_system_mode = StarSystemMode(player)
 planetary_mode = PlanetaryMode(selected_planet, player, screen)

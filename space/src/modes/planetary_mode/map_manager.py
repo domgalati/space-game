@@ -4,21 +4,14 @@ from pytmx.util_pygame import load_pygame
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
 
 class MapManager:
-    def __init__(self, map_filename, tileset, screen_dimensions, camera_dimensions):
+    def __init__(self, map_filename, screen_dimensions, camera_dimensions):
         # Initialize attributes
         self.tmx_data = self.load_map(map_filename)
         self.map_surface = pygame.Surface(screen_dimensions)
         self.sidebar_width = 200
         self.log_height = 200
-        self.tileset = tileset
         self.animations = {}
         # Other necessary initializations
-
-    def initialize_map_tiles(self):
-        # Load tiles from the tileset and store them in a dictionary
-        tiles = {}
-        # Add logic here to load individual tiles from the tileset based on the planet type
-        return tiles
 
     def initialize_animation_data(self):
         self.animations = {}  # Dictionary to store animation data keyed by tile GID

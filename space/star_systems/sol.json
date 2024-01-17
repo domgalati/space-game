@@ -1,15 +1,15 @@
 {
     "seed": 12345,
     "planets": [
-        {"name": "Terramonta", "type": "Lava", "image_path": "space/assets/img/planets/Lava.png", "start_pos": [1248, 144]},
-        {"name": "Etheora", "type": "Baren", "image_path": "space/assets/img/planets/Baren.png"},
-        {"name": "Arboresia", "type": "Terran", "image_path": "space/assets/img/planets/Terran.png"},
-        {"name": "Ageria", "type": "Terran", "image_path": "space/assets/img/planets/Terran.png"},
-        {"name": "Cosmopolara", "type": "Terran", "image_path": "space/assets/img/planets/Terran.png"},
-        {"name": "Ferrica", "type": "Frost", "image_path": "space/assets/img/planets/Ice.png"},
-        {"name": "Governus Centralis", "type": "Frost", "image_path": "space/assets/img/planets/Baren.png"}
+        {"name": "Terramonta", "type": "Industrial", "guild": "assembly", "image_path": "space/assets/img/planets/Lava.png", "start_pos": [1248, 144]},
+        {"name": "Etheora", "type": "Urban", "guild": "assembly", "image_path": "space/assets/img/planets/Baren.png"},
+        {"name": "Arboresia", "type": "Suburban", "guild": "assembly", "image_path": "space/assets/img/planets/Terran.png"},
+        {"name": "Ageria", "type": "Terran", "guild": "assembly", "image_path": "space/assets/img/planets/Terran.png"},
+        {"name": "Cosmopolara", "type": "Urban", "guild": "assembly", "image_path": "space/assets/img/planets/Terran.png"},
+        {"name": "Ferrica", "type": "Industrial", "guild": "assembly", "image_path": "space/assets/img/planets/Ice.png"},
+        {"name": "Governus Centralis", "type": "Urban", "guild": "assembly", "image_path": "space/assets/img/planets/Baren.png"}
     ],
     "objects": [
-        {"name": "Nexum Astra", "type": "SpaceStation", "image_path": "space/assets/img/objects/space_station2.png", "x": 12420, "y": 8280}
+        {"name": "Nexum Astra", "type": "SpaceStation", "guild": "assembly", "image_path": "space/assets/img/objects/space_station2.png", "x": 12420, "y": 8280}
     ]
 }
