@@ -1,4 +1,6 @@
+import pygame
 import random
+from util.config import TILE_SIZE
 from .npc_generator import generate_npc  # Import the npc_generator function
 
 class NPCManager:
@@ -11,19 +13,19 @@ class NPCManager:
     def populate_npcs(self):
         npc_types = self.get_npc_types_based_on_planet(self.planet)
         walkable_tiles = self.get_walkable_tiles()
-        guild_name = self.planet.guild  # Assuming guild name is stored in planet object
+        guild_name = self.planet.planet_guild  # Assuming guild name is stored in planet object
 
         for npc_class in npc_types:
             position = random.choice(walkable_tiles)
             # Use npc_generator to create NPC instance
-            npc = generate_npc(guild_name, npc_class.__name__)
-            npc.set_position(position)
+            npc = generate_npc(guild_name, npc_class)
+            npc.position = position
             self.npcs.append(npc)
 
     def get_npc_types_based_on_planet(self, planet):
         # Example logic based on planet type
-        if planet.type == 'Industrial':
-            return [Miner, Foreman]  # More miners and foremen for a mining planet
+        if planet.planet_type == 'Industrial':
+            return ["Miner", "Foreman"]  # More miners and foremen for a mining planet
         # Add other conditions for different planet types
         return [NPC]  # Default NPC type
 
@@ -39,7 +41,19 @@ class NPCManager:
         # Update logic for NPCs, e.g., movements, interactions
         pass
 
-    def draw(self, surface):
-        # Draw NPCs on the map
+    def draw(self, npc_layer, camera):
         for npc in self.npcs:
-            npc.draw(surface)
+            if npc.sprite:
+                sprite_image = pygame.image.load(npc.sprite).convert_alpha()
+                npc_layer.fill((0, 0, 0, 0)) 
+                npc_layer.fill((0, 0, 0, 0)) 
+                # Calculate the position relative to the camera
+                npc_screen_x = npc.position[0] * TILE_SIZE - camera.x  # Adjusted for tile size and camera position
+                npc_screen_y = npc.position[1] * TILE_SIZE - camera.y  # Adjusted for tile size and camera position
+                npc_layer.blit(sprite_image, (npc_screen_x, npc_screen_y))
+    # def draw(self, surface):
+    #     # Draw NPCs on the map
+    #     for npc in self.npcs:
+    #         if npc.sprite:
+    #             sprite_image = pygame.image.load(npc.sprite).convert_alpha()  # Load the sprite image
+    #             surface.blit(sprite_image, npc.position)  # Draw the sprite at the NPC's position

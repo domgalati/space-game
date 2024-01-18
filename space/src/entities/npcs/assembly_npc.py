@@ -25,7 +25,7 @@ last_names = [
     "Lopez", "Lee", "Gonzalez", "Harris", "Clark",
     "Lewis", "Robinson", "Walker", "Perez", "Hall",
     "Young", "Allen", "Sanchez", "Wright", "King",
-    "Scott", "Green", "Baker", "Adams", "Nelson",
+    "Scott", "Green", "Baker", "Nelson",
     "Hill", "Ramirez", "Campbell", "Mitchell", "Roberts",
     "Carter", "Phillips", "Evans", "Turner", "Torres",
     "Parker", "Collins", "Edwards", "Stewart", "Flores",
