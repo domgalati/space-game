@@ -47,7 +47,7 @@ class StarSystem:
             angle = random.uniform(0, 2 * math.pi)
             
             start_pos = data.get('start_pos', (0, 0))
-            planet = Planet(data['name'], data['type'], data['image_path'], orbit_radius, angle, self.map_center_x, self.map_center_y, start_pos)
+            planet = Planet(data['name'], data['type'], data['guild'], data['image_path'], orbit_radius, angle, self.map_center_x, self.map_center_y, start_pos)
             self.planets.append(planet)
             self.orbits.append(orbit_radius)
             last_orbit_radius = orbit_radius

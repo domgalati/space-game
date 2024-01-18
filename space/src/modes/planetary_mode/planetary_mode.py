@@ -12,7 +12,7 @@ from .interaction_manager import InteractionManager
 from .terminal import Terminal
 from util.economy.economy import Economy
 from entities.player import Player
-
+from .npc_manager import NPCManager
 
 class PlanetaryMode:
     def __init__(self, selected_planet, player, screen): 
@@ -40,9 +40,12 @@ class PlanetaryMode:
         self.switch_to_star_system_mode = False  # Initialize the attribute here
         self.economy = Economy(selected_planet.name, economy_data)
         self.economy.set_log_callback(self.logger.add_log_message)
+        self.npc_manager = NPCManager(self.map_manager, selected_planet)
+
 
         self.clock = pygame.time.Clock()
 
+        self.npc_layer = pygame.surface.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         self.player_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         self.ui_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         self.interaction_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
@@ -140,6 +143,7 @@ class PlanetaryMode:
             self.terminal.update(dt)
         self.handle_input(events)
         self.update_camera()
+        self.npc_manager.update()
         self.ui_planetary.update_player_stats(self.player)
         # Add additional update logic if necessary
 
@@ -162,6 +166,9 @@ class PlanetaryMode:
 
         self.draw_ui()
         self.map_surface.blit(self.ui_layer, (0, 0))
+
+        self.npc_manager.draw(self.npc_layer, self.camera)
+        self.map_surface.blit(self.npc_layer, (0, 0))  # Draw the NPC layer onto the map surface
 
         if self.interaction_active:
             self.map_surface.blit(self.interaction_layer, (0, 0))

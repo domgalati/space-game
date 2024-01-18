@@ -15,4 +15,5 @@ class NPC:
         self.level = 1
         self.isBackgroundCharacter = bool
         self.isHostile = bool
+        self.position = (0, 0)
         # Additional attributes as needed
