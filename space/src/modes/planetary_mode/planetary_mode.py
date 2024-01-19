@@ -134,6 +134,7 @@ class PlanetaryMode:
                         self.interaction_manager.check_for_adjacent_interactables(self.player_position, TILE_SIZE)
                         self.economy.fire_event()
                         self.economy.dump_updated_data('space/src/util/economy/economy_generated.yaml')
+                        self.npc_manager.update()
                         print(f"Player position: {self.player_position}")
                         print(f"Camera position: {self.camera}")
 
@@ -143,7 +144,7 @@ class PlanetaryMode:
             self.terminal.update(dt)
         self.handle_input(events)
         self.update_camera()
-        self.npc_manager.update()
+        # self.npc_manager.update()
         self.ui_planetary.update_player_stats(self.player)
         # Add additional update logic if necessary
 

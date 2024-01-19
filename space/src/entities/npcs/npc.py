@@ -1,4 +1,4 @@
-## The classes in this file represent what values are stored when the player saves the game.
+from entities.npcs.goals.wander_goal import WanderGoal
 
 class NPC:
     def __init__(self):
@@ -16,4 +16,9 @@ class NPC:
         self.isBackgroundCharacter = bool
         self.isHostile = bool
         self.position = (0, 0)
+        self.goal = WanderGoal(self)
         # Additional attributes as needed
+
+    def update(self):
+        if self.goal:
+            self.goal.update()        
