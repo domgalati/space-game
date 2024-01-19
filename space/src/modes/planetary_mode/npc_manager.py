@@ -42,17 +42,26 @@ class NPCManager:
                 walkable_tiles.append((x, y))
         return walkable_tiles
 
-    def update(self):
+    def is_within_visible_area(self, npc_x, npc_y, camera_x, camera_y, camera_width, camera_height):
+            # Convert NPC position from tiles to pixels if necessary
+            npc_pixel_x = npc_x * TILE_SIZE
+            npc_pixel_y = npc_y * TILE_SIZE
+    
+            # Check if the NPC's position intersects with the camera's viewport
+            return (camera_x <= npc_pixel_x <= camera_x + camera_width and
+                    camera_y <= npc_pixel_y <= camera_y + camera_height)
+
+    def update(self, camera_x, camera_y, camera_width, camera_height):
         for npc in self.npcs:
-            npc.update()
+            if self.is_within_visible_area(npc.position[0], npc.position[1], camera_x, camera_y, camera_width, camera_height):
+                npc.update()
 
     def draw(self, npc_layer, camera):
         npc_layer.fill((0, 0, 0, 0)) 
-        npc_layer.fill((0, 0, 0, 0)) 
         for npc in self.npcs:
-            if npc.sprite:
-                sprite_image = npc.sprite_image
-                # Calculate the position relative to the camera
-                npc_screen_x = npc.position[0] * TILE_SIZE - camera.x  # Adjusted for tile size and camera position
-                npc_screen_y = npc.position[1] * TILE_SIZE - camera.y  # Adjusted for tile size and camera position
-                npc_layer.blit(sprite_image, (npc_screen_x, npc_screen_y))
+            if self.is_within_visible_area(npc.position[0], npc.position[1], camera.x, camera.y, camera.width, camera.height):
+                if npc.sprite:
+                    sprite_image = npc.sprite_image
+                    npc_screen_x = npc.position[0] * TILE_SIZE - camera.x
+                    npc_screen_y = npc.position[1] * TILE_SIZE - camera.y
+                    npc_layer.blit(sprite_image, (npc_screen_x, npc_screen_y))
