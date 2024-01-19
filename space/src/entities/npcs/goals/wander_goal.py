@@ -1,23 +1,6 @@
 import random
 from .base_goal import BaseGoal
 
-# class WanderGoal(BaseGoal):
-#     def __init__(self, npc):
-#         super().__init__(npc)
-
-
-#     def update(self):
-#         # Randomly move the NPC up, down, left, or right
-#         direction = random.choice(['up', 'down', 'left', 'right'])
-#         if direction == 'up':
-#             self.npc.position = (self.npc.position[0], self.npc.position[1] - 1)
-#         elif direction == 'down':
-#             self.npc.position = (self.npc.position[0], self.npc.position[1] + 1)
-#         elif direction == 'left':
-#             self.npc.position = (self.npc.position[0] - 1, self.npc.position[1])
-#         elif direction == 'right':
-#             self.npc.position = (self.npc.position[0] + 1, self.npc.position[1])
-
 class WanderGoal(BaseGoal):
     def __init__(self, npc):
         super().__init__(npc)

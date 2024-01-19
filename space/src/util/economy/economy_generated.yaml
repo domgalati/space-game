@@ -208,31 +208,31 @@ Terramonta:
       currentPrice: 75
     Construction Alloys:
       basePrice: 500
-      currentPrice: 600.0
+      currentPrice: 725.0
     Durable Tools:
       basePrice: 100
-      currentPrice: 100
+      currentPrice: 145.0
     Energy Cells:
       basePrice: 200
-      currentPrice: 200
+      currentPrice: 290.0
     Geothermal Devices:
       basePrice: 500
-      currentPrice: 500
+      currentPrice: 725.0
     Industrial Machinery:
       basePrice: 1200
-      currentPrice: 1200
+      currentPrice: 1740.0
     Mining Equipment:
       basePrice: 300
-      currentPrice: 300
+      currentPrice: 435.0
     Rare Gems:
       basePrice: 5000
-      currentPrice: 9000.0
+      currentPrice: 7250.0
     Raw Minerals:
       basePrice: 100
-      currentPrice: 180.0
+      currentPrice: 145.0
     Refined Metals:
       basePrice: 200
-      currentPrice: 360.0
+      currentPrice: 290.0
     Thermal Suits:
       basePrice: 500
-      currentPrice: 500
+      currentPrice: 725.0

@@ -134,7 +134,7 @@ class PlanetaryMode:
                         self.interaction_manager.check_for_adjacent_interactables(self.player_position, TILE_SIZE)
                         self.economy.fire_event()
                         self.economy.dump_updated_data('space/src/util/economy/economy_generated.yaml')
-                        self.npc_manager.update()
+                        self.npc_manager.update(self.camera.x, self.camera.y, self.camera.width, self.camera.height)
                         print(f"Player position: {self.player_position}")
                         print(f"Camera position: {self.camera}")
 
@@ -162,14 +162,17 @@ class PlanetaryMode:
         screen.fill((0, 0, 0))
         self.map_manager.draw_map(self.map_surface, self.camera)
 
-        self.draw_player()
-        self.map_surface.blit(self.player_layer, (0, 0))
+        # self.draw_player()
+        # self.map_surface.blit(self.player_layer, (0, 0))
 
         self.draw_ui()
         self.map_surface.blit(self.ui_layer, (0, 0))
 
         self.npc_manager.draw(self.npc_layer, self.camera)
         self.map_surface.blit(self.npc_layer, (0, 0))  # Draw the NPC layer onto the map surface
+
+        self.draw_player()
+        self.map_surface.blit(self.player_layer, (0, 0))
 
         if self.interaction_active:
             self.map_surface.blit(self.interaction_layer, (0, 0))
