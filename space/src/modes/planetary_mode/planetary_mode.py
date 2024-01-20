@@ -34,13 +34,14 @@ class PlanetaryMode:
         self.log_messages = []
         self.player_position = list(self.planet.start_pos)
         self.map_manager.initialize_animation_data()
-        self.interaction_manager = InteractionManager(self.map_manager, self.logger)
+        self.npc_manager = NPCManager(self.map_manager, selected_planet)
+        self.interaction_manager = InteractionManager(self.map_manager, self.npc_manager, self.logger)
         self.interaction_manager.set_terminal_callback(self.activate_terminal)
         self.terminal = None
         self.switch_to_star_system_mode = False  # Initialize the attribute here
         self.economy = Economy(selected_planet.name, economy_data)
         self.economy.set_log_callback(self.logger.add_log_message)
-        self.npc_manager = NPCManager(self.map_manager, selected_planet)
+
 
 
         self.clock = pygame.time.Clock()

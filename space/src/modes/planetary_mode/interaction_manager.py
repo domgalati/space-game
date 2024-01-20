@@ -1,12 +1,15 @@
 import pygame
 from .map_manager import MapManager
+from .npc_manager import NPCManager
 
 class InteractionManager:
-    def __init__(self, map_manager, logger):
+    def __init__(self, map_manager, npc_manager, logger):
         self.map_manager = map_manager
         self.logger = logger
         self.interacted = False
         self.activate_terminal_callback = None
+        self.npc_manager = npc_manager
+
 
     pass
 
@@ -41,6 +44,15 @@ class InteractionManager:
             if is_interactable:
                 self.logger.add_log_message(f"You approach a {objectname}. Press E to interact.")
                 break  # Add this if you only want one message per move
+
+        for npc in self.npc_manager.npcs:
+            npc_x = npc.position[0] * TILE_SIZE
+            npc_y = npc.position[1] * TILE_SIZE
+            if (npc_x, npc_y) in adjacent_positions:
+                self.logger.add_log_message(f"You see {npc.firstname} {npc.lastname}. Press E to interact.")
+                return True  # Indicates an interactable NPC is found
+
+        return False  # No interactable NPC found
             
     def interact(self, player_position, TILE_SIZE):
         #Perform an interaction with an adjacent interactable object.
@@ -56,6 +68,11 @@ class InteractionManager:
             if is_interactable:
                 self.handle_interaction_with(objectname)
 
+        for npc in self.npc_manager.npcs:
+            npc_x, npc_y = npc.position
+            if (npc_x, npc_y) in adjacent_positions:
+                self.handle_interaction_with_npc(npc)
+
     def handle_interaction_with(self, objectname):
         """
         Handle specific interactions based on the object name.
@@ -64,6 +81,11 @@ class InteractionManager:
             self.activate_terminal_callback()
             pass
         # Add more conditions for different objects
+
+    def handle_interaction_with_npc(self, npc):
+        # Logic to handle interaction with an NPC
+        self.logger.add_log_message(f"Talking to {npc.firstname} {npc.lastname}.")
+        # Add more interaction logic here (e.g., opening dialogue)
 
     def set_terminal_callback(self, callback):
         self.activate_terminal_callback = callback
