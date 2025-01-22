@@ -208,7 +208,7 @@ Terramonta:
       currentPrice: 75
     Construction Alloys:
       basePrice: 500
-      currentPrice: 800.0
+      currentPrice: 500
     Durable Tools:
       basePrice: 100
       currentPrice: 100
@@ -232,7 +232,7 @@ Terramonta:
       currentPrice: 100
     Refined Metals:
       basePrice: 200
-      currentPrice: 320.0
+      currentPrice: 200
     Thermal Suits:
       basePrice: 500
       currentPrice: 500
