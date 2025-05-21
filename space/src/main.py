@@ -22,8 +22,8 @@ selected_planet = StarSystem(f'space/star_systems/sol.json').planets[0]
 player = Player()
 star_system_mode = StarSystemMode(player, "sol")
 planetary_mode = PlanetaryMode(selected_planet, player, screen)
-current_mode = star_system_mode
-
+#current_mode = star_system_mode
+current_mode = planetary_mode  # Start in planetary mode for debugging
 
 running = True
 while running:

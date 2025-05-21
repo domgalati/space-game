@@ -41,9 +41,11 @@ class Economy:
             print(f"Updated economy data dumped to {outfile}")
 
 # Usage
-with open('space/src/util/economy/economy_generated.yaml', 'r') as file:
-    data = yaml.safe_load(file)
-
-economy = Economy('Terramonta', data)
-economy.fire_event()
-economy.dump_updated_data('space/src/util/economy/economy_generated.yaml')
+if __name__ == "__main__":
+    with open('space/src/util/economy/economy_generated.yaml', 'r') as file:
+        data = yaml.safe_load(file)
+    
+    economy = Economy('Terramonta', data)
+    economy.fire_event()
+    economy.dump_updated_data('space/src/util/economy/economy_generated.yaml')
+    
