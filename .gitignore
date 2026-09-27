@@ -8,6 +8,8 @@ space/star_systems/__pycache__
 trash/*
 space/saves/
 .pytest_cache/
+.cursor/mcp.json
+space/src/util/economy/economy_generated.yaml
 combine.sh
 all_output.txt
 todo.md
