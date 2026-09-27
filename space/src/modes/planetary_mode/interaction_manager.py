@@ -1,12 +1,22 @@
 import random
 
 from util.config import TILE_SIZE
+from util.economy.economy import load_market_data
 
 
 # Job -> goods this person notices on talk (must exist in planet economy YAML).
 JOB_GOODS_BIAS = {
     "Miner": ("Raw Minerals", "Steel"),
     "Foreman": ("Mining Equipment", "Durable Tools"),
+    "Dockworker": ("Fuel Cells", "Ship Parts", "Rations"),
+    "Security": ("Medical Supplies", "Luxury Goods"),
+    "Politician": ("Luxury Goods", "Advanced Electronics"),
+}
+
+TERMINAL_TYPES = {
+    "Docking Terminal": "docking",
+    "Refinery Computer": "docking",
+    "Market Terminal": "market",
 }
 
 
@@ -115,9 +125,32 @@ class InteractionManager:
             self.handle_interaction_with_npc(nearby[0])
 
     def handle_interaction_with(self, objectname):
-        if objectname == "Docking Terminal" or objectname == "Refinery Computer":
+        if objectname in TERMINAL_TYPES:
             if self.activate_terminal_callback:
-                self.activate_terminal_callback()
+                self.activate_terminal_callback(TERMINAL_TYPES[objectname])
+        elif objectname == "Bar Counter":
+            self.logger.add_log_message("The bartender slides a drink over and leans in.")
+            self.logger.add_log_message(self._bar_rumor())
+        elif objectname == "Command Console":
+            self.logger.add_log_message("ACCESS RESTRICTED: Assembly command staff only.")
+
+    def _bar_rumor(self):
+        here = self.economy.planet_name if self.economy else None
+        markets = [
+            (place, good, info)
+            for place, data in load_market_data().items()
+            if place != here
+            for good, info in data.get("goods", {}).items()
+        ]
+        if not markets:
+            return '"Quiet week. Nobody\'s talking."'
+        place, good, info = random.choice(markets)
+        ratio = info["currentPrice"] / info["basePrice"] if info.get("basePrice") else 1
+        if ratio >= 1.15:
+            return f'"Word is {good} is fetching a premium on {place}."'
+        if ratio <= 0.85:
+            return f'"Heard {good} is going cheap on {place}. Might be worth the trip."'
+        return f'"Last I heard, {place} was paying ${info["currentPrice"]:g} for {good}."'
 
     def handle_interaction_with_npc(self, npc):
         job = npc.job_title or "worker"

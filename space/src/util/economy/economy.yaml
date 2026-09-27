@@ -120,6 +120,73 @@ Terramonta:
       Construction Alloys:
         priceChange: "+45%"
 
+Nexum Astra:
+  goods:
+    Fuel Cells:
+      basePrice: 150
+      currentPrice: 150
+    Rations:
+      basePrice: 60
+      currentPrice: 60
+    Ship Parts:
+      basePrice: 400
+      currentPrice: 400
+    Medical Supplies:
+      basePrice: 250
+      currentPrice: 250
+    Luxury Goods:
+      basePrice: 900
+      currentPrice: 900
+    Raw Minerals:
+      basePrice: 120
+      currentPrice: 120
+    Steel:
+      basePrice: 230
+      currentPrice: 230
+    Advanced Electronics:
+      basePrice: 140
+      currentPrice: 140
+    Energy Cells:
+      basePrice: 210
+      currentPrice: 210
+  events:
+    Customs Crackdown:
+      Luxury Goods:
+        priceChange: "+40%"
+      Medical Supplies:
+        priceChange: "+10%"
+    Trade Convoy Arrival:
+      Rations:
+        priceChange: "-20%"
+      Raw Minerals:
+        priceChange: "-15%"
+      Steel:
+        priceChange: "-15%"
+    Dockworkers Strike:
+      Ship Parts:
+        priceChange: "+35%"
+      Fuel Cells:
+        priceChange: "+25%"
+    Assembly Tariff Hike:
+      Advanced Electronics:
+        priceChange: "+20%"
+      Luxury Goods:
+        priceChange: "+20%"
+      Energy Cells:
+        priceChange: "+15%"
+    Pirate Raids Reported:
+      Fuel Cells:
+        priceChange: "+30%"
+      Ship Parts:
+        priceChange: "+20%"
+      Medical Supplies:
+        priceChange: "+25%"
+    Relief Shipment:
+      Medical Supplies:
+        priceChange: "-30%"
+      Rations:
+        priceChange: "-25%"
+
 Etheora:
   goods:
     Advanced Electronics:

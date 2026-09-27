@@ -22,33 +22,66 @@ class NPCManager:
         self.planet = planet
         self.npcs = []
         self._walkable_tiles_cache = None
+        self.map_properties = map_manager.tmx_data.properties
         self.mining_machine_tiles = self._collect_layer_tiles("Mining Machines")
         self.terminal_tiles = self._collect_object_tiles(
             ("Docking Terminal", "Refinery Computer")
         )
+        self.post_tiles = self._collect_posts()
         self.populate_npcs()
 
     def populate_npcs(self):
-        npc_types = self.get_npc_types_based_on_planet(self.planet)
         walkable_tiles = self.get_walkable_tiles()
         if not walkable_tiles:
             return
 
-        guild_name = self.planet.planet_guild
-        per_type = max(1, _TOTAL_NPC_CAP // max(1, len(npc_types)))
-
-        for npc_class in npc_types:
-            for _ in range(per_type):
-                position = random.choice(walkable_tiles)
+        guild_name = self.map_properties.get("guild") or self.planet.planet_guild
+        for npc_class, count in self.get_npc_counts().items():
+            for _ in range(count):
                 npc = generate_npc(guild_name, npc_class)
-                npc.position = position
                 npc.npc_manager = self
-                self._assign_goal(npc)
+                posts = self.post_tiles.get(npc_class)
+                if posts:
+                    # Each NPC keeps a couple of posts so a crew spreads out instead of stacking.
+                    posts = random.sample(posts, min(2, len(posts)))
+                    npc.goal = HangNearGoal(npc, posts)
+                    npc.position = self._tile_near(posts[0], walkable_tiles)
+                else:
+                    npc.position = random.choice(walkable_tiles)
+                    self._assign_goal(npc)
                 if npc.sprite:
                     npc.sprite_image = pygame.image.load(
                         resolve_game_path(npc.sprite)
                     ).convert_alpha()
                 self.npcs.append(npc)
+
+    def get_npc_counts(self):
+        """Job -> headcount; maps can set an npc_jobs property like "Security:3,Dockworker:5"."""
+        spec = self.map_properties.get("npc_jobs")
+        if spec:
+            counts = {}
+            for entry in spec.split(","):
+                job, _, count = entry.partition(":")
+                counts[job.strip()] = int(count or 1)
+            return counts
+        npc_types = self.get_npc_types_based_on_planet(self.planet)
+        per_type = max(1, _TOTAL_NPC_CAP // max(1, len(npc_types)))
+        return {npc_type: per_type for npc_type in npc_types}
+
+    def _tile_near(self, target, walkable_tiles, radius=3):
+        tx, ty = target
+        nearby = [t for t in walkable_tiles if abs(t[0] - tx) <= radius and abs(t[1] - ty) <= radius]
+        return random.choice(nearby or walkable_tiles)
+
+    def _collect_posts(self):
+        posts = {}
+        try:
+            layer = self.map_manager.tmx_data.get_layer_by_name("NPC Posts")
+        except ValueError:
+            return posts
+        for obj in layer:
+            posts.setdefault(obj.name, []).append((int(obj.x) // TILE_SIZE, int(obj.y) // TILE_SIZE))
+        return posts
 
     def _assign_goal(self, npc):
         target_key = _JOB_TARGETS.get(npc.job_title)

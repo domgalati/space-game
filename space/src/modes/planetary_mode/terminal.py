@@ -1,6 +1,6 @@
 import pygame
 from util.config import resolve_game_path
-from .terminals import docking_terminal
+from .terminals import docking_terminal, market_terminal
 
 class Terminal:
     def __init__(self, terminal_type, planetary_mode, planet_name):
@@ -68,6 +68,8 @@ class Terminal:
         # Process the command based on terminal type
         if self.terminal_type == "docking":
             result = docking_terminal.handle_command(command, self.planet_name)
+        elif self.terminal_type == "market":
+            result = market_terminal.handle_command(command, self.planet_name)
         else:
             # Default or other terminal types
             result = "Command not recognized in this terminal."
@@ -75,7 +77,7 @@ class Terminal:
         if command == "exit":
             self.deactivate()
        
-        if command == "depart":
+        if command == "depart" and self.terminal_type == "docking":
             self.depart()
 
         max_line_length = 80  # Set your desired maximum line length here

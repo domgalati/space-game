@@ -1,8 +1,24 @@
+import os
 import random
 
 import yaml
 
 from util.config import resolve_game_path
+
+BASE_DATA = "space/src/util/economy/economy.yaml"
+GENERATED_DATA = "space/src/util/economy/economy_generated.yaml"
+
+
+def load_market_data():
+    """Latest known prices: the generated snapshot where it has a location, base data otherwise."""
+    with open(resolve_game_path(BASE_DATA), "r") as file:
+        data = yaml.safe_load(file) or {}
+    generated = resolve_game_path(GENERATED_DATA)
+    if os.path.exists(generated):
+        with open(generated, "r") as file:
+            data.update(yaml.safe_load(file) or {})
+    return data
+
 
 class Economy:
     def __init__(self, planet_name, economy_data):

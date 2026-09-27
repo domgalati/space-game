@@ -1,11 +1,11 @@
 import os
 
 import pygame
-import yaml
 
 from entities.planet import Planet
 from modes.planetary_mode.terminal import Terminal
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, resolve_game_path
+from util.economy.economy import load_market_data
 
 from .scan_art import BRIGHT, DIM, MID, caption_for, render_scan_art
 
@@ -23,15 +23,11 @@ SWEEP_DURATION_SECONDS = 1.6
 
 
 def has_landing_map(target):
-    if not isinstance(target, Planet):
-        return False
     return os.path.exists(resolve_game_path(f"space/assets/maps/{target.name}.tmx"))
 
 
 def market_lines(target):
-    with open(resolve_game_path("space/src/util/economy/economy_generated.yaml"), "r") as file:
-        data = yaml.safe_load(file) or {}
-    goods = data.get(target.name, {}).get("goods", {})
+    goods = load_market_data().get(target.name, {}).get("goods", {})
     if not goods:
         return ["Market: no data"]
     ranked = sorted(goods.items(), key=lambda item: item[1]["currentPrice"], reverse=True)
@@ -53,13 +49,19 @@ def scan_readout(target):
         lines.extend(market_lines(target))
     else:
         lines.append(f"Class: {target.obj_type}")
-        lines.append("Landing: DOCKING BAYS CLOSED")
+        if target.planet_guild:
+            lines.append(f"Guild: {target.planet_guild.capitalize()}")
+        lines.append("Landing: BAYS OPEN" if has_landing_map(target) else "Landing: DOCKING BAYS CLOSED")
+        lines.extend(market_lines(target))
     lines.append("Type 'help' for commands.")
     return lines
 
 
 def hail_response(target):
     if not isinstance(target, Planet):
+        if has_landing_map(target):
+            return (f'{target.name} Dockmaster: "Welcome in, hauler. Bays are open and customs '
+                    f'is light today. Send \'dock\' when ready."')
         return f'{target.name}: "Docking bays are closed to independent haulers for now."'
     if has_landing_map(target):
         guild = target.planet_guild.capitalize()

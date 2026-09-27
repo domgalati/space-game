@@ -1,6 +1,4 @@
-import yaml
-
-from util.config import resolve_game_path
+from util.economy.economy import load_market_data
 
 
 def handle_command(command, planet_name):
@@ -16,10 +14,7 @@ def handle_command(command, planet_name):
     return commands.get(command, "Unknown command. Type 'help' for available commands.")
 
 def get_planet_goods(planet_name):
-    with open(resolve_game_path("space/src/util/economy/economy_generated.yaml"), "r") as file:
-        data = yaml.safe_load(file)
-
-    planet_data = data.get(planet_name.name, {})
+    planet_data = load_market_data().get(planet_name.name, {})
     if not planet_data:
         return f"No economic data available for {planet_name.name}."
 

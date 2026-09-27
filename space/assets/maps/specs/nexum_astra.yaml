@@ -1,0 +1,20 @@
+# Regenerate (venv active, any directory):
+#   python -m mapgen space/assets/maps/specs/nexum_astra.yaml --preview nexum.png
+# Change `seed` (or pass --seed N) to re-roll the layout. Regenerating overwrites Nexum Astra.tmx,
+# so hand edits made in Tiled afterwards are lost.
+name: Nexum Astra
+theme: station
+size: [100, 70]
+seed: 7
+guild: assembly
+rooms:
+  - type: market
+    at: hub
+  - type: docking_bay
+    count: 2
+  - type: cantina
+  - type: command
+npcs:
+  Security: 3
+  Dockworker: 5
+  Politician: 2

@@ -86,3 +86,8 @@ class Security(NPC):
     def __init__(self):
         super().__init__() #Base Class Attributes
         self.sprite = "space/assets/img/objects/security.png"
+
+class Dockworker(NPC):
+    def __init__(self):
+        super().__init__() #Base Class Attributes
+        self.sprite = "space/assets/img/objects/dockworker.png"

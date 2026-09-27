@@ -71,6 +71,7 @@ class StarSystem:
                 resolve_game_path(data['image_path']),
                 data['x'],
                 data['y'],
+                data.get('guild'),
             )
             self.objects.append(obj)
 

@@ -34,7 +34,7 @@ class PlanetaryMode:
         map_filename = resolve_game_path(f"space/assets/maps/{self.planet.name}.tmx")       
         self.map_manager = MapManager(map_filename, (SCREEN_WIDTH, SCREEN_HEIGHT), (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.log_messages = []
-        self.player_position = list(self.planet.start_pos)
+        self.player_position = self._player_start()
         self.map_manager.initialize_animation_data()
         self.economy = Economy(selected_planet.name, economy_data)
         self.economy.set_log_callback(self.logger.add_log_message)
@@ -57,6 +57,17 @@ class PlanetaryMode:
         self.interaction_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         self.interaction_active = False  # Flag to indicate if an interaction layer is active
 
+
+    def _player_start(self):
+        """Generated maps mark a "Player Start" spawn; hand-made ones use the planet's start_pos."""
+        try:
+            spawns = self.map_manager.tmx_data.get_layer_by_name("Spawns")
+        except ValueError:
+            return list(self.planet.start_pos)
+        for obj in spawns:
+            if obj.name == "Player Start":
+                return [int(obj.x), int(obj.y)]
+        return list(self.planet.start_pos)
 
     def is_tile_walkable(self, x, y):
         # Access the 'walkable' layer
@@ -229,7 +240,7 @@ class PlanetaryMode:
         # Signal to switch back to StarSystemMode
         self.switch_to_star_system_mode = True
 
-    def activate_terminal(self):
+    def activate_terminal(self, terminal_type="docking"):
         self.interaction_layer.fill((0, 0, 0, 0))  # Clear the layer
         # Load the docking terminal interface image
         terminal_image = pygame.image.load(
@@ -240,7 +251,7 @@ class PlanetaryMode:
         # Draw the image onto the map_surface
         self.interaction_layer.blit(terminal_image, (0, 0))
         self.interaction_active = True
-        self.terminal = Terminal(terminal_type="docking", planetary_mode=self, planet_name=self.planet)
+        self.terminal = Terminal(terminal_type=terminal_type, planetary_mode=self, planet_name=self.planet)
         self.terminal.activate()
         pass
 
