@@ -45,6 +45,7 @@ def main():
             current_mode.update(events)
             current_mode.map_manager.update_animations(dt)
             if current_mode.switch_to_star_system_mode:
+                star_system_mode.nav.chart(current_mode.planet.name)
                 current_mode = star_system_mode
                 star_system_mode.landing_requested = False
                 continue

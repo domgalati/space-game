@@ -9,6 +9,7 @@ class Player:
         self.stats = {'strength': 10, 'intelligence': 10}
         self.currency = 0
         self.reputation = {'assembly': 0, 'caravaneers': 0, 'cohort': 0, 'dominion': 0}
+        self.charted_planets = set()
 
 class Ship:
     def __init__(self):

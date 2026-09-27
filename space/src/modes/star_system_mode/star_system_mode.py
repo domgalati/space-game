@@ -1,11 +1,19 @@
 # This file handles the main loop when the player is traversing a star system
 
+import math
+
 import pygame
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, resolve_game_path
 from .input_handler import InputHandler, determine_direction, update_parallax
 from .nightsky import initialize_stars, draw_stars, PARALLAX_FACTOR, PARALLAX_DAMPING_FACTOR, VELOCITY_THRESHOLD
 from util.sprite_animation import AnimatedSprite
+from .nav_charts import NavCharts
+from .scan_terminal import ScanTerminal
 from .star_systems import StarSystem
+
+CANDIDATE_ARC_COLOR = (255, 191, 0)
+NAV_MARKER_COLOR = (120, 220, 140)
+NAV_MARKER_MARGIN = 28
 
 class StarSystemMode:
     def __init__(self, player, starsystem): 
@@ -31,6 +39,10 @@ class StarSystemMode:
         self.landing_requested = False
         self.player = player
         self.selected_planet = None
+        self.scan_terminal = None
+        self.last_tick = pygame.time.get_ticks()
+        self.nav = NavCharts((self.map_center_x, self.map_center_y), player.charted_planets)
+        self.nav_font = pygame.font.Font(resolve_game_path("space/assets/fonts/OfficeCodePro-Light.ttf"), 14)
 
     def handle_input(self):
         # Handle input specific to this mode
@@ -49,19 +61,39 @@ class StarSystemMode:
                 return obj
         return None
     
-    def show_interaction_menu(self, entity):
-        from modes.star_system_mode.menu import InteractionMenu
-        # Example options - you can customize these based on the entity
-        options = ["Scan", "Hail", "Dock", "Test"]
+    def open_scan_terminal(self, target):
+        self.scan_terminal = ScanTerminal(target, self)
+        self.scan_terminal.activate()
 
-        # Position the menu in the middle of the screen
-        menu_position = (SCREEN_WIDTH // 2 + 50, SCREEN_HEIGHT // 2 + 50)
+    def close_scan_terminal(self):
+        self.scan_terminal = None
 
-        # Create and activate the interaction menu
-        self.interaction_menu = InteractionMenu(
-            options, menu_position, resolve_game_path("space/assets/fonts/OfficeCodePro-Light.ttf")
+    def request_landing(self, planet):
+        self.selected_planet = planet
+        self.landing_requested = True
+        self.close_scan_terminal()
+
+    def ping(self, query):
+        uncharted = [p for p in self.selected_system.planets if not self.nav.is_charted(p)]
+        if not query:
+            if not uncharted:
+                return ["All planets in this system are charted."]
+            return ["Usage: ping <planet>", "Uncharted: " + ", ".join(p.name for p in uncharted)]
+
+        matches = [p for p in self.selected_system.planets if p.name.lower().startswith(query)]
+        if not matches:
+            return [f"No signal matching '{query}'."]
+        if len(matches) > 1:
+            return ["Which one? " + ", ".join(p.name for p in matches)]
+        planet = matches[0]
+        if self.nav.is_charted(planet):
+            return [f"{planet.name} is already charted."]
+
+        ship_center = (
+            self.x_position * TILE_SIZE + TILE_SIZE // 2,
+            self.y_position * TILE_SIZE + TILE_SIZE // 2,
         )
-        self.interaction_menu.activate()
+        return self.nav.ping(planet, ship_center)
 
     def get_selected_planet(self):
         return self.selected_planet
@@ -71,16 +103,32 @@ class StarSystemMode:
         return self.player
 
     def update(self, events):
-        self.handle_continuous_updates()
+        now = pygame.time.get_ticks()
+        dt = (now - self.last_tick) / 1000.0
+        self.last_tick = now
+
+        if self.scan_terminal:
+            for event in events:
+                if not self.scan_terminal:
+                    break
+                if event.type == pygame.KEYDOWN:
+                    self.scan_terminal.process_input(event)
+                elif event.type == pygame.MOUSEWHEEL:
+                    if event.y > 0:
+                        self.scan_terminal.scroll_up()
+                    elif event.y < 0:
+                        self.scan_terminal.scroll_down()
+            if self.scan_terminal:
+                self.scan_terminal.update(dt)
+            return
+
         for event in events:
-            if hasattr(self, 'interaction_menu') and self.interaction_menu.active:
-                selected_action = self.interaction_menu.update(event)
-                if selected_action == "Dock":
-                    self.landing_requested = True
-                    self.selected_planet = self.check_collision()  # Assuming this returns the planet
-            else:
-                self.handle_continuous_updates()
-                        
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
+                self.open_scan_terminal(self.check_collision())
+                return
+
+        self.handle_continuous_updates()
+
     def handle_continuous_updates(self):
         self.handle_input()
     # Update logic for continuous effects like parallax
@@ -93,11 +141,6 @@ class StarSystemMode:
         self.animated_cargoship.update()
         self.camera.x = max(0, min(self.x_position * TILE_SIZE - SCREEN_WIDTH // 2, self.selected_system.MAP_WIDTH - SCREEN_WIDTH))
         self.camera.y = max(0, min(self.y_position * TILE_SIZE - SCREEN_HEIGHT // 2, self.selected_system.MAP_HEIGHT - SCREEN_HEIGHT))
-        self.input_handler.handle_interaction(self.x_position, self.y_position, TILE_SIZE)
-        # Update the interaction menu if it's active
-        if hasattr(self, 'interaction_menu') and self.interaction_menu.active:
-            for event in pygame.event.get():
-                self.interaction_menu.update(event)
 
     def draw(self, screen):
         # Draw logic specific to star system mode
@@ -106,18 +149,56 @@ class StarSystemMode:
         draw_stars(screen, self.white_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 2, self.parallax_offset_y * 2))
         draw_stars(screen, self.purple_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 3, self.parallax_offset_y * 3))
         draw_stars(screen, self.blue_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 4, self.parallax_offset_y * 4))
+        self.draw_candidate_arcs(screen)
+        self.draw_nav_markers(screen)
         spaceship_frame = self.animated_cargoship.get_frame(self.current_direction)
         screen.blit(spaceship_frame, (self.x_position * TILE_SIZE - self.camera.x, self.y_position * TILE_SIZE - self.camera.y))
         
-        # Draw collision detection text
-        collided_entity = self.check_collision()
-        if collided_entity:
+        if self.scan_terminal:
+            self.scan_terminal.display(screen)
+        elif self.check_collision():
             font = pygame.font.Font(None, 36)
-            text_surface = font.render("[E] Interact", True, (255, 255, 255))
+            text_surface = font.render("[E] Scan", True, (255, 255, 255))
             screen.blit(text_surface, (SCREEN_WIDTH // 2 - text_surface.get_width() // 2, SCREEN_HEIGHT // 2))
         
-        # Draw interaction menu if its active.
-        if hasattr(self, 'interaction_menu') and self.interaction_menu.active:
-            self.interaction_menu.draw(screen)
-        
         print(f"camera: {self.camera}")
+
+    def draw_candidate_arcs(self, screen):
+        """Highlight the parts of each uncharted orbit where pings say the planet could be."""
+        for planet in self.selected_system.planets:
+            if self.nav.is_charted(planet):
+                continue
+            for run in self.nav.candidate_runs(planet):
+                points = []
+                for index in run:
+                    x, y = self.nav.orbit_point(planet, index)
+                    points.append((x - self.camera.x, y - self.camera.y))
+                if len(points) > 1:
+                    pygame.draw.lines(screen, CANDIDATE_ARC_COLOR, False, points, 3)
+                else:
+                    pygame.draw.circle(screen, CANDIDATE_ARC_COLOR, points[0], 3)
+
+    def draw_nav_markers(self, screen):
+        """Edge-of-screen arrows pointing at charted planets that are off screen."""
+        screen_rect = screen.get_rect()
+        half_w = SCREEN_WIDTH / 2 - NAV_MARKER_MARGIN
+        half_h = SCREEN_HEIGHT / 2 - NAV_MARKER_MARGIN
+        center_x, center_y = SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2
+        for planet in self.selected_system.planets:
+            if not self.nav.is_charted(planet):
+                continue
+            sx = planet.position[0] - self.camera.x
+            sy = planet.position[1] - self.camera.y
+            if screen_rect.collidepoint(sx, sy):
+                continue
+            dx, dy = sx - center_x, sy - center_y
+            scale = min(half_w / abs(dx) if dx else math.inf, half_h / abs(dy) if dy else math.inf)
+            mx, my = center_x + dx * scale, center_y + dy * scale
+            angle = math.atan2(dy, dx)
+            tip = (mx + math.cos(angle) * 10, my + math.sin(angle) * 10)
+            left = (mx + math.cos(angle + 2.5) * 8, my + math.sin(angle + 2.5) * 8)
+            right = (mx + math.cos(angle - 2.5) * 8, my + math.sin(angle - 2.5) * 8)
+            pygame.draw.polygon(screen, NAV_MARKER_COLOR, [tip, left, right])
+            label = self.nav_font.render(planet.name, True, NAV_MARKER_COLOR)
+            label_rect = label.get_rect(center=(mx - math.cos(angle) * 28, my - math.sin(angle) * 18))
+            screen.blit(label, label_rect.clamp(screen_rect))

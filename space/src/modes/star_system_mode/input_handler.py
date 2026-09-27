@@ -45,13 +45,6 @@ class InputHandler:
             # Update the timer
             self.last_movement_time = current_time
         return ship_x_position, ship_y_position
-    
-    def handle_interaction(self, ship_x_position, ship_y_position, tile_size):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_e]:
-            collided_entity = collided_entity = self.star_system_mode.check_collision()
-            if collided_entity:
-                self.star_system_mode.show_interaction_menu(collided_entity)
 
 def determine_direction(ship_x_position, ship_y_position, previous_x, previous_y):
     new_direction = None
