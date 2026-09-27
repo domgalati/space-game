@@ -1,7 +1,10 @@
-import pygame
+import json
 import math
 import random
-import json
+
+import pygame
+
+from util.config import resolve_game_path
 
 
 class Planet:
@@ -35,7 +38,7 @@ def generate_planets(json_path, center_x, center_y):
     orbits = []
 
     # Load data from JSON file
-    with open(json_path, 'r') as file:
+    with open(resolve_game_path(json_path), "r") as file:
         data = json.load(file)
         seed = data['seed']
         planet_data = data['planets']

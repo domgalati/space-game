@@ -35,3 +35,23 @@ This game is currently under active development. Planned features include:
 ## How to Play
 Currently in pre-alpha stage. More instructions will be added as development progresses.
 
+## Run from source
+
+Python 3.10+ required. From the repository root (the folder that contains this `readme.md` and the inner `space/` directory):
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -e .
+space-trader
+```
+
+On macOS/Linux, activate with `source .venv/bin/activate` instead.
+
+If the `space-trader` command is not on your `PATH` (common with a fresh venv), use:
+
+```bash
+python -c "from main import main; main()"
+```
+
+The game resolves asset paths from the inner `space/` tree automatically; you still need the raster assets (for example `space/assets/img/` and fonts under `space/assets/fonts/`) present on disk for it to start—those files are not all tracked in this repository.

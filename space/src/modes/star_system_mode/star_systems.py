@@ -5,7 +5,7 @@ import math
 import pygame
 from entities.planet import Planet
 from entities.object import SpaceObject
-from util.config import SCREEN_WIDTH, SCREEN_HEIGHT
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, resolve_game_path
 
 class StarSystem:
     def __init__(self, json_path):
@@ -21,7 +21,7 @@ class StarSystem:
         self.load_system(json_path)
 
     def load_system(self, json_path):
-        with open(json_path, 'r') as file:
+        with open(resolve_game_path(json_path), 'r') as file:
             data = json.load(file)
             seed = data['seed']
             planet_data = data['planets']
@@ -47,7 +47,17 @@ class StarSystem:
             angle = random.uniform(0, 2 * math.pi)
             
             start_pos = data.get('start_pos', (0, 0))
-            planet = Planet(data['name'], data['type'], data['guild'], data['image_path'], orbit_radius, angle, self.map_center_x, self.map_center_y, start_pos)
+            planet = Planet(
+                data['name'],
+                data['type'],
+                data['guild'],
+                resolve_game_path(data['image_path']),
+                orbit_radius,
+                angle,
+                self.map_center_x,
+                self.map_center_y,
+                start_pos,
+            )
             self.planets.append(planet)
             self.orbits.append(orbit_radius)
             last_orbit_radius = orbit_radius
@@ -55,12 +65,18 @@ class StarSystem:
     def generate_objects(self, object_data):
         self.objects = []
         for data in object_data:
-            obj = SpaceObject(data['name'], data['type'], data['image_path'], data['x'], data['y'])
+            obj = SpaceObject(
+                data['name'],
+                data['type'],
+                resolve_game_path(data['image_path']),
+                data['x'],
+                data['y'],
+            )
             self.objects.append(obj)
 
     def draw(self, screen, camera):
         screen.blit(self.map_surface, (0, 0), camera)
-        font = pygame.font.Font("space/assets/fonts/OfficeCodePro-Light.ttf", 14)
+        font = pygame.font.Font(resolve_game_path("space/assets/fonts/OfficeCodePro-Light.ttf"), 14)
 
         for obj in self.objects:
             obj.draw(self.map_surface, camera)

@@ -1,5 +1,8 @@
 import yaml
 
+from util.config import resolve_game_path
+
+
 def handle_command(command, planet_name):
     commands = {
         "help": "List of available commands:\n help\n info\n depart\n map\n prices\n exit",
@@ -13,7 +16,7 @@ def handle_command(command, planet_name):
     return commands.get(command, "Unknown command. Type 'help' for available commands.")
 
 def get_planet_goods(planet_name):
-    with open('space/src/util/economy/economy_generated.yaml', 'r') as file:
+    with open(resolve_game_path("space/src/util/economy/economy_generated.yaml"), "r") as file:
         data = yaml.safe_load(file)
 
     planet_data = data.get(planet_name.name, {})

@@ -1,6 +1,6 @@
 import pygame
 import random
-from util.config import TILE_SIZE
+from util.config import TILE_SIZE, resolve_game_path
 from .npc_generator import generate_npc  # Import the npc_generator function
 
 class NPCManager:
@@ -24,7 +24,7 @@ class NPCManager:
                 npc.position = position
                 npc.npc_manager = self # Pass reference of NPC_Manager to npc instance
                 if npc.sprite:  # Load the sprite image once during creation of each NPC
-                    npc.sprite_image = pygame.image.load(npc.sprite).convert_alpha()
+                    npc.sprite_image = pygame.image.load(resolve_game_path(npc.sprite)).convert_alpha()
                 self.npcs.append(npc)
 
     def get_npc_types_based_on_planet(self, planet):

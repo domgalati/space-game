@@ -1,3 +1,5 @@
+.venv/
+*.egg-info/
 __pycache__
 **/__pycache__
 space/__pycache__

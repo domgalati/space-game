@@ -42,4 +42,3 @@ class Inventory:
 
     def __str__(self):
         return f"Inventory({self.items}, Capacity: {self.capacity})"
-

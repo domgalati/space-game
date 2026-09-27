@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "space-trader-roguelike"
+version = "0.1.0"
+description = "2D open-universe space trading roguelike (Pygame, work in progress)"
+readme = "readme.md"
+requires-python = ">=3.10"
+authors = [{ name = "Domenick Galati" }]
+dependencies = [
+    "pygame>=2.5.0",
+    "pytmx>=3.31",
+    "PyYAML>=6.0.1",
+]
+
+[project.scripts]
+space-trader = "main:main"
+
+[tool.setuptools]
+package-dir = { "" = "space/src" }
+py-modules = ["main"]
+
+[tool.setuptools.packages.find]
+where = ["space/src"]

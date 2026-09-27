@@ -1,7 +1,7 @@
 # This file handles the main loop when the player is traversing a star system
 
 import pygame
-from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, resolve_game_path
 from .input_handler import InputHandler, determine_direction, update_parallax
 from .nightsky import initialize_stars, draw_stars, PARALLAX_FACTOR, PARALLAX_DAMPING_FACTOR, VELOCITY_THRESHOLD
 from util.sprite_animation import AnimatedSprite
@@ -9,7 +9,7 @@ from .star_systems import StarSystem
 
 class StarSystemMode:
     def __init__(self, player, starsystem): 
-        self.selected_system = StarSystem(f'space/star_systems/{starsystem}.json')
+        self.selected_system = StarSystem(resolve_game_path(f"space/star_systems/{starsystem}.json"))
         self.input_handler = InputHandler(self.selected_system, self)  # Instantiate InputHandler
         self.grid_size = (self.selected_system.MAP_WIDTH // TILE_SIZE, self.selected_system.MAP_HEIGHT // TILE_SIZE)
         self.white_stars, self.purple_stars, self.blue_stars = initialize_stars(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -18,7 +18,9 @@ class StarSystemMode:
         self.cargo_sheet = 'space/assets/img/cargo6frame.png'
         self.frame_dimensions = (48, 48)
         self.num_frames = 6
-        self.animated_cargoship = AnimatedSprite(self.cargo_sheet, self.frame_dimensions, self.num_frames)
+        self.animated_cargoship = AnimatedSprite(
+            resolve_game_path(self.cargo_sheet), self.frame_dimensions, self.num_frames
+        )
         self.current_direction = "southeast"
         self.x_position = self.map_center_x // TILE_SIZE
         self.y_position = self.map_center_y // TILE_SIZE
@@ -56,7 +58,9 @@ class StarSystemMode:
         menu_position = (SCREEN_WIDTH // 2 + 50, SCREEN_HEIGHT // 2 + 50)
 
         # Create and activate the interaction menu
-        self.interaction_menu = InteractionMenu(options, menu_position, "space/assets/fonts/OfficeCodePro-Light.ttf")
+        self.interaction_menu = InteractionMenu(
+            options, menu_position, resolve_game_path("space/assets/fonts/OfficeCodePro-Light.ttf")
+        )
         self.interaction_menu.activate()
 
     def get_selected_planet(self):

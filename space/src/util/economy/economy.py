@@ -1,5 +1,8 @@
-import yaml
 import random
+
+import yaml
+
+from util.config import resolve_game_path
 
 class Economy:
     def __init__(self, planet_name, economy_data):
@@ -36,16 +39,17 @@ class Economy:
                 print(f"{item} price updated.")
 
     def dump_updated_data(self, outfile):
-        with open(outfile, 'w') as file:
+        with open(resolve_game_path(outfile), "w") as file:
             yaml.dump(self.data, file, default_flow_style=False)
             print(f"Updated economy data dumped to {outfile}")
 
 # Usage
 if __name__ == "__main__":
-    with open('space/src/util/economy/economy_generated.yaml', 'r') as file:
+    gen_path = resolve_game_path("space/src/util/economy/economy_generated.yaml")
+    with open(gen_path, "r") as file:
         data = yaml.safe_load(file)
-    
-    economy = Economy('Terramonta', data)
+
+    economy = Economy("Terramonta", data)
     economy.fire_event()
-    economy.dump_updated_data('space/src/util/economy/economy_generated.yaml')
+    economy.dump_updated_data("space/src/util/economy/economy_generated.yaml")
     

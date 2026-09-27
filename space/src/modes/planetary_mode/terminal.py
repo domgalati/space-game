@@ -1,4 +1,5 @@
 import pygame
+from util.config import resolve_game_path
 from .terminals import docking_terminal
 
 class Terminal:
@@ -98,7 +99,7 @@ class Terminal:
 
     def display(self, surface):
         if self.active:
-            font = pygame.font.Font("space/assets/fonts/TeleSys.ttf", 16)
+            font = pygame.font.Font(resolve_game_path("space/assets/fonts/TeleSys.ttf"), 16)
             y_position = 100  # Adjust as needed
 
             flattened_output = self.flatten_output_buffer()

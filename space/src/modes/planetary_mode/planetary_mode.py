@@ -4,7 +4,7 @@ import pygame
 import random
 import time
 #from pytmx.util_pygame import load_pygame
-from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, resolve_game_path
 from .logger import Logger
 from .map_manager import MapManager
 from .ui_planetary import UI_Planetary
@@ -16,20 +16,22 @@ from .npc_manager import NPCManager
 
 class PlanetaryMode:
     def __init__(self, selected_planet, player, screen): 
-        economy_file_path = 'space/src/util/economy/economy.yaml'
-        with open(economy_file_path, 'r') as file:
+        economy_file_path = resolve_game_path("space/src/util/economy/economy.yaml")
+        with open(economy_file_path, "r") as file:
             economy_data = yaml.safe_load(file)
 
         self.planet = selected_planet
         self.player = Player()
         self.screen = screen
-        self.player_sprite = pygame.image.load("space/assets/img/objects/player.png").convert_alpha()
+        self.player_sprite = pygame.image.load(
+            resolve_game_path("space/assets/img/objects/player.png")
+        ).convert_alpha()
         self.ui_planetary = UI_Planetary()  # Create an instance of UI_Planetary       
-        self.font = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16)
+        self.font = pygame.font.Font(resolve_game_path("space/assets/fonts/Modern Pixel.otf"), 16)
         self.logger = Logger(log_height=200, screen_width=SCREEN_WIDTH, font=self.font)
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height)
         self.map_surface = pygame.Surface((SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height))
-        map_filename = f"space/assets/maps/{self.planet.name}.tmx"       
+        map_filename = resolve_game_path(f"space/assets/maps/{self.planet.name}.tmx")       
         self.map_manager = MapManager(map_filename, (SCREEN_WIDTH, SCREEN_HEIGHT), (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.log_messages = []
         self.player_position = list(self.planet.start_pos)
@@ -134,7 +136,7 @@ class PlanetaryMode:
                         self.update_camera()
                         self.interaction_manager.check_for_adjacent_interactables(self.player_position, TILE_SIZE)
                         self.economy.fire_event()
-                        self.economy.dump_updated_data('space/src/util/economy/economy_generated.yaml')
+                        self.economy.dump_updated_data("space/src/util/economy/economy_generated.yaml")
                         self.npc_manager.update(self.camera.x, self.camera.y, self.camera.width, self.camera.height)
                         print(f"Player position: {self.player_position}")
                         print(f"Camera position: {self.camera}")
@@ -204,7 +206,9 @@ class PlanetaryMode:
     def activate_terminal(self):
         self.interaction_layer.fill((0, 0, 0, 0))  # Clear the layer
         # Load the docking terminal interface image
-        terminal_image = pygame.image.load("space/assets/img/objects/terminal_screen.png").convert_alpha() 
+        terminal_image = pygame.image.load(
+            resolve_game_path("space/assets/img/objects/terminal_screen.png")
+        ).convert_alpha() 
         # Resize the image to fit the map_surface
         #terminal_image = pygame.transform.scale(terminal_image, (SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height))   
         # Draw the image onto the map_surface

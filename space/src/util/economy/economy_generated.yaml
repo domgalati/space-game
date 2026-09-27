@@ -120,12 +120,12 @@ Terramonta:
     Breakthrough in Refining Technique:
       Construction Alloys:
         priceChange: -60%
-      Refined Metals:
+      Steel:
         priceChange: -60%
     Labor Strike:
       Raw Minerals:
         priceChange: +30%
-      Refined Metals:
+      Steel:
         priceChange: +30%
     Machinery Breakdown:
       Industrial Machinery:
@@ -135,12 +135,12 @@ Terramonta:
     Major Vein Discovery:
       Raw Minerals:
         priceChange: -20%
-      Refined Metals:
+      Steel:
         priceChange: -20%
     Mining Accident:
       Raw Minerals:
         priceChange: +20%
-      Refined Metals:
+      Steel:
         priceChange: -10%
     Mining Subsidy Contract Expiration:
       Construction Alloys:
@@ -159,7 +159,7 @@ Terramonta:
         priceChange: +45%
       Raw Minerals:
         priceChange: +45%
-      Refined Metals:
+      Steel:
         priceChange: +45%
       Thermal Suits:
         priceChange: +45%
@@ -180,7 +180,7 @@ Terramonta:
         priceChange: -45%
       Raw Minerals:
         priceChange: -45%
-      Refined Metals:
+      Steel:
         priceChange: -45%
       Thermal Suits:
         priceChange: -45%
@@ -191,7 +191,7 @@ Terramonta:
         priceChange: +80%
       Raw Minerals:
         priceChange: +80%
-      Refined Metals:
+      Steel:
         priceChange: +80%
     Trade Union Rally:
       Durable Tools:
@@ -208,31 +208,31 @@ Terramonta:
       currentPrice: 75
     Construction Alloys:
       basePrice: 500
-      currentPrice: 725.0
+      currentPrice: 500
     Durable Tools:
       basePrice: 100
-      currentPrice: 145.0
+      currentPrice: 120.0
     Energy Cells:
       basePrice: 200
-      currentPrice: 290.0
+      currentPrice: 240.0
     Geothermal Devices:
       basePrice: 500
-      currentPrice: 725.0
+      currentPrice: 600.0
     Industrial Machinery:
       basePrice: 1200
-      currentPrice: 1740.0
+      currentPrice: 1200
     Mining Equipment:
       basePrice: 300
-      currentPrice: 435.0
+      currentPrice: 300
     Rare Gems:
       basePrice: 5000
-      currentPrice: 7250.0
+      currentPrice: 5000
     Raw Minerals:
       basePrice: 100
-      currentPrice: 145.0
-    Refined Metals:
+      currentPrice: 100
+    Steel:
       basePrice: 200
-      currentPrice: 290.0
+      currentPrice: 200
     Thermal Suits:
       basePrice: 500
-      currentPrice: 725.0
+      currentPrice: 600.0

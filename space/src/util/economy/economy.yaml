@@ -3,7 +3,7 @@ Terramonta:
     Raw Minerals:
       basePrice: 100
       currentPrice: 100
-    Refined Metals:
+    Steel:
       basePrice: 200
       currentPrice: 200
     Mining Equipment:
@@ -37,17 +37,17 @@ Terramonta:
     Mining Accident:
       Raw Minerals:
         priceChange: "+20%"
-      Refined Metals:
+      Steel:
         priceChange: "-10%"
     Major Vein Discovery:
       Raw Minerals:
         priceChange: "-20%"     
-      Refined Metals:
+      Steel:
         priceChange: "-20%"         
     Labor Strike:
       Raw Minerals:
         priceChange: "+30%"
-      Refined Metals:
+      Steel:
         priceChange: "+30%"
     Machinery Breakdown:
       Mining Equipment:
@@ -64,7 +64,7 @@ Terramonta:
       Durable Tools:
         priceChange: "+20%"  
     Ore Depletion:
-      Refined Metals:
+      Steel:
         priceChange: "+80%"
       Raw Minerals:
         priceChange: "+80%"
@@ -73,14 +73,14 @@ Terramonta:
       Rare Gems:
         priceChange: "+80%"
     Breakthrough in Refining Technique:
-      Refined Metals:
+      Steel:
         priceChange: "-60%"
       Construction Alloys:
         priceChange: "-60%"
     Mining Subsidy Contract Signing:
       Raw Minerals:
         priceChange: "-45%"
-      Refined Metals:
+      Steel:
         priceChange: "-45%"
       Mining Equipment:
         priceChange: "-45%"
@@ -101,7 +101,7 @@ Terramonta:
     Mining Subsidy Contract Expiration:
       Raw Minerals:
         priceChange: "+45%"
-      Refined Metals:
+      Steel:
         priceChange: "+45%"
       Mining Equipment:
         priceChange: "+45%"

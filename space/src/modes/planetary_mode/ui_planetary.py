@@ -1,11 +1,11 @@
 import pygame
-from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, resolve_game_path
 
 class UI_Planetary:
     def __init__(self):
         self.sidebar_width = 200
         self.sidebar_surface = pygame.Surface((self.sidebar_width, SCREEN_HEIGHT - 200))
-        self.font = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16)  # You can change the font and size
+        self.font = pygame.font.Font(resolve_game_path("space/assets/fonts/Modern Pixel.otf"), 16)
         self.player_stats = None
 
     def update_player_stats(self, player):
