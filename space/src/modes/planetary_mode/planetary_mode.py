@@ -36,17 +36,20 @@ class PlanetaryMode:
         self.log_messages = []
         self.player_position = list(self.planet.start_pos)
         self.map_manager.initialize_animation_data()
+        self.economy = Economy(selected_planet.name, economy_data)
+        self.economy.set_log_callback(self.logger.add_log_message)
         self.npc_manager = NPCManager(self.map_manager, selected_planet)
-        self.interaction_manager = InteractionManager(self.map_manager, self.npc_manager, self.logger)
+        self.interaction_manager = InteractionManager(
+            self.map_manager, self.npc_manager, self.logger, economy=self.economy
+        )
         self.interaction_manager.set_terminal_callback(self.activate_terminal)
         self.terminal = None
         self.switch_to_star_system_mode = False  # Initialize the attribute here
-        self.economy = Economy(selected_planet.name, economy_data)
-        self.economy.set_log_callback(self.logger.add_log_message)
-
-
 
         self.clock = pygame.time.Clock()
+        self.move_repeat_ms = 120  # delay between steps while a direction key is held
+        self.next_move_time = 0
+        self._blocked_move_logged = False
 
         self.npc_layer = pygame.surface.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         self.player_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
@@ -80,6 +83,60 @@ class PlanetaryMode:
         # Constrain the camera to the map bounds
         #self.map_manager.camera.clamp_ip(pygame.Rect(0, 0, self.tmx_data.width * TILE_SIZE, self.tmx_data.height * TILE_SIZE))
         
+    def _movement_delta_from_keys(self, keys):
+        """Return (dx, dy) in pixels from currently held movement keys (8-directional)."""
+        # Numpad diagonals take priority so KP7/9/1/3 stay distinct from arrow chords.
+        if keys[pygame.K_KP7]:
+            return -TILE_SIZE, -TILE_SIZE
+        if keys[pygame.K_KP9]:
+            return TILE_SIZE, -TILE_SIZE
+        if keys[pygame.K_KP1]:
+            return -TILE_SIZE, TILE_SIZE
+        if keys[pygame.K_KP3]:
+            return TILE_SIZE, TILE_SIZE
+
+        dx = 0
+        dy = 0
+        if keys[pygame.K_LEFT] or keys[pygame.K_KP4]:
+            dx -= TILE_SIZE
+        if keys[pygame.K_RIGHT] or keys[pygame.K_KP6]:
+            dx += TILE_SIZE
+        if keys[pygame.K_UP] or keys[pygame.K_KP8]:
+            dy -= TILE_SIZE
+        if keys[pygame.K_DOWN] or keys[pygame.K_KP2]:
+            dy += TILE_SIZE
+        return dx, dy
+
+    def _try_move(self, dx, dy):
+        new_position = [self.player_position[0] + dx, self.player_position[1] + dy]
+        tile_x, tile_y = new_position[0] // TILE_SIZE, new_position[1] // TILE_SIZE
+        if self.is_tile_walkable(tile_y, tile_x):
+            self.player_position = new_position
+            self._blocked_move_logged = False
+            self.update_camera()
+            player_tile = (tile_x, tile_y)
+            # Advance NPC turns first; adjacent NPCs freeze so E stays valid.
+            self.npc_manager.update(
+                self.camera.x,
+                self.camera.y,
+                self.camera.width,
+                self.camera.height,
+                player_tile=player_tile,
+            )
+            self.interaction_manager.check_for_adjacent_interactables(
+                self.player_position, TILE_SIZE
+            )
+            self.economy.fire_event()
+            self.economy.dump_updated_data("space/src/util/economy/economy_generated.yaml")
+            print(f"Player position: {self.player_position}")
+            print(f"Camera position: {self.camera}")
+            return True
+
+        if not self._blocked_move_logged:
+            self.logger.add_log_message("You can't go that way!")
+            self._blocked_move_logged = True
+        return False
+
     def handle_input(self, events):
         if self.terminal and self.terminal.active:
             for event in events:
@@ -90,56 +147,26 @@ class PlanetaryMode:
                         self.terminal.scroll_up()
                     elif event.y < 0:
                         self.terminal.scroll_down()
-        else:
-            for event in events:
-                if event.type == pygame.MOUSEWHEEL:
-                    # Adjust the log scroll position
-                    self.logger.log_scroll_position -= event.y * 20  # Adjust the multiplier as needed
-                    self.logger.log_scroll_position = max(0, min(self.logger.log_scroll_position, self.logger.max_log_scroll))
+            return
 
-                if event.type == pygame.KEYDOWN:
-                    new_position = self.player_position.copy()
-                    moved = False
+        for event in events:
+            if event.type == pygame.MOUSEWHEEL:
+                self.logger.log_scroll_position -= event.y * 20
+                self.logger.log_scroll_position = max(0, min(self.logger.log_scroll_position, self.logger.max_log_scroll))
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
+                self.interaction_manager.interact(self.player_position, TILE_SIZE)
 
-                    if event.key == pygame.K_KP4 or event.key == pygame.K_LEFT:
-                        new_position[0] -= TILE_SIZE
-                    elif event.key == pygame.K_KP6 or event.key == pygame.K_RIGHT:
-                        new_position[0] += TILE_SIZE
-                    elif event.key == pygame.K_KP8 or event.key == pygame.K_UP:
-                        new_position[1] -= TILE_SIZE
-                    elif event.key == pygame.K_KP2 or event.key == pygame.K_DOWN:
-                        new_position[1] += TILE_SIZE
-                    elif event.key == pygame.K_KP7:
-                        new_position[0] -= TILE_SIZE
-                        new_position[1] -= TILE_SIZE
-                    elif event.key == pygame.K_KP9:
-                        new_position[0] += TILE_SIZE
-                        new_position[1] -= TILE_SIZE
-                    elif event.key == pygame.K_KP1:
-                        new_position[0] -= TILE_SIZE
-                        new_position[1] += TILE_SIZE
-                    elif event.key == pygame.K_KP3:
-                        new_position[0] += TILE_SIZE
-                        new_position[1] += TILE_SIZE
-                    elif event.key == pygame.K_e:
-                        self.interaction_manager.interact(self.player_position, TILE_SIZE)
+        keys = pygame.key.get_pressed()
+        dx, dy = self._movement_delta_from_keys(keys)
+        if dx == 0 and dy == 0:
+            self.next_move_time = 0  # allow an immediate step on the next press
+            self._blocked_move_logged = False
+            return
 
-                    if new_position != self.player_position:
-                        tile_x, tile_y = new_position[0] // TILE_SIZE, new_position[1] // TILE_SIZE
-                        if self.is_tile_walkable(tile_y, tile_x):
-                            self.player_position = new_position
-                            moved = True
-                        else:
-                            self.logger.add_log_message(f"You can't go that way!")
-
-                    if moved:
-                        self.update_camera()
-                        self.interaction_manager.check_for_adjacent_interactables(self.player_position, TILE_SIZE)
-                        self.economy.fire_event()
-                        self.economy.dump_updated_data("space/src/util/economy/economy_generated.yaml")
-                        self.npc_manager.update(self.camera.x, self.camera.y, self.camera.width, self.camera.height)
-                        print(f"Player position: {self.player_position}")
-                        print(f"Camera position: {self.camera}")
+        now = pygame.time.get_ticks()
+        if now >= self.next_move_time:
+            self._try_move(dx, dy)
+            self.next_move_time = now + self.move_repeat_ms
 
     def update(self, events):
         dt = self.clock.tick(60) / 1000.0  # Convert milliseconds to seconds
@@ -147,7 +174,6 @@ class PlanetaryMode:
             self.terminal.update(dt)
         self.handle_input(events)
         self.update_camera()
-        # self.npc_manager.update()
         self.ui_planetary.update_player_stats(self.player)
         # Add additional update logic if necessary
 

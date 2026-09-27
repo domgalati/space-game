@@ -5,6 +5,7 @@ class NPC:
         self.firstname = None
         self.lastname = None
         self.hobbies = []
+        self.job_title = None
         self.health = 100
         self.energy = 100
         self.inventory = []

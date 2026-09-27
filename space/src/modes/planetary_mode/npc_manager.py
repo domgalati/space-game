@@ -1,65 +1,135 @@
 import pygame
 import random
+
 from util.config import TILE_SIZE, resolve_game_path
-from .npc_generator import generate_npc  # Import the npc_generator function
+from entities.npcs.goals.hang_near_goal import HangNearGoal
+from entities.npcs.goals.wander_goal import WanderGoal
+from .npc_generator import generate_npc
+
+
+# Keep populations small enough that job goals are visible on Terramonta.
+_TOTAL_NPC_CAP = 12
+
+_JOB_TARGETS = {
+    "Miner": "mining_machines",
+    "Foreman": "terminals",
+}
+
 
 class NPCManager:
     def __init__(self, map_manager, planet):
         self.map_manager = map_manager
         self.planet = planet
         self.npcs = []
+        self._walkable_tiles_cache = None
+        self.mining_machine_tiles = self._collect_layer_tiles("Mining Machines")
+        self.terminal_tiles = self._collect_object_tiles(
+            ("Docking Terminal", "Refinery Computer")
+        )
         self.populate_npcs()
 
     def populate_npcs(self):
         npc_types = self.get_npc_types_based_on_planet(self.planet)
         walkable_tiles = self.get_walkable_tiles()
-        guild_name = self.planet.planet_guild  # Assuming guild name is stored in planet object
+        if not walkable_tiles:
+            return
+
+        guild_name = self.planet.planet_guild
+        per_type = max(1, _TOTAL_NPC_CAP // max(1, len(npc_types)))
 
         for npc_class in npc_types:
-            num_of_npcs = random.randint(10, 50) # Generates a random number between 1 and 10
-            for _ in range(num_of_npcs):
+            for _ in range(per_type):
                 position = random.choice(walkable_tiles)
-                # Use npc_generator to create NPC instance
                 npc = generate_npc(guild_name, npc_class)
                 npc.position = position
-                npc.npc_manager = self # Pass reference of NPC_Manager to npc instance
-                if npc.sprite:  # Load the sprite image once during creation of each NPC
-                    npc.sprite_image = pygame.image.load(resolve_game_path(npc.sprite)).convert_alpha()
+                npc.npc_manager = self
+                self._assign_goal(npc)
+                if npc.sprite:
+                    npc.sprite_image = pygame.image.load(
+                        resolve_game_path(npc.sprite)
+                    ).convert_alpha()
                 self.npcs.append(npc)
 
+    def _assign_goal(self, npc):
+        target_key = _JOB_TARGETS.get(npc.job_title)
+        if target_key == "mining_machines" and self.mining_machine_tiles:
+            npc.goal = HangNearGoal(npc, self.mining_machine_tiles)
+        elif target_key == "terminals" and self.terminal_tiles:
+            npc.goal = HangNearGoal(npc, self.terminal_tiles)
+        else:
+            npc.goal = WanderGoal(npc)
+
+    def _collect_layer_tiles(self, layer_name):
+        tiles = []
+        try:
+            layer = self.map_manager.tmx_data.get_layer_by_name(layer_name)
+        except ValueError:
+            return tiles
+        for x, y, gid in layer:
+            if gid != 0:
+                tiles.append((x, y))
+        return tiles
+
+    def _collect_object_tiles(self, names):
+        tiles = []
+        seen = set()
+        try:
+            objects_layer = self.map_manager.tmx_data.get_layer_by_name("Objects")
+        except ValueError:
+            return tiles
+        for obj in objects_layer:
+            if obj.name not in names:
+                continue
+            tile = (int(obj.x) // TILE_SIZE, int(obj.y) // TILE_SIZE)
+            if tile not in seen:
+                seen.add(tile)
+                tiles.append(tile)
+        return tiles
+
     def get_npc_types_based_on_planet(self, planet):
-        # Example logic based on planet type
-        if planet.planet_type == 'Industrial':
-            return ["Miner", "Foreman"]  # More miners and foremen for a mining planet
-        # Add other conditions for different planet types
-        return [NPC]  # Default NPC type
+        if planet.planet_type == "Industrial":
+            return ["Miner", "Foreman"]
+        return ["Miner"]
 
     def get_walkable_tiles(self):
+        if self._walkable_tiles_cache is not None:
+            return self._walkable_tiles_cache
         walkable_tiles = []
-        walkable_layer = self.map_manager.tmx_data.get_layer_by_name('walkable')
+        walkable_layer = self.map_manager.tmx_data.get_layer_by_name("walkable")
         for x, y, gid in walkable_layer:
-            if gid != 0:  # Assuming non-zero GID indicates a walkable tile
+            if gid != 0:
                 walkable_tiles.append((x, y))
+        self._walkable_tiles_cache = walkable_tiles
         return walkable_tiles
 
     def is_within_visible_area(self, npc_x, npc_y, camera_x, camera_y, camera_width, camera_height):
-            # Convert NPC position from tiles to pixels if necessary
-            npc_pixel_x = npc_x * TILE_SIZE
-            npc_pixel_y = npc_y * TILE_SIZE
-    
-            # Check if the NPC's position intersects with the camera's viewport
-            return (camera_x <= npc_pixel_x <= camera_x + camera_width and
-                    camera_y <= npc_pixel_y <= camera_y + camera_height)
+        npc_pixel_x = npc_x * TILE_SIZE
+        npc_pixel_y = npc_y * TILE_SIZE
+        return (
+            camera_x <= npc_pixel_x <= camera_x + camera_width
+            and camera_y <= npc_pixel_y <= camera_y + camera_height
+        )
 
-    def update(self, camera_x, camera_y, camera_width, camera_height):
+    def update(self, camera_x, camera_y, camera_width, camera_height, player_tile=None):
         for npc in self.npcs:
-            if self.is_within_visible_area(npc.position[0], npc.position[1], camera_x, camera_y, camera_width, camera_height):
+            if player_tile is not None and self._is_adjacent_to_player(npc.position, player_tile):
+                continue  # stay put so the player can press E
+            if self.is_within_visible_area(
+                npc.position[0], npc.position[1], camera_x, camera_y, camera_width, camera_height
+            ):
                 npc.update()
 
+    def _is_adjacent_to_player(self, npc_tile, player_tile):
+        dx = abs(npc_tile[0] - player_tile[0])
+        dy = abs(npc_tile[1] - player_tile[1])
+        return max(dx, dy) == 1
+
     def draw(self, npc_layer, camera):
-        npc_layer.fill((0, 0, 0, 0)) 
+        npc_layer.fill((0, 0, 0, 0))
         for npc in self.npcs:
-            if self.is_within_visible_area(npc.position[0], npc.position[1], camera.x, camera.y, camera.width, camera.height):
+            if self.is_within_visible_area(
+                npc.position[0], npc.position[1], camera.x, camera.y, camera.width, camera.height
+            ):
                 if npc.sprite:
                     sprite_image = npc.sprite_image
                     npc_screen_x = npc.position[0] * TILE_SIZE - camera.x

@@ -15,6 +15,8 @@ def generate_npc(guild, npc_class_name):
     npc.firstname = random.choice(npc_module.first_names)
     npc.lastname = random.choice(npc_module.last_names)
     npc.hobbies = random.sample(npc_module.hobbies, 3)
+    npc.job_title = npc_class_name
+    npc.guild = guild
 
     # Return the initialized NPC object
     return npc

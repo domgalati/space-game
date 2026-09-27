@@ -1,7 +1,11 @@
 import random
+
 from .base_goal import BaseGoal
 
+
 class WanderGoal(BaseGoal):
+    """One random adjacent step per turn (player move advances time)."""
+
     def __init__(self, npc):
         super().__init__(npc)
 
@@ -17,6 +21,6 @@ class WanderGoal(BaseGoal):
             (x, y - 1),  # Up
             (x, y + 1),  # Down
             (x - 1, y),  # Left
-            (x + 1, y)   # Right
+            (x + 1, y),  # Right
         ]
         return [pos for pos in adjacent_positions if pos in walkable_tiles]
