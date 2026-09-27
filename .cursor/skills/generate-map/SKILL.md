@@ -22,7 +22,7 @@ Ask, in this order:
 
 1. **Identity.** Which body? The `name` must match `space/star_systems/*.json` exactly, including spaces. That name is how scan and dock find `space/assets/maps/<name>.tmx`.
 2. **Lore.** What is this place (trade hub, free port, seat of government, mining colony, farm town) and which guild runs it?
-3. **Layout.** `station` (ring corridor, rooms on the rim, stars outside) or `surface` (walled compounds on open ground, joined by paths). Size: small 60x40, medium 100x70, or large 180x120.
+3. **Layout.** `station` (ring corridor, rooms on the rim, stars outside) or `surface` (walled compounds on open ground, joined by paths). For a surface, the `palette`: `badlands` or `urban`. Size: small 60x40, medium 100x70, or large 180x120.
 4. **Rooms.** Which of `market`, `docking_bay`, `cantina`, `command`, and how many. On a station, one room may be `at: hub` (the market, unless they say otherwise).
 5. **People.** Job and headcount. Existing jobs: Miner, Foreman, Security, Dockworker, Politician. New jobs need a class, a sprite, and a goods bias (see [reference.md](reference.md)).
 6. **Economy.** Which goods and two or three price events, or "no market."
@@ -31,7 +31,7 @@ Ask, in this order:
 
 State these limits while asking, do not ask them as if they were choices:
 
-- A station is always open space with stars outside the hull. A surface is always open ground with craters, rocks, and shrubs. The surface theme has one palette; it does not yet look industrial, terran, or urban.
+- A station is always open space with stars outside the hull. A surface is always open ground joined by paths. Surface palettes: `badlands` (Terramonta look: dark red ground, dirt paths, red shrubs, orange rocks) and `urban` (concrete city blocks and asphalt roads around the compounds, bare gray rock beyond). There is no terran or industrial palette yet.
 - Hand edits in Tiled are lost the next time the spec is regenerated.
 
 Save every answer into the spec, including lore, so the next run does not re-ask settled questions. Copy [spec.template.yaml](spec.template.yaml) to `space/assets/maps/specs/<slug>.yaml`.
@@ -76,4 +76,4 @@ Never commit `space/src/util/economy/economy_generated.yaml`. It is rewritten ev
 
 ## Limits
 
-Room types the furnisher knows: `market`, `docking_bay`, `cantina`, `command`. Any other `type` still gets a room, with generic lockers and panels. Themes: `station`, `surface`. Adding a room, a prop, or a theme is in [reference.md](reference.md). Do that only when the grill turns up something the generator cannot build.
+Room types the furnisher knows: `market`, `docking_bay`, `cantina`, `command`, `housing`. Any other `type` still gets a room, with generic lockers and panels. Themes: `station`, `surface`. Adding a room, a prop, or a theme is in [reference.md](reference.md). Do that only when the grill turns up something the generator cannot build.

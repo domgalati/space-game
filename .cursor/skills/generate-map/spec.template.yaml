@@ -3,6 +3,7 @@
 # so hand edits made in Tiled afterwards are lost.
 name: Nexum Astra
 theme: station          # station | surface
+# palette: urban        # surface only: badlands (default) | urban
 size: [100, 70]         # small [60, 40], medium [100, 70], large [180, 120]
 seed: 1
 guild: assembly

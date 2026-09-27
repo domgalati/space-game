@@ -164,6 +164,34 @@ TILES.update({
 NAMES = list(TILES)
 INDEX = {name: i for i, name in enumerate(NAMES)}
 
+CONCRETE = (54, 54, 66)
+SEAM = (38, 38, 48)
+ASPHALT = (22, 22, 30)
+ROCK = (34, 32, 40)
+STONE = (86, 82, 98)
+TILE_BLUE = (48, 50, 68)
+
+# Drawn into their own sheet (mapgen_palettes) so they never shift the extras gids. Append only.
+PALETTE_TILES = {
+    "floor_concrete": _layers(_fill(CONCRETE), _pixels(SEAM, [(i, 0) for i in range(ART)] + [(0, i) for i in range(ART)])),
+    "floor_concrete_b": _layers(
+        _fill(CONCRETE),
+        _pixels(SEAM, [(i, 0) for i in range(ART)] + [(0, i) for i in range(ART)] + [(3, 4), (4, 5), (5, 5)]),
+    ),
+    "floor_road": _layers(_fill(ASPHALT), _pixels(NIGHT, [(2, 5), (6, 2)])),
+    "floor_road_b": _layers(_fill(ASPHALT), _pixels(NIGHT, [(1, 1), (5, 6)]), _pixels(DUSK, [(4, 3)])),
+    "floor_rock": _layers(_fill(ROCK), _pixels(STONE, [(2, 5)]), _pixels(BLACK, [(2, 6)])),
+    "floor_rock_b": _layers(_fill(ROCK), _pixels(STONE, [(6, 1), (1, 6)]), _pixels(BLACK, [(6, 2), (1, 7)])),
+    "floor_tile": _layers(_fill(TILE_BLUE), _pixels(DUSK, [(i, 0) for i in range(ART)] + [(0, i) for i in range(ART)])),
+    "floor_tile_b": _layers(
+        _fill(TILE_BLUE),
+        _pixels(DUSK, [(i, 0) for i in range(ART)] + [(0, i) for i in range(ART)]),
+        _pixels(LAVENDER, [(4, 4)]),
+    ),
+}
+PALETTE_NAMES = list(PALETTE_TILES)
+PALETTE_INDEX = {name: i for i, name in enumerate(PALETTE_NAMES)}
+
 
 def _key_backdrop(block):
     """Clear the near-black backdrop reachable from the block's edges; inner outlines stay."""
@@ -186,17 +214,17 @@ def _key_backdrop(block):
     return block
 
 
-def build_sheet(prop_blocks, load_image):
+def build_sheet(prop_blocks, load_image, drawn=TILES):
     """Drawn tiles first, then keyed copies of every prop block (row-major, COLUMNS wide)."""
     tiles = []
-    for name in NAMES:
+    for draw in drawn.values():
         art = pygame.Surface((ART, ART), pygame.SRCALPHA)
 
         def put(x, y, color, art=art):
             if 0 <= x < ART and 0 <= y < ART:
                 art.set_at((x, y), color)
 
-        TILES[name](put)
+        draw(put)
         tiles.append(pygame.transform.scale(art, (TILE, TILE)))
 
     sources = {}
@@ -215,12 +243,12 @@ def build_sheet(prop_blocks, load_image):
     return sheet, len(tiles)
 
 
-def write_tileset(png_path, tsx_path, image_source, prop_blocks, load_image):
-    sheet, count = build_sheet(prop_blocks, load_image)
+def write_tileset(png_path, tsx_path, image_source, prop_blocks, load_image, drawn=TILES, name="mapgen_extras"):
+    sheet, count = build_sheet(prop_blocks, load_image, drawn)
     pygame.image.save(sheet, png_path)
     tsx = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
-        f'<tileset version="1.10" tiledversion="1.10.2" name="mapgen_extras" tilewidth="{TILE}" '
+        f'<tileset version="1.10" tiledversion="1.10.2" name="{name}" tilewidth="{TILE}" '
         f'tileheight="{TILE}" tilecount="{count}" columns="{COLUMNS}">\n'
         f' <image source="{image_source}" width="{sheet.get_width()}" height="{sheet.get_height()}"/>\n'
         '</tileset>\n'

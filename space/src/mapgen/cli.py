@@ -13,6 +13,8 @@ from .themes import THEMES
 MAPS_DIR = "space/assets/maps"
 EXTRAS_PNG = "space/assets/img/tilesets/mapgen_extras.png"
 EXTRAS_TSX = "space/assets/Tilesheet Files/mapgen_extras.tsx"
+PALETTES_PNG = "space/assets/img/tilesets/mapgen_palettes.png"
+PALETTES_TSX = "space/assets/Tilesheet Files/mapgen_palettes.tsx"
 
 
 def load_spec(path):
@@ -48,12 +50,24 @@ def generate(spec, seed=None, out=None):
 def write_extras():
     import pygame
 
+    def image_source(png, tsx):
+        return os.path.relpath(resolve_game_path(png), os.path.dirname(resolve_game_path(tsx))).replace("\\", "/")
+
     extras.write_tileset(
         resolve_game_path(EXTRAS_PNG),
         resolve_game_path(EXTRAS_TSX),
-        os.path.relpath(resolve_game_path(EXTRAS_PNG), os.path.dirname(resolve_game_path(EXTRAS_TSX))).replace("\\", "/"),
+        image_source(EXTRAS_PNG, EXTRAS_TSX),
         tiles.prop_blocks(),
         lambda path: pygame.image.load(resolve_game_path(path)).convert_alpha(),
+    )
+    extras.write_tileset(
+        resolve_game_path(PALETTES_PNG),
+        resolve_game_path(PALETTES_TSX),
+        image_source(PALETTES_PNG, PALETTES_TSX),
+        [],
+        None,
+        drawn=extras.PALETTE_TILES,
+        name="mapgen_palettes",
     )
 
 

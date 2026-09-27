@@ -1,0 +1,32 @@
+# python -m mapgen space/assets/maps/specs/etheora.yaml --preview etheora.png
+# Change `seed` to re-roll. Regenerating overwrites space/assets/maps/Etheora.tmx,
+# so hand edits made in Tiled afterwards are lost.
+name: Etheora
+theme: surface
+palette: urban          # surface only: badlands (Terramonta look) | urban
+size: [180, 120]
+seed: 11
+guild: assembly
+lore: >
+  Etheora is a dense, corporate, research-heavy Assembly tech world. This district is the
+  city that houses the worker bees of the factions that control the universe. The Assembly
+  runs it; the other factions show up only in lore and dialogue.
+rooms:
+  - type: market
+  - type: docking_bay
+  - type: housing
+    count: 4
+  - type: cantina
+  - type: command
+npcs:
+  Dockworker: 6
+  Foreman: 3
+  Miner: 10
+# Housing blocks post Miners and Dockworkers. Foremen post at docking terminals.
+# Goods and events: the existing Etheora entry in economy.yaml, unchanged.
+# Talk lines: Etheora-only JOB_GOODS_BIAS overrides drawn from Etheora's own goods.
+# flavor.hail / flavor.bar / flavor.console are notes for the agent, not map data.
+flavor:
+  hail: ""     # stock
+  bar: ""      # stock price rumor
+  console: ""  # stock

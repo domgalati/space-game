@@ -14,15 +14,17 @@ FLOORS = {
     "bay": ("floor_bay", "floor_bay_b", 0.5),
     "cantina": ("floor_cantina", "floor_cantina_b", 0.5),
     "command": ("floor_command", "floor_command_b", 0.25),
+    "housing": ("floor_cantina", "floor_cantina_b", 0.5),
 }
 STARS = ["star_1", "star_2", "star_3", "star_3", "star_4", "star_5", "star_6", "star_6"]
 
-ROOM_FLOOR = {"docking_bay": "bay", "cantina": "cantina", "command": "command", "market": "plaza"}
+ROOM_FLOOR = {"docking_bay": "bay", "cantina": "cantina", "command": "command", "market": "plaza", "housing": "housing"}
 # (min_w, max_w), (min_h, max_h)
 ROOM_SIZE = {
     "docking_bay": ((15, 18), (11, 13)),
     "cantina": ((12, 15), (8, 10)),
     "command": ((13, 16), (8, 10)),
+    "housing": ((12, 15), (8, 10)),
 }
 DEFAULT_SIZE = ((10, 13), (7, 9))
 
@@ -208,6 +210,7 @@ def _background(grid):
 # ---- furnishing -----------------------------------------------------------------
 
 STALL_GOODS = ["sack_gold", "sack_blue", "chest", "sack_gold", "chest"]
+BEDS = ["bed_white", "bed_orange", "bed_green"]
 
 
 def _stall(grid, x, y, length, clear):
@@ -257,8 +260,10 @@ def _furnish_docking_bay(grid, room):
     first_bay = vessel == "lander"
     for side in ("N", "S") if outer in ("W", "E") else ("W", "E"):
         x, y = flush(room, side, "terminal", rng.randint(-3, 3))
-        if grid.add_object("Docking Terminal", x, y, keep_clear=clear) and first_bay and grid.spawn is None:
-            grid.spawn = front_of(room, side, x, y)
+        if grid.add_object("Docking Terminal", x, y, keep_clear=clear):
+            add_posts(grid, "Foreman", [front_of(room, side, x, y)])
+            if first_bay and grid.spawn is None:
+                grid.spawn = front_of(room, side, x, y)
 
     along_walls(grid, room, ["fuel_tanks", "locker", "locker", "bot_a", "bot_c"], rng.randint(3, 5), clear,
                 sides=tuple(s for s in ("N", "S", "E", "W") if s not in (room.door_side, outer)))
@@ -289,20 +294,26 @@ def _furnish_cantina(grid, room):
             grid.place("shelf", sx, shelf_y, clear)
     along_walls(grid, room, ["jukebox"], 1, clear, sides=tuple(s for s in ("W", "E") if s != room.door_side))
 
-    # Tables with a chair either side, spaced so every seat stays reachable.
     inner = Rect(r.x + 2, r.y + 3, r.w - 4, r.h - 5) if back == "N" else Rect(r.x + 2, r.y + 2, r.w - 4, r.h - 5)
     for _ in range(rng.randint(3, 4)):
-        for _ in range(40):
-            tx, ty = rng.randint(inner.x + 1, inner.right - 2), rng.randint(inner.y, inner.bottom - 1)
-            cells = [(tx - 1, ty), (tx, ty), (tx + 1, ty)]
-            margin = [(x, y) for x in range(tx - 2, tx + 3) for y in (ty - 1, ty + 1)]
-            if all(grid.walkable(c) and c not in clear for c in cells + margin):
-                grid.place("chair", tx - 1, ty, clear)
-                grid.place("table", tx, ty, clear)
-                grid.place("chair", tx + 1, ty, clear)
-                add_posts(grid, "Dockworker", [(tx, ty + 1)])
-                break
+        seat = _table_with_chairs(grid, inner, clear)
+        if seat:
+            add_posts(grid, "Dockworker", [seat])
     add_posts(grid, "Security", [(r.cx, r.bottom - 2 if back == "N" else r.y + 1)])
+
+
+def _table_with_chairs(grid, area, clear, attempts=40):
+    """A table with a chair either side, spaced so every seat stays reachable. Returns a standing cell."""
+    for _ in range(attempts):
+        tx, ty = grid.rng.randint(area.x + 1, area.right - 2), grid.rng.randint(area.y, area.bottom - 1)
+        cells = [(tx - 1, ty), (tx, ty), (tx + 1, ty)]
+        margin = [(x, y) for x in range(tx - 2, tx + 3) for y in (ty - 1, ty + 1)]
+        if all(grid.walkable(c) and c not in clear for c in cells + margin):
+            grid.place("chair", tx - 1, ty, clear)
+            grid.place("table", tx, ty, clear)
+            grid.place("chair", tx + 1, ty, clear)
+            return tx, ty + 1
+    return None
 
 
 def _furnish_command(grid, room):
@@ -332,6 +343,38 @@ def _console_face(back, x, y):
     return {"N": (x + 1, y + 2), "S": (x + 1, y), "W": (x + 2, y + 1), "E": (x, y + 1)}[back]
 
 
+def _furnish_housing(grid, room):
+    """A worker dormitory: a row of beds on the back wall, lockers on the sides, a common table."""
+    rng = grid.rng
+    r = room.rect
+    clear = grid.room_keep_clear(room)
+    back = OPPOSITE[room.door_side]
+
+    bunks = []
+    bed = rng.choice(BEDS)
+    if back in ("N", "S"):
+        y = r.y if back == "N" else r.bottom - 2
+        for x in range(r.x + 1, r.right - 2, 3):
+            if grid.place(bed, x, y, clear):
+                bunks.append(front_of(room, back, x, y, height=2, width=2))
+    else:
+        x = r.x if back == "W" else r.right - 2
+        for y in range(r.y, r.bottom - 1, 3):
+            if grid.place(bed, x, y, clear):
+                bunks.append(front_of(room, back, x, y, height=2, width=2))
+
+    side_walls = ("W", "E") if back in ("N", "S") else ("N", "S")
+    along_walls(grid, room, ["locker", "locker", "shelf", "chest"], rng.randint(3, 5), clear, sides=side_walls)
+
+    common = Rect(r.x + 3, r.y + 2, r.w - 6, r.h - 4)
+    seat = _table_with_chairs(grid, common, clear)
+
+    add_posts(grid, "Miner", rng.sample(bunks, min(3, len(bunks))))
+    if seat:
+        add_posts(grid, "Dockworker", [seat])
+        add_posts(grid, "Miner", [(seat[0], seat[1] - 2)])
+
+
 def _furnish_generic(grid, room):
     along_walls(grid, room, ["locker", "control_panel", "bot_b"], 3, grid.room_keep_clear(room))
 
@@ -341,4 +384,5 @@ FURNISH = {
     "docking_bay": _furnish_docking_bay,
     "cantina": _furnish_cantina,
     "command": _furnish_command,
+    "housing": _furnish_housing,
 }

@@ -3,21 +3,49 @@ from ..grid import Grid, Rect
 from ..tiles import extra
 from . import station
 
-FLOORS = dict(station.FLOORS)
-FLOORS["ground"] = ("floor_ground", "floor_ground_b", 0.35)
-FLOORS["path"] = ("floor_path", "floor_path", 0.0)
-
-TERRAIN = {
-    "crater": 0.0015,
-    "rock_orange": 0.002,
-    "rock_white": 0.001,
-    "shrub_a": 0.003,
-    "shrub_b": 0.003,
-    "shrub_c": 0.002,
+# floors: style -> (main, variant, variant chance), layered over station.FLOORS.
+# terrain: scattered outside city limits (everywhere when there are none).
+# clutter + city_margin: pave a box around the compounds and dress it with street props.
+PALETTES = {
+    "badlands": {
+        "floors": {
+            "ground": ("floor_ground", "floor_ground_b", 0.35),
+            "path": ("floor_path", "floor_path", 0.0),
+        },
+        "terrain": {
+            "crater": 0.0015,
+            "rock_orange": 0.002,
+            "rock_white": 0.001,
+            "shrub_a": 0.003,
+            "shrub_b": 0.003,
+            "shrub_c": 0.002,
+        },
+    },
+    "urban": {
+        "floors": {
+            "ground": ("floor_rock", "floor_rock_b", 0.4),
+            "pavement": ("floor_concrete", "floor_concrete_b", 0.12),
+            "path": ("floor_road", "floor_road_b", 0.15),
+            "housing": ("floor_tile", "floor_tile_b", 0.2),
+        },
+        "terrain": {
+            "rock_white": 0.004,
+            "rock_blue": 0.004,
+        },
+        "clutter": {
+            "antenna": 0.0002,
+            "terminal_c": 0.0006,
+            "bot_a": 0.0004,
+            "bot_c": 0.0004,
+            "fuel_tanks": 0.0002,
+        },
+        "city_margin": 8,
+    },
 }
 
 
 def generate(spec, rng):
+    palette = PALETTES[spec.get("palette", "badlands")]
     width, height = spec["size"]
     grid = Grid(width, height, rng)
     grid.carve(Rect(1, 1, width - 2, height - 2), "ground")
@@ -42,18 +70,43 @@ def generate(spec, rng):
     for room in compounds:
         _path(grid, room.approach, center)
 
+    city = _pave_city(grid, compounds, palette["city_margin"]) if "city_margin" in palette else None
+
     for room in compounds:
         station.FURNISH.get(room.kind, station._furnish_generic)(grid, room)
 
     keep_clear = set()
     for room in compounds:
         keep_clear |= grid.room_keep_clear(room, margin=3)
-    for name, density in TERRAIN.items():
-        for _ in range(int(width * height * density)):
-            x, y = rng.randint(2, width - 4), rng.randint(2, height - 4)
-            grid.place(name, x, y, keep_clear, check=False)
+        keep_clear |= set(room.rect.cells())
+    _scatter(grid, palette["terrain"], keep_clear, lambda cell: city is None or not city.contains(*cell))
+    if city:
+        roads = {cell for cell, style in grid.floor.items() if style == "path"}
+        _scatter(grid, palette["clutter"], keep_clear | roads, lambda cell: city.contains(*cell), check=True)
 
-    return grid, _background(grid)
+    return grid, _background(grid, palette)
+
+
+def _scatter(grid, densities, keep_clear, allowed, check=False):
+    rng = grid.rng
+    for name, density in densities.items():
+        for _ in range(int(grid.width * grid.height * density)):
+            x, y = rng.randint(2, grid.width - 4), rng.randint(2, grid.height - 4)
+            if allowed((x, y)):
+                grid.place(name, x, y, keep_clear, check=check)
+
+
+def _pave_city(grid, compounds, margin):
+    """Open ground within `margin` of the compounds' bounding box becomes pavement."""
+    x0 = max(1, min(r.rect.x for r in compounds) - margin)
+    y0 = max(1, min(r.rect.y for r in compounds) - margin)
+    x1 = min(grid.width - 1, max(r.rect.right for r in compounds) + margin)
+    y1 = min(grid.height - 1, max(r.rect.bottom for r in compounds) + margin)
+    city = Rect(x0, y0, x1 - x0, y1 - y0)
+    for cell in city.cells():
+        if grid.floor.get(cell) == "ground":
+            grid.floor[cell] = "pavement"
+    return city
 
 
 def _compound(grid, kind, rect):
@@ -82,7 +135,7 @@ def _compound(grid, kind, rect):
 
 
 def _path(grid, start, end):
-    """Two-wide L-shaped dirt path, drawn only over open ground."""
+    """Two-wide L-shaped path, drawn only over open ground."""
     (x0, y0), (x1, y1) = start, end
     cells = [(x, y0) for x in range(min(x0, x1), max(x0, x1) + 1)]
     cells += [(x1, y) for y in range(min(y0, y1), max(y0, y1) + 1)]
@@ -92,10 +145,11 @@ def _path(grid, start, end):
                 grid.floor[cell] = "path"
 
 
-def _background(grid):
+def _background(grid, palette):
     rng = grid.rng
+    floors = {**station.FLOORS, **palette["floors"]}
     cells = {}
     for cell, style in grid.floor.items():
-        main, variant, chance = FLOORS.get(style, FLOORS["ground"])
+        main, variant, chance = floors.get(style, floors["ground"])
         cells[cell] = extra(variant if rng.random() < chance else main)
     return cells

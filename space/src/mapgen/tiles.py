@@ -11,8 +11,10 @@ TILESETS = [
     ("SpaceRoguelikeSpriteSheet3x-tilesize-24.tsx", 1100),
     ("RoguelikeOverSpriteSheet3x-tilesize-24.tsx", 1951),
     ("mapgen_extras.tsx", 5175),
+    ("mapgen_palettes.tsx", 6000),
 ]
 EXTRAS_FIRSTGID = 5175
+PALETTES_FIRSTGID = 6000
 
 _PACKS = "space/assets/Downloaded Packs"
 SHEET_FILES = {
@@ -23,6 +25,8 @@ SHEET_FILES = {
 
 
 def extra(name):
+    if name in extras.PALETTE_INDEX:
+        return PALETTES_FIRSTGID + extras.PALETTE_INDEX[name]
     return EXTRAS_FIRSTGID + extras.INDEX[name]
 
 
@@ -76,6 +80,10 @@ STAMPS = {
     "shrub_a": Stamp("tileset", 23, 0, 1, 1),
     "shrub_b": Stamp("tileset", 23, 2, 1, 1),
     "shrub_c": Stamp("tileset", 24, 3, 1, 1),
+    # New stamps go last so gids in already generated maps stay valid.
+    "bed_white": Stamp("roguelike", 6, 0, 2, 2),
+    "bed_orange": Stamp("roguelike", 6, 2, 2, 2),
+    "bed_green": Stamp("roguelike", 6, 4, 2, 2),
 }
 
 _next = len(extras.NAMES)
@@ -85,6 +93,7 @@ for _stamp in STAMPS.values():
         for dy in range(_stamp.height)
     ]
     _next += _stamp.width * _stamp.height
+assert EXTRAS_FIRSTGID + _next <= PALETTES_FIRSTGID, "mapgen_extras has outgrown its gid range"
 
 
 def prop_blocks():
