@@ -1,0 +1,27 @@
+# python -m mapgen space/assets/maps/specs/<slug>.yaml --preview out.png
+# Change `seed` to re-roll. Regenerating overwrites space/assets/maps/<name>.tmx,
+# so hand edits made in Tiled afterwards are lost.
+name: Nexum Astra
+theme: station          # station | surface
+size: [100, 70]         # small [60, 40], medium [100, 70], large [180, 120]
+seed: 1
+guild: assembly
+lore: >
+  One or two sentences: what this place is and who it serves.
+rooms:
+  - type: market        # market | docking_bay | cantina | command
+    at: hub             # station only; omit on a surface
+  - type: docking_bay
+    count: 2
+  - type: cantina
+  - type: command
+npcs:
+  Security: 3
+  Dockworker: 5
+  Politician: 2
+# Goods and events are copied into economy.yaml by hand; mapgen does not read them.
+# flavor.hail / flavor.bar / flavor.console are notes for the agent, not map data.
+flavor:
+  hail: ""
+  bar: ""
+  console: ""

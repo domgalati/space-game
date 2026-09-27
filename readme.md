@@ -55,3 +55,13 @@ python -c "from main import main; main()"
 ```
 
 The game resolves asset paths from the inner `space/` tree automatically; you still need the raster assets (for example `space/assets/img/` and fonts under `space/assets/fonts/`) present on disk for it to start—those files are not all tracked in this repository.
+
+## Maps
+
+Walkable maps are generated from a YAML spec rather than drawn by hand in Tiled:
+
+```bash
+python -m mapgen space/assets/maps/specs/<slug>.yaml --preview out.png
+```
+
+In Cursor, `/generate-map` runs the project skill at `.cursor/skills/generate-map/`. It asks for lore, layout, rooms, people, and economy before generating, and it refuses to overwrite a hand-made map such as Terramonta.
