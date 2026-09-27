@@ -1,0 +1,160 @@
+# Portrait layer spec.
+#
+# A portrait is a 64x64 head-and-shoulders bust, drawn at 4x (256x256) in the dialogue panel.
+# Layers are stacked in `order`. For each NPC one variant per layer is rolled from the NPC's id
+# (or pinned by a character file), and the choice is saved with the NPC so it never changes.
+#
+# Replacing the placeholder art:
+#   - Every file is a 64x64 PNG with transparency, aligned to the same bust (face centered at x=32).
+#   - `file` paths are relative to this folder. "{species}" is replaced with the NPC's species id.
+#   - A part with `tint` is drawn in grayscale and multiplied by one of the NPC's colors:
+#       skin, hair, eyes (rolled from `palettes` for the species) or accent (the guild color).
+#     White becomes the full color, gray becomes a darker shade of it, and black stays black.
+#   - A part without `tint` is drawn in its own colors.
+#   - `species` on a variant or a part limits it to those species. `jobs` limits a variant to jobs.
+#   - `weight` (default 1) is how often a variant is rolled; `none` is the weight of drawing nothing.
+#   - `pick: job` picks the variant whose `jobs` lists the NPC's job, or the `default` variant.
+#
+# The placeholders are drawn by space/tools/gen_portrait_placeholders.py.
+# Vessari and Muroth are working names for two placeholder species.
+
+size: 64
+scale: 4
+order: [back_hair, head, eyes, mouth, facial_hair, outfit, front_hair, accessory]
+
+palettes:
+  skin:
+    human: ["#f3cfb3", "#e4b48f", "#c98f68", "#a8704c", "#80502f", "#5c3a24"]
+    vessari: ["#a9bccf", "#93a9c2", "#b0a8cc", "#8fb0b6", "#c0ccd6"]
+    muroth: ["#cf9a45", "#b98137", "#d9ad62", "#a36e30", "#c28f56"]
+  hair:
+    human: ["#2a1c15", "#4b301f", "#6f4a2b", "#9f6f3b", "#d4b066", "#e6ddcc", "#8e2f28", "#1b1b22", "#3d5a8a", "#6c8f58"]
+    muroth: ["#2d241c", "#4a3525", "#6b5a44", "#8e8a80", "#3a2a3a"]
+    vessari: ["#3fb6c2", "#8a6fd0", "#e0776a", "#e3bf55", "#4d7fd6"]
+  eyes:
+    human: ["#4c7db3", "#5d8c4a", "#6b4a2b", "#3b3b3b", "#8c6c2e", "#6f8a9a"]
+    muroth: ["#d9a636", "#c7582e", "#9c6b2a", "#e0c35a"]
+    vessari: ["#7de6ee", "#eed27d", "#b88af0", "#8aeea4"]
+  accent:
+    assembly: "#d9ab45"
+    caravaneers: "#cc733f"
+    cohort: "#5bae70"
+    dominion: "#b3424e"
+    default: "#8e9eac"
+
+layers:
+  back_hair:
+    none: 6
+    variants:
+      - {id: long, species: [human], weight: 2, parts: [{file: back_hair/long.png, tint: hair}]}
+      - {id: shoulder, species: [human], weight: 2, parts: [{file: back_hair/shoulder.png, tint: hair}]}
+      - {id: mane, species: [muroth], weight: 4, parts: [{file: back_hair/mane.png, tint: hair}]}
+      - {id: braids, species: [muroth], weight: 3, parts: [{file: back_hair/braids.png, tint: hair}]}
+
+  head:
+    variants:
+      - {id: base, parts: [{file: "head/{species}.png", tint: skin}]}
+
+  eyes:
+    variants:
+      - id: round
+        species: [human]
+        parts:
+          - {file: eyes/round.png}
+          - {file: eyes/round_iris.png, tint: eyes}
+          - {file: eyes/round_brows.png, tint: hair}
+      - id: narrow
+        species: [human]
+        parts:
+          - {file: eyes/narrow.png}
+          - {file: eyes/narrow_iris.png, tint: eyes}
+          - {file: eyes/narrow_brows.png, tint: hair}
+      - id: deepset
+        species: [muroth]
+        parts:
+          - {file: eyes/deepset.png}
+          - {file: eyes/deepset_iris.png, tint: eyes}
+          - {file: eyes/deepset_brows.png, tint: hair}
+      - id: almond
+        species: [vessari]
+        parts:
+          - {file: eyes/almond.png}
+          - {file: eyes/almond_glow.png, tint: eyes}
+      - id: wide
+        species: [vessari]
+        parts:
+          - {file: eyes/wide.png}
+          - {file: eyes/wide_glow.png, tint: eyes}
+
+  mouth:
+    variants:
+      - id: neutral
+        parts:
+          - {file: "mouth/neutral_{species}.png", tint: skin}
+          - {file: mouth/tusks_small.png, species: [muroth]}
+      - id: smile
+        parts:
+          - {file: "mouth/smile_{species}.png", tint: skin}
+          - {file: mouth/tusks_small.png, species: [muroth]}
+      - id: stern
+        species: [human, muroth]
+        parts:
+          - {file: "mouth/stern_{species}.png", tint: skin}
+          - {file: mouth/tusks_large.png, species: [muroth]}
+
+  facial_hair:
+    none: 6
+    variants:
+      - {id: beard, species: [human], weight: 2, parts: [{file: facial_hair/beard.png, tint: hair}]}
+      - {id: mustache, species: [human], parts: [{file: facial_hair/mustache.png, tint: hair}]}
+      - {id: goatee, species: [human], parts: [{file: facial_hair/goatee.png, tint: hair}]}
+      - {id: stubble, species: [human], weight: 2, parts: [{file: facial_hair/stubble.png, tint: hair}]}
+
+  outfit:
+    pick: job
+    variants:
+      - id: miner
+        jobs: [Miner]
+        parts: [{file: outfit/miner.png}, {file: outfit/miner_accent.png, tint: accent}]
+      - id: foreman
+        jobs: [Foreman]
+        parts: [{file: outfit/foreman.png}, {file: outfit/foreman_accent.png, tint: accent}]
+      - id: dockworker
+        jobs: [Dockworker]
+        parts:
+          - {file: outfit/dockworker.png}
+          - {file: outfit/dockworker_accent.png, tint: accent}
+          - {file: outfit/dockworker_detail.png}
+      - id: security
+        jobs: [Security]
+        parts: [{file: outfit/security.png}, {file: outfit/security_accent.png, tint: accent}]
+      - id: politician
+        jobs: [Politician]
+        parts: [{file: outfit/politician.png}, {file: outfit/politician_accent.png, tint: accent}]
+      - id: default
+        parts: [{file: outfit/default.png}, {file: outfit/default_accent.png, tint: accent}]
+
+  front_hair:
+    none: 2
+    variants:
+      - {id: short, species: [human], weight: 2, parts: [{file: front_hair/short.png, tint: hair}]}
+      - {id: side_part, species: [human], weight: 2, parts: [{file: front_hair/side_part.png, tint: hair}]}
+      - {id: buzz, species: [human], weight: 2, parts: [{file: front_hair/buzz.png, tint: hair}]}
+      - {id: mohawk, species: [human], parts: [{file: front_hair/mohawk.png, tint: hair}]}
+      - {id: curly, species: [human], weight: 2, parts: [{file: front_hair/curly.png, tint: hair}]}
+      - {id: bun, species: [human], parts: [{file: front_hair/bun.png, tint: hair}]}
+      - {id: topknot, species: [muroth], weight: 3, parts: [{file: front_hair/topknot.png, tint: hair}]}
+      - {id: crest_tall, species: [vessari], weight: 3, parts: [{file: front_hair/crest_tall.png, tint: hair}]}
+      - {id: crest_swept, species: [vessari], weight: 3, parts: [{file: front_hair/crest_swept.png, tint: hair}]}
+      - {id: crest_twin, species: [vessari], weight: 2, parts: [{file: front_hair/crest_twin.png, tint: hair}]}
+      - {id: crest_fan, species: [vessari], weight: 2, parts: [{file: front_hair/crest_fan.png, tint: hair}]}
+
+  accessory:
+    none: 8
+    variants:
+      - {id: goggles, parts: [{file: "accessory/goggles_{species}.png"}]}
+      - {id: earring, species: [human, muroth], parts: [{file: "accessory/earring_{species}.png"}]}
+      - {id: scar, parts: [{file: "accessory/scar_{species}.png", tint: skin}]}
+      - {id: eyepatch, parts: [{file: "accessory/eyepatch_{species}.png"}]}
+      - {id: cybereye, parts: [{file: "accessory/cybereye_{species}.png"}]}
+      - {id: earpiece, parts: [{file: "accessory/earpiece_{species}.png"}]}

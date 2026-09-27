@@ -11,17 +11,23 @@ from .ui_planetary import UI_Planetary
 from .interaction_manager import InteractionManager
 from .terminal import Terminal
 from util.economy.economy import Economy
-from entities.player import Player
+from dialogue.conversation import Conversation
+from world.roster import NPCRoster
+from world.world_state import WorldState
 from .npc_manager import NPCManager
+from .dialogue_panel import DialoguePanel
+
+CAMERA_DEADZONE = 0.3  # share of the view the player can roam before the camera follows
 
 class PlanetaryMode:
-    def __init__(self, selected_planet, player, screen): 
+    def __init__(self, selected_planet, player, screen, world_state=None):
         economy_file_path = resolve_game_path("space/src/util/economy/economy.yaml")
         with open(economy_file_path, "r") as file:
             economy_data = yaml.safe_load(file)
 
         self.planet = selected_planet
-        self.player = Player()
+        self.player = player
+        self.world_state = world_state or WorldState.load()
         self.screen = screen
         self.player_sprite = pygame.image.load(
             resolve_game_path("space/assets/img/objects/player.png")
@@ -35,15 +41,18 @@ class PlanetaryMode:
         self.map_manager = MapManager(map_filename, (SCREEN_WIDTH, SCREEN_HEIGHT), (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.log_messages = []
         self.player_position = self._player_start()
+        self._center_camera()
         self.map_manager.initialize_animation_data()
         self.economy = Economy(selected_planet.name, economy_data)
         self.economy.set_log_callback(self.logger.add_log_message)
-        self.npc_manager = NPCManager(self.map_manager, selected_planet)
+        self.npc_manager = NPCManager(self.map_manager, selected_planet, NPCRoster(self.world_state))
         self.interaction_manager = InteractionManager(
             self.map_manager, self.npc_manager, self.logger, economy=self.economy
         )
         self.interaction_manager.set_terminal_callback(self.activate_terminal)
+        self.interaction_manager.set_conversation_callback(self.start_conversation)
         self.terminal = None
+        self.conversation_panel = None
         self.switch_to_star_system_mode = False  # Initialize the attribute here
 
         self.clock = pygame.time.Clock()
@@ -81,19 +90,43 @@ class PlanetaryMode:
             # If there is no 'walkable' layer, default to non-walkable
                 return False
     
+    def _player_center(self):
+        return self.player_position[0] + TILE_SIZE // 2, self.player_position[1] + TILE_SIZE // 2
+
+    def _center_camera(self):
+        self.camera.center = self._player_center()
+        self._clamp_camera()
+
     def update_camera(self):
-    # Shift the camera if the player passes the edge of the current screen area
-        if self.player_position[0] < self.camera.left:
-            self.camera.move_ip(-self.camera.width, 0)
-        elif self.player_position[0] >= self.camera.right:
-            self.camera.move_ip(self.camera.width, 0)
-        if self.player_position[1] < self.camera.top:
-            self.camera.move_ip(0, -self.camera.height)
-        elif self.player_position[1] >= self.camera.bottom:
-            self.camera.move_ip(0, self.camera.height)
-        # Constrain the camera to the map bounds
-        #self.map_manager.camera.clamp_ip(pygame.Rect(0, 0, self.tmx_data.width * TILE_SIZE, self.tmx_data.height * TILE_SIZE))
-        
+        """Follow the player once they leave a dead zone around the view's center."""
+        px, py = self._player_center()
+        zone = self.camera.inflate(
+            -int(self.camera.width * (1 - CAMERA_DEADZONE)),
+            -int(self.camera.height * (1 - CAMERA_DEADZONE)),
+        )
+        if px < zone.left:
+            self.camera.x -= zone.left - px
+        elif px >= zone.right:
+            self.camera.x += px - zone.right + 1
+        if py < zone.top:
+            self.camera.y -= zone.top - py
+        elif py >= zone.bottom:
+            self.camera.y += py - zone.bottom + 1
+        self._clamp_camera()
+
+    def _clamp_camera(self):
+        """Keep the view on the map; a map smaller than the view is centered in it."""
+        data = self.map_manager.tmx_data
+        map_w, map_h = data.width * data.tilewidth, data.height * data.tileheight
+        if map_w <= self.camera.width:
+            self.camera.x = (map_w - self.camera.width) // 2
+        else:
+            self.camera.x = max(0, min(self.camera.x, map_w - self.camera.width))
+        if map_h <= self.camera.height:
+            self.camera.y = (map_h - self.camera.height) // 2
+        else:
+            self.camera.y = max(0, min(self.camera.y, map_h - self.camera.height))
+
     def _movement_delta_from_keys(self, keys):
         """Return (dx, dy) in pixels from currently held movement keys (8-directional)."""
         # Numpad diagonals take priority so KP7/9/1/3 stay distinct from arrow chords.
@@ -160,12 +193,23 @@ class PlanetaryMode:
                         self.terminal.scroll_down()
             return
 
+        if self.conversation_panel:
+            for event in events:
+                self.conversation_panel.handle_event(event)
+            if self.conversation_panel.closed:
+                self.end_conversation()
+            # A movement key held through the conversation shouldn't step the moment it closes.
+            self.next_move_time = pygame.time.get_ticks() + self.move_repeat_ms
+            return
+
         for event in events:
             if event.type == pygame.MOUSEWHEEL:
                 self.logger.log_scroll_position -= event.y * 20
                 self.logger.log_scroll_position = max(0, min(self.logger.log_scroll_position, self.logger.max_log_scroll))
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
                 self.interaction_manager.interact(self.player_position, TILE_SIZE)
+                if self.conversation_panel or (self.terminal and self.terminal.active):
+                    return
 
         keys = pygame.key.get_pressed()
         dx, dy = self._movement_delta_from_keys(keys)
@@ -183,6 +227,8 @@ class PlanetaryMode:
         dt = self.clock.tick(60) / 1000.0  # Convert milliseconds to seconds
         if self.terminal and self.terminal.active:
             self.terminal.update(dt)
+        if self.conversation_panel:
+            self.conversation_panel.update(dt)
         self.handle_input(events)
         self.update_camera()
         self.ui_planetary.update_player_stats(self.player)
@@ -216,7 +262,10 @@ class PlanetaryMode:
 
         if self.interaction_active:
             self.map_surface.blit(self.interaction_layer, (0, 0))
-        
+
+        if self.conversation_panel:
+            self.conversation_panel.draw(self.map_surface)
+
         screen.blit(self.map_surface, (0, 0))
 
         self.ui_planetary.draw_sidebar()
@@ -234,10 +283,7 @@ class PlanetaryMode:
         pass
 
     def return_to_star_system_mode(self):
-        # Any necessary cleanup or state saving goes here
-        # ...
-
-        # Signal to switch back to StarSystemMode
+        self.world_state.save()
         self.switch_to_star_system_mode = True
 
     def activate_terminal(self, terminal_type="docking"):
@@ -254,6 +300,19 @@ class PlanetaryMode:
         self.terminal = Terminal(terminal_type=terminal_type, planetary_mode=self, planet_name=self.planet)
         self.terminal.activate()
         pass
+
+    def start_conversation(self, npc):
+        conversation = Conversation(
+            npc, self.player, self.world_state, economy=self.economy, location=self.planet.name
+        )
+        self.conversation_panel = DialoguePanel(conversation, self.map_surface.get_size())
+        if self.conversation_panel.closed:
+            self.end_conversation()
+
+    def end_conversation(self):
+        for line in self.conversation_panel.conversation.summary_lines():
+            self.logger.add_log_message(line)
+        self.conversation_panel = None
 
     def deactivate_terminal(self):
         self.terminal = None

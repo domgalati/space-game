@@ -4,7 +4,8 @@ import random
 from util.config import TILE_SIZE, resolve_game_path
 from entities.npcs.goals.hang_near_goal import HangNearGoal
 from entities.npcs.goals.wander_goal import WanderGoal
-from .npc_generator import generate_npc
+from entities.npcs.npc_generator import build_npc
+from world.characters import POST_PREFIX, character_record, load_character
 
 
 # Keep populations small enough that job goals are visible on Terramonta.
@@ -15,19 +16,26 @@ _JOB_TARGETS = {
     "Foreman": "terminals",
 }
 
+_TARGET_ACTIVITIES = {
+    "mining_machines": "keeping the rigs running",
+    "terminals": "keeping an eye on the terminals",
+}
+
 
 class NPCManager:
-    def __init__(self, map_manager, planet):
+    def __init__(self, map_manager, planet, roster):
         self.map_manager = map_manager
         self.planet = planet
+        self.roster = roster
         self.npcs = []
         self._walkable_tiles_cache = None
+        self._sprite_cache = {}
         self.map_properties = map_manager.tmx_data.properties
         self.mining_machine_tiles = self._collect_layer_tiles("Mining Machines")
         self.terminal_tiles = self._collect_object_tiles(
             ("Docking Terminal", "Refinery Computer")
         )
-        self.post_tiles = self._collect_posts()
+        self.post_tiles, self.character_posts = self._collect_posts()
         self.populate_npcs()
 
     def populate_npcs(self):
@@ -36,24 +44,42 @@ class NPCManager:
             return
 
         guild_name = self.map_properties.get("guild") or self.planet.planet_guild
-        for npc_class, count in self.get_npc_counts().items():
-            for _ in range(count):
-                npc = generate_npc(guild_name, npc_class)
-                npc.npc_manager = self
-                posts = self.post_tiles.get(npc_class)
-                if posts:
-                    # Each NPC keeps a couple of posts so a crew spreads out instead of stacking.
-                    posts = random.sample(posts, min(2, len(posts)))
-                    npc.goal = HangNearGoal(npc, posts)
-                    npc.position = self._tile_near(posts[0], walkable_tiles)
-                else:
-                    npc.position = random.choice(walkable_tiles)
-                    self._assign_goal(npc)
-                if npc.sprite:
-                    npc.sprite_image = pygame.image.load(
-                        resolve_game_path(npc.sprite)
-                    ).convert_alpha()
-                self.npcs.append(npc)
+        records = self.roster.for_location(self.planet.name, self.get_npc_counts(), guild_name)
+        for record in records:
+            npc = build_npc(record)
+            posts = self.post_tiles.get(npc.job_title)
+            if posts:
+                # Each NPC keeps a couple of posts so a crew spreads out instead of stacking.
+                posts = random.sample(posts, min(2, len(posts)))
+                npc.goal = HangNearGoal(npc, posts, activity="on shift")
+                npc.position = self._tile_near(posts[0], walkable_tiles)
+            else:
+                npc.position = random.choice(walkable_tiles)
+                self._assign_goal(npc)
+            self._add(npc)
+
+        for char_id, tiles in self.character_posts.items():
+            try:
+                definition = load_character(char_id)
+            except (OSError, ValueError) as exc:
+                print(f"Skipping character post {char_id!r}: {exc}")
+                continue
+            npc = build_npc(character_record(definition))
+            post = tiles[0]
+            npc.position = post if post in walkable_tiles else self._tile_near(post, walkable_tiles)
+            npc.goal = HangNearGoal(npc, [post], activity=definition.get("activity"))
+            self._add(npc)
+
+    def _add(self, npc):
+        npc.npc_manager = self
+        if npc.sprite:
+            npc.sprite_image = self._load_sprite(npc.sprite)
+        self.npcs.append(npc)
+
+    def _load_sprite(self, path):
+        if path not in self._sprite_cache:
+            self._sprite_cache[path] = pygame.image.load(resolve_game_path(path)).convert_alpha()
+        return self._sprite_cache[path]
 
     def get_npc_counts(self):
         """Job -> headcount; maps can set an npc_jobs property like "Security:3,Dockworker:5"."""
@@ -74,21 +100,29 @@ class NPCManager:
         return random.choice(nearby or walkable_tiles)
 
     def _collect_posts(self):
+        """Job posts ({job: [tile]}) and authored-character posts ({character id: [tile]})."""
         posts = {}
+        characters = {}
         try:
             layer = self.map_manager.tmx_data.get_layer_by_name("NPC Posts")
         except ValueError:
-            return posts
+            return posts, characters
         for obj in layer:
-            posts.setdefault(obj.name, []).append((int(obj.x) // TILE_SIZE, int(obj.y) // TILE_SIZE))
-        return posts
+            tile = (int(obj.x) // TILE_SIZE, int(obj.y) // TILE_SIZE)
+            name = obj.name or ""
+            if name.startswith(POST_PREFIX):
+                characters.setdefault(name[len(POST_PREFIX):], []).append(tile)
+            else:
+                posts.setdefault(name, []).append(tile)
+        return posts, characters
 
     def _assign_goal(self, npc):
         target_key = _JOB_TARGETS.get(npc.job_title)
+        activity = _TARGET_ACTIVITIES.get(target_key)
         if target_key == "mining_machines" and self.mining_machine_tiles:
-            npc.goal = HangNearGoal(npc, self.mining_machine_tiles)
+            npc.goal = HangNearGoal(npc, self.mining_machine_tiles, activity=activity)
         elif target_key == "terminals" and self.terminal_tiles:
-            npc.goal = HangNearGoal(npc, self.terminal_tiles)
+            npc.goal = HangNearGoal(npc, self.terminal_tiles, activity=activity)
         else:
             npc.goal = WanderGoal(npc)
 
@@ -120,7 +154,7 @@ class NPCManager:
         return tiles
 
     def get_npc_types_based_on_planet(self, planet):
-        if planet.planet_type == "Industrial":
+        if getattr(planet, "planet_type", None) == "Industrial":
             return ["Miner", "Foreman"]
         return ["Miner"]
 

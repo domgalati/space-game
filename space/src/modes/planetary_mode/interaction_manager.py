@@ -1,17 +1,4 @@
-import random
-
-from util.config import TILE_SIZE
-from util.economy.economy import load_market_data
-
-
-# Job -> goods this person notices on talk (must exist in planet economy YAML).
-JOB_GOODS_BIAS = {
-    "Miner": ("Raw Minerals", "Steel"),
-    "Foreman": ("Mining Equipment", "Durable Tools"),
-    "Dockworker": ("Fuel Cells", "Ship Parts", "Rations"),
-    "Security": ("Medical Supplies", "Luxury Goods"),
-    "Politician": ("Luxury Goods", "Advanced Electronics"),
-}
+from dialogue import topics
 
 TERMINAL_TYPES = {
     "Docking Terminal": "docking",
@@ -47,6 +34,7 @@ class InteractionManager:
         self.logger = logger
         self.interacted = False
         self.activate_terminal_callback = None
+        self.start_conversation_callback = None
         self.npc_manager = npc_manager
         self.economy = economy
         self._announced_npc_ids = set()
@@ -109,10 +97,12 @@ class InteractionManager:
         return newly_seen or bool(nearby)
 
     def interact(self, player_position, tile_size):
+        # One interaction per press: an adjacent object wins over an adjacent NPC.
         for pos in _cardinal_pixel_neighbors(player_position, tile_size):
             is_interactable, objectname = self.is_interactable_at(pos, tile_size)
             if is_interactable:
                 self.handle_interaction_with(objectname)
+                return
 
         nearby = self.adjacent_npcs(player_position, tile_size)
         if nearby:
@@ -129,65 +119,18 @@ class InteractionManager:
             if self.activate_terminal_callback:
                 self.activate_terminal_callback(TERMINAL_TYPES[objectname])
         elif objectname == "Bar Counter":
+            here = self.economy.planet_name if self.economy else None
             self.logger.add_log_message("The bartender slides a drink over and leans in.")
-            self.logger.add_log_message(self._bar_rumor())
+            self.logger.add_log_message(f'"{topics.market_rumor(here)}"')
         elif objectname == "Command Console":
             self.logger.add_log_message("ACCESS RESTRICTED: Assembly command staff only.")
 
-    def _bar_rumor(self):
-        here = self.economy.planet_name if self.economy else None
-        markets = [
-            (place, good, info)
-            for place, data in load_market_data().items()
-            if place != here
-            for good, info in data.get("goods", {}).items()
-        ]
-        if not markets:
-            return '"Quiet week. Nobody\'s talking."'
-        place, good, info = random.choice(markets)
-        ratio = info["currentPrice"] / info["basePrice"] if info.get("basePrice") else 1
-        if ratio >= 1.15:
-            return f'"Word is {good} is fetching a premium on {place}."'
-        if ratio <= 0.85:
-            return f'"Heard {good} is going cheap on {place}. Might be worth the trip."'
-        return f'"Last I heard, {place} was paying ${info["currentPrice"]:g} for {good}."'
-
     def handle_interaction_with_npc(self, npc):
-        job = npc.job_title or "worker"
-        self.logger.add_log_message(
-            f"Talking to {npc.firstname} {npc.lastname}, {job}."
-        )
-        if npc.hobbies:
-            hobby = random.choice(npc.hobbies)
-            self.logger.add_log_message(f"They mention enjoying {hobby}.")
-        opinion = self._goods_opinion_line(npc)
-        if opinion:
-            self.logger.add_log_message(opinion)
-
-    def _goods_opinion_line(self, npc):
-        if not self.economy:
-            return None
-        goods = JOB_GOODS_BIAS.get(npc.job_title)
-        if not goods:
-            return None
-        planet = self.economy.planet_name
-        planet_data = self.economy.data.get(planet, {})
-        catalog = planet_data.get("goods", {})
-        available = [g for g in goods if g in catalog]
-        if not available:
-            return None
-        item = random.choice(available)
-        entry = catalog[item]
-        base = entry.get("basePrice")
-        current = entry.get("currentPrice", base)
-        if base is None or current is None or base == 0:
-            return None
-        ratio = current / base
-        if ratio >= 1.15:
-            return f"They mutter that {item} is high lately."
-        if ratio <= 0.85:
-            return f"They mutter that {item} is cheap lately."
-        return f"They reckon {item} is about average right now."
+        if self.start_conversation_callback:
+            self.start_conversation_callback(npc)
 
     def set_terminal_callback(self, callback):
         self.activate_terminal_callback = callback
+
+    def set_conversation_callback(self, callback):
+        self.start_conversation_callback = callback

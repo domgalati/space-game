@@ -6,6 +6,8 @@ from .base_goal import BaseGoal
 class WanderGoal(BaseGoal):
     """One random adjacent step per turn (player move advances time)."""
 
+    activity = "just stretching my legs"
+
     def __init__(self, npc):
         super().__init__(npc)
 

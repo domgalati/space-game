@@ -1,0 +1,25 @@
+# Placed on a map by an "NPC Posts" object named character:hesk_durran.
+# Fields: id (must match the file name), name, species, job, guild, hobbies, dialogue,
+# start_node, activity ("Right now I'm <activity>."), mood (starting disposition, -100..100),
+# sprite (map sprite; defaults to the job's), and portrait (pins colors and layer variants from
+# space/assets/img/portraits/manifest.yaml; anything left out is rolled from the id).
+id: hesk_durran
+name: Hesk Durran
+species: muroth
+job: Foreman
+guild: assembly
+hobbies: [Coffee Roasting, Chess, Backyard Dam Construction]
+dialogue: space/dialogue/characters/hesk_durran.yarn
+start_node: Start
+activity: watching the landing pads
+mood: 0
+portrait:
+  colors:
+    skin: "#b98137"
+    hair: "#2d241c"
+    eyes: "#d9a636"
+  layers:
+    back_hair: none
+    front_hair: topknot
+    mouth: stern
+    accessory: goggles

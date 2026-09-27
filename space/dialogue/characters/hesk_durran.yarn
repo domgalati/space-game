@@ -1,0 +1,100 @@
+// Hesk Durran, pad foreman on Terramonta. Gruff, fair, secretly sentimental.
+// Shows: per-NPC flags ($this_*), a global flag, an item check, give/take/pay,
+// reputation, disposition (<<mood>>), and a node you can't walk away from (noexit).
+
+title: Start
+---
+<<if not $this_met>>
+    Hesk: New face. Came in on the last shuttle? I'm Hesk. I run the pad crews here.
+    <<set $this_met to true>>
+<<elseif mood() >= 20>>
+    Hesk: Spacer. Good timing, the coffee's fresh.
+<<elseif mood() <= -20>>
+    Hesk: You. Keep it short.
+<<else>>
+    Hesk: Back again. What is it?
+<<endif>>
+<<jump Menu>>
+===
+
+title: Menu
+---
+-> Need a hand with anything? <<if not $this_permit_given>>
+    <<jump Work>>
+-> About that ore order. <<if $this_permit_given and not $this_order_done>>
+    <<jump Order>>
+-> What's it like working here?
+    <<jump Talk>>
+-> Nice tusks. <<if not visited("Tusks")>>
+    <<jump Tusks>>
+-> I'll be going.
+    <<jump Bye>>
+===
+
+title: Work
+---
+Hesk: Always. The refinery's short on raw ore and my crews are stretched thin.
+Hesk: Bring me 5 Raw Minerals and I'll pay better than the exchange does.
+-> Deal.
+    Hesk: Good. Take this permit so security doesn't hassle you out at the rigs.
+    <<give "Mining Permit" 1>>
+    <<set $this_permit_given to true>>
+    <<rep assembly 2>>
+    <<mood 5>>
+-> Not interested.
+    Hesk: Your loss.
+<<jump Menu>>
+===
+
+title: Order
+---
+<<if has_item("Raw Minerals", 5)>>
+    Hesk: That's the lot? Let me see... Good rock. Here, as promised.
+    <<take "Raw Minerals" 5>>
+    <<pay 650>>
+    <<rep assembly 5>>
+    <<mood 15>>
+    <<set $this_order_done to true>>
+    <<set $terramonta_ore_delivered to true>>
+<<else>>
+    Hesk: I count {item_count("Raw Minerals")} Raw Minerals. I asked for 5.
+<<endif>>
+<<jump Menu>>
+===
+
+title: Talk
+---
+<<if mood() >= 20>>
+    Hesk: Honestly? I like it. The rock doesn't lie to you.
+    Hesk: Off shift I roast coffee and lose at chess. Don't tell the crews.
+<<else>>
+    Hesk: Hot, loud, and the pay's late. Same as everywhere.
+<<endif>>
+Hesk: {goods_opinion()}
+<<jump Menu>>
+===
+
+title: Tusks
+tags: noexit
+---
+Hesk: ...
+Hesk: Say that again. Slowly.
+-> I said they're nice. Really.
+    Hesk: Hm. They are, aren't they.
+    <<mood 5>>
+-> You heard me.
+    Hesk: I did.
+    <<mood -25>>
+<<jump Menu>>
+===
+
+title: Bye
+---
+<<if $this_order_done>>
+    Hesk: Want more work, you know where to find me.
+<<elseif mood() <= -20>>
+    Hesk: Don't let the airlock hit you.
+<<else>>
+    Hesk: Mind the machines on your way out.
+<<endif>>
+===

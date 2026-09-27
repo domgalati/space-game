@@ -2,6 +2,13 @@ from entities.npcs.goals.wander_goal import WanderGoal
 
 class NPC:
     def __init__(self):
+        self.npc_id = None
+        self.sprite = None
+        self.species = "human"
+        self.portrait_recipe = None
+        self.dialogue_file = None
+        self.start_node = "Start"
+        self.base_mood = None
         self.firstname = None
         self.lastname = None
         self.hobbies = []

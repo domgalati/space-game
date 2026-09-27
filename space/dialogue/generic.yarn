@@ -1,0 +1,73 @@
+// Default conversation for NPCs without an authored dialogue file.
+// $this_* variables and visited() are remembered per NPC.
+// Functions and commands are listed in space/src/dialogue/context.py.
+
+title: Start
+---
+<<if disposition() == "Hostile">>
+    {npc_first()}: You've got some nerve showing your face around here.
+<<elseif disposition() == "Wary">>
+    {npc_first()}: What do you want?
+<<elseif disposition() == "Friendly">>
+    {npc_first()}: Hey, good to see you. What's going on?
+<<elseif disposition() == "Trusted">>
+    {npc_first()}: There's my favorite spacer. What do you need?
+<<elseif visited("Start")>>
+    {npc_first()}: Back again?
+<<elseif dice(2) == 1>>
+    {npc_first()}: Hm? Can I help you?
+<<else>>
+    {npc_first()}: Don't think we've met. Name's {npc_first()}.
+<<endif>>
+<<set $this_met to true>>
+<<jump Menu>>
+===
+
+title: Menu
+---
+-> What do you do here?
+    <<jump Job>>
+-> How's business?
+    <<jump Business>>
+-> Heard anything interesting?
+    <<jump Rumors>>
+-> Goodbye.
+    <<jump Goodbye>>
+===
+
+title: Job
+---
+<<if not visited("Job")>>
+    // People like being asked about themselves.
+    <<mood 3>>
+<<endif>>
+{npc_first()}: {job_line()}
+<<jump Menu>>
+===
+
+title: Business
+---
+{npc_first()}: {goods_opinion()}
+<<jump Menu>>
+===
+
+title: Rumors
+---
+<<if mood() <= -20>>
+    {npc_first()}: Nothing I'd share with you.
+<<else>>
+    {npc_first()}: {rumor()}
+<<endif>>
+<<jump Menu>>
+===
+
+title: Goodbye
+---
+<<if mood() >= 20>>
+    {npc_first()}: Safe travels.
+<<elseif mood() <= -20>>
+    {npc_first()}: Finally.
+<<else>>
+    {npc_first()}: See you around.
+<<endif>>
+===

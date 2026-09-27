@@ -31,9 +31,9 @@ Scan and hail already treat any body with a matching `.tmx` as landable (`has_la
 
 **New job.** Three edits, all required:
 
-1. A class in `space/src/entities/npcs/assembly_npc.py` with `self.sprite` pointing at `space/assets/img/objects/<job>.png`. `generate_npc` imports `{guild}_npc`, so the class name is the job name.
+1. A class in `space/src/entities/npcs/assembly_npc.py` with `self.sprite` pointing at `space/assets/img/objects/<job>.png`. `build_npc` in `space/src/entities/npcs/npc_generator.py` imports `{guild}_npc`, so the class name is the job name. An unknown job still spawns, with the base `NPC` class, the dockworker sprite, and the default portrait outfit.
 2. A 24x24 sprite. Recolor `miner.png` or `foreman.png`. Do not crop the MAS character sheet; those sprites are a different style and a different scale.
-3. A `JOB_GOODS_BIAS` entry in `space/src/modes/planetary_mode/interaction_manager.py`. Goods must exist in this location's economy or the talk line is skipped.
+3. A `JOB_GOODS_BIAS` entry (and a `JOB_DESCRIPTIONS` entry) in `space/src/dialogue/topics.py`. Goods must exist in this location's economy or "How's business?" falls back to a stock line.
 
 Posts come from the map. `NPCManager` hangs each NPC near up to two of its job's posts. No code change per location unless the job is new.
 
@@ -52,6 +52,12 @@ Place solid props with `grid.place(stamp, x, y, keep_clear)` and interactables w
 ## Adding a prop
 
 Add a `Stamp(sheet, row, col, width, height)` to `STAMPS` in `space/src/mapgen/tiles.py`. `sheet` is `tileset`, `space`, or `roguelike` (see `SHEET_FILES`). `row` and `col` are 24px cells on that sheet. The next generate copies the block into `mapgen_extras.png` and keys out the black backdrop from the edges, so props sit on any floor. Inner black outlines are kept.
+
+## Adding a surface palette
+
+Add an entry to `PALETTES` in `space/src/mapgen/themes/surface.py`: `floors` (style to main tile, variant tile, and variant chance, layered over the station floors), `terrain` (stamp densities outside city limits), and optionally `clutter` plus `city_margin` to pave a box around the compounds. Specs pick it with `palette:`.
+
+New drawn tiles go at the end of `PALETTE_TILES` in `extras.py`. They are written to `mapgen_palettes.png` with a fixed firstgid of 6000, so they never shift the gids of props in `mapgen_extras`. Do not add drawn tiles to `TILES`: that shifts every stamp and breaks every generated map.
 
 ## Adding a theme
 

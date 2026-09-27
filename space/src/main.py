@@ -4,6 +4,7 @@ from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, resolve_game_path
 from modes.star_system_mode.star_system_mode import StarSystemMode
 from modes.planetary_mode.planetary_mode import PlanetaryMode
 from entities.player import Player
+from world.world_state import WorldState
 
 
 def main():
@@ -22,8 +23,9 @@ def main():
     #### END OF DEBUG LOAD ###
 
     player = Player()
+    world_state = WorldState.load()
     star_system_mode = StarSystemMode(player, "sol")
-    planetary_mode = PlanetaryMode(selected_planet, player, screen)
+    planetary_mode = PlanetaryMode(selected_planet, player, screen, world_state)
     # current_mode = star_system_mode
     current_mode = planetary_mode  # Start in planetary mode for debugging
 
@@ -40,7 +42,7 @@ def main():
             if current_mode.landing_requested:
                 selected_planet = current_mode.get_selected_planet()
                 player = current_mode.get_player()
-                current_mode = PlanetaryMode(selected_planet, player, screen)
+                current_mode = PlanetaryMode(selected_planet, player, screen, world_state)
         elif isinstance(current_mode, PlanetaryMode):
             current_mode.update(events)
             current_mode.map_manager.update_animations(dt)
@@ -54,6 +56,7 @@ def main():
 
         pygame.display.flip()
 
+    world_state.save()
     pygame.quit()
 
 

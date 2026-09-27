@@ -6,9 +6,13 @@ from .base_goal import BaseGoal
 class HangNearGoal(BaseGoal):
     """One biased step toward workplace tiles per turn (player move advances time)."""
 
-    def __init__(self, npc, targets):
+    activity = "sticking close to my post"
+
+    def __init__(self, npc, targets, activity=None):
         super().__init__(npc)
         self.targets = list(targets) if targets else []
+        if activity:
+            self.activity = activity
 
     def update(self):
         walkable_tiles = self.npc.npc_manager.get_walkable_tiles()
