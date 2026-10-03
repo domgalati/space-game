@@ -15,7 +15,7 @@ START_FULLSCREEN = False
 # Sensor test drones that wander near the start and ping. A debug aid until privateers exist.
 DEBUG_DRONES = 0
 # Privateers patrolling near the start. They hunt and engage but can't shoot until combat exists.
-DEBUG_PRIVATEERS = 0
+DEBUG_PRIVATEERS = 3
 FULLSCREEN_KEY = pygame.K_F11  # switches between fullscreen and a window
 
 

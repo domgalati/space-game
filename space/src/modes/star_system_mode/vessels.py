@@ -17,11 +17,12 @@ class Vessel:
         self.shield_up = False
         self.boosting = False
         self.moved = False
+        self.fired = False
         self.cargo_fill = 0.0
         self.player_fix = None  # (position, turn) where a ping last placed the player
 
     def signature(self):
-        return signature(self.moved, self.shield_up, self.boosting, self.cargo_fill)
+        return signature(self.moved, self.shield_up, self.boosting, self.cargo_fill, self.fired)
 
     def hunting(self):
         """Whether this ship is after the player."""

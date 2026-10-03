@@ -1,11 +1,13 @@
 """Faction privateers: hunters on the turn clock.
 
-Each action a privateer patrols, hunts, searches, engages or retreats:
+Each action a privateer decides what it will do next, its intent, which a scan reveals.
+A shot is only fired on an action whose intent was to fire, so a scanned privateer always
+warns you a turn ahead. Each action it then patrols, hunts, searches, engages or retreats:
 
 - patrol: wander near home, pinging now and then.
 - hunt: head for its last fix on the player (from a ping, or where it lost sight).
 - search: no contact at the fix; wander there pinging, and give up after a while.
-- engage: in sight; close to weapon range and hold there, shield up.
+- engage: in sight; close to weapon range and hold there, shield up, firing when charged.
 - retreat: badly hurt; run home, boosting while fuel lasts.
 
 They never fly into the sun's glare or Assembly patrol zones, break off when the player is
@@ -19,13 +21,15 @@ from util.config import TILE_SIZE, resolve_game_path
 from util.sprite_animation import TINT_LEVELS, AnimatedSprite
 from world.factions import LAW, waves_by
 
+from .combat import WEAPON_RANGE, band, charged
+
 from .shield_fx import draw_shield
 from .vessels import Vessel
 
 CLASSES = {
-    "cutter": {"speed": 150, "hull": 40, "shield": 30},
-    "raider": {"speed": 100, "hull": 70, "shield": 50},
-    "gunship": {"speed": 75, "hull": 120, "shield": 80},
+    "cutter": {"speed": 150, "hull": 40, "shield": 30, "power": 0.8},
+    "raider": {"speed": 100, "hull": 70, "shield": 50, "power": 1.0},
+    "gunship": {"speed": 75, "hull": 120, "shield": 80, "power": 1.5},
 }
 COLOURS = {"dominion": (179, 66, 78), "cohort": (91, 174, 112), "caravaneers": (204, 115, 63)}
 FUEL = 400
@@ -33,7 +37,7 @@ BOOST_RESERVE = 100  # stop boosting below this much fuel
 CHASE_BOOST_PX = 600  # boost to close a gap wider than this
 ENGAGE_RANGE = 8 * TILE_SIZE  # weapon range they close to and hold
 ARRIVED = 3 * TILE_SIZE
-RETREAT_AT = 0.3  # share of hull left when they run
+RETREAT_AT = 0.4  # share of hull left when they run
 HUNT_PING_EVERY = 4
 PATROL_PING_EVERY = 12
 PATROL_WANDER = 2000  # px around home
@@ -74,6 +78,9 @@ class Privateer(Vessel):
         self.turns = 0
         self.heading = "south"
         self.colour = COLOURS[sponsor]
+        self.power = stats["power"]
+        self.intent = (PATROL, None)  # (what it means to do next, hit chance if firing)
+        self.scanned = False
         self._sprite = None
 
     # Shield and speed follow the ship and its boost.
@@ -91,7 +98,7 @@ class Privateer(Vessel):
 
     def take_turn(self):
         self.turns += 1
-        self.moved = self.boosting = False
+        self.moved = self.boosting = self.fired = False
         mode = self.mode
         me = mode.ship_center()
         if self.ship.hull <= self.ship.max_hull * RETREAT_AT:
@@ -104,14 +111,38 @@ class Privateer(Vessel):
         elif self.state == ENGAGE or (self.state == PATROL and self.player_fix):
             self.state = HUNT
         getattr(self, "_" + self.state)()
-        self.ship.shield_up = self.state == ENGAGE
+        # Engaged with charge to fire, the shield is up; dry, it drops to recharge faster.
+        self.ship.shield_up = self.state == ENGAGE and charged(self.ship)
         self.ship.end_turn()
+        self.intent = self.plan_next()
+
+    def can_fire(self):
+        mode = self.mode
+        me = mode.ship_center()
+        return (charged(self.ship) and mode.seen_by(self) and math.dist(self.position, me) <= WEAPON_RANGE
+                and not mode.sensors.blind(self.position) and not mode.sensors.blind(me))
+
+    def plan_next(self):
+        """What this privateer will try next action. Shown above it once scanned."""
+        if self.state == RETREAT:
+            return ("retreat", None)
+        if self.state == ENGAGE:
+            if self.can_fire():
+                return ("fire", band(math.dist(self.position, self.mode.ship_center()))[0])
+            if math.dist(self.position, self.mode.ship_center()) > ENGAGE_RANGE + TILE_SIZE:
+                return ("close", None)
+            return ("hold", None)
+        every = HUNT_PING_EVERY if self.state in (HUNT, SEARCH) else PATROL_PING_EVERY
+        if (self.turns + 1) % every == 0:
+            return ("ping", None)
+        return ("close", None) if self.state == HUNT else (self.state, None)
 
     def hunting(self):
         return self.state in (HUNT, SEARCH, ENGAGE)
 
     def forget(self):
         self.player_fix = None
+        self.scanned = False  # the encounter is over
         if self.state != RETREAT:
             self.state = PATROL
 
@@ -152,6 +183,10 @@ class Privateer(Vessel):
         self.step(self.waypoint)
 
     def _engage(self):
+        if self.intent[0] == "fire" and self.can_fire():
+            self.fired = True
+            self.mode.privateer_fire(self)
+            return
         target = self.mode.ship_center()
         distance = math.dist(self.position, target)
         if distance > ENGAGE_RANGE + TILE_SIZE:

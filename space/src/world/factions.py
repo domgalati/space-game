@@ -10,6 +10,8 @@ STANDING_MIN, STANDING_MAX = -100, 100
 WAVE_BY = 30  # standing with a privateer's sponsor at which its raiders let you pass
 TRADE_STEP = 1000  # credits traded at a faction's world per point of standing
 TRADE_CAP = 40  # trade alone lifts standing this far, no further
+KILL_SPONSOR_STANDING = -5  # destroying a privateer, with its sponsor
+KILL_LAW_STANDING = 3  # and with the Assembly
 
 FACTIONS = {
     "assembly": {"name": "Assembly", "voice": "Assembly Traffic Control"},
@@ -44,6 +46,14 @@ def adjust_standing(reputation, faction, delta):
     before = reputation.get(faction, 0)
     reputation[faction] = max(STANDING_MIN, min(STANDING_MAX, before + delta))
     return reputation[faction] - before
+
+
+def record_kill(player, sponsor, kind):
+    """A privateer destroyed: logged for bounties, and standing moves. Returns a short summary."""
+    player.kill_log.append({"sponsor": sponsor, "kind": kind})
+    lost = adjust_standing(player.reputation, sponsor, KILL_SPONSOR_STANDING)
+    gained = adjust_standing(player.reputation, LAW, KILL_LAW_STANDING)
+    return f"{faction_name(sponsor).upper()} {lost:+d}, {faction_name(LAW).upper()} {gained:+d}"
 
 
 def credit_trade(player, faction, credits):

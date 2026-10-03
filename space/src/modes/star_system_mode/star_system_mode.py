@@ -18,7 +18,10 @@ from .sensors import (
     LOUD_AT, PING_RANGE, PING_SPEED, SIGNATURE_DARK, SIGNATURE_MAX, Sensors, compass, loudest_unfound,
     range_label, signature,
 )
-from world.factions import faction_name, waves_by
+from world.factions import faction_name, record_kill, waves_by
+from .combat import SCAN_RANGE, SHOT_MS, Shot, band, charged, fire
+from .combat_fx import INTENT_WORDS, draw_bracket, draw_intent, draw_shots, draw_target_panel, intent_label
+from .wrecks import Wreck, roll_salvage
 from .vessels import Drone
 from .privateers import CLASSES as PRIVATEER_CLASSES, Privateer
 from util.economy.news_feed import NewsFeed
@@ -38,6 +41,12 @@ WAIT_KEY = pygame.K_SPACE
 WAIT_TURNS = 1
 PING_KEY = pygame.K_p
 PING_TURNS = 1
+FIRE_KEY = pygame.K_f
+SCAN_KEY = pygame.K_r
+TARGET_KEY = pygame.K_TAB
+FIRE_TURNS = 1
+SCAN_TURNS = 1
+TARGET_COLOR = (255, 255, 255)
 RING_EASE = 12  # how quickly enemy rings glide to their new radius after a turn, per second
 TEST_DRONE_RANGE = (900, 3500)  # px from the ship where debug drones appear
 TEST_PRIVATEER_RANGE = (3500, 6000)  # px from the ship where debug privateers start patrolling
@@ -105,6 +114,10 @@ class StarSystemMode:
         self.vessels = []
         self.last_action = "wait"  # "move", "wait" or "ping"; moving is what makes you loud
         self.ring_turn = 0.0  # the clock as enemy rings are drawn, easing toward the real one
+        self.target = None  # the vessel F fires at and R scans
+        self.shots = []
+        self.wrecks = []
+        self.rng = random.Random()
         self.shield_changed_at = -SHIELD_FADE_MS
         self.shield_flash_until = 0
 
@@ -170,6 +183,7 @@ class StarSystemMode:
         x, y = self.selected_system.spawn_point()
         self.x_position, self.y_position = int(x) // TILE_SIZE, int(y) // TILE_SIZE
         self.previous_x, self.previous_y = self.x_position, self.y_position
+        self.target = None
         home = self.selected_system.objects[0].name if self.selected_system.objects else "the station"
         self.show_notice(f"HULL FAILURE - TOWED TO {home.upper()} - FEE ${fee}")
 
@@ -211,7 +225,131 @@ class StarSystemMode:
         ship = self.player.ship
         moved = self.last_action == "move"
         cargo = ship.cargo
-        return signature(moved, ship.shield_up, moved and self.boosting, cargo.get_total_quantity() / cargo.capacity)
+        return signature(moved, ship.shield_up, moved and self.boosting, cargo.get_total_quantity() / cargo.capacity,
+                         fired=self.last_action == "fire")
+
+    # Fighting: targets, firing, scanning, kills and salvage.
+    def combat_targets(self):
+        """Armed ships you can sense, nearest first."""
+        me = self.ship_center()
+        armed = [v for v in self.vessels if hasattr(v, "ship") and self.sees(v)]
+        return sorted(armed, key=lambda v: math.dist(me, v.position))
+
+    def current_target(self):
+        """The target while you can still sense it, else the nearest armed contact (or None)."""
+        if self.target is None or self.target not in self.vessels or not self.sees(self.target):
+            self.target = next(iter(self.combat_targets()), None)
+        return self.target
+
+    def cycle_target(self):
+        targets = self.combat_targets()
+        if not targets:
+            self.target = None
+            self.show_notice("NO CONTACTS IN SIGHT", OWN)
+        elif self.target in targets:
+            self.target = targets[(targets.index(self.target) + 1) % len(targets)]
+        else:
+            self.target = targets[0]
+
+    def player_fire(self):
+        """Fire at the target: a turn, SHOT_COST shield charge, and very loud. Returns hit or miss."""
+        me = self.ship_center()
+        target = self.current_target()
+        if target is None:
+            return self.show_notice("NO TARGET IN SIGHT", OWN)
+        distance = math.dist(me, target.position)
+        if self.sensors.blind(me) or self.sensors.blind(target.position):
+            return self.show_notice("GLARE - NO LOCK", HEAT_COLOR)
+        if band(distance) is None:
+            return self.show_notice(f"OUT OF RANGE - {exact_range(distance)}", OWN)
+        if not charged(self.player.ship):
+            return self.show_notice("SHIELD CHARGE TOO LOW TO FIRE", RESERVE_COLOR)
+        hit, to_shield, to_hull = fire(self.player.ship, target.ship, me, target.position, self.rng)
+        self.shots.append(Shot(me, target.position, hit, OWN, pygame.time.get_ticks() + SHOT_MS))
+        target.player_fix = (me, self.clock.now)
+        if target.ship.hull <= 0:
+            self.destroy(target)
+        else:
+            self.show_notice(f"HIT - {int(to_shield + to_hull)} DAMAGE" if hit else "MISS", OWN)
+        self.last_action = "fire"
+        self.spend_turns(FIRE_TURNS)
+        return hit
+
+    def player_scan(self):
+        """Scan the target: a turn, and from then on its intent shows above it."""
+        me = self.ship_center()
+        target = self.current_target()
+        if target is None:
+            return self.show_notice("NO TARGET IN SIGHT", OWN)
+        if self.sensors.blind(me) or self.sensors.blind(target.position):
+            return self.show_notice("GLARE - SCANNERS BLIND", HEAT_COLOR)
+        if math.dist(me, target.position) > SCAN_RANGE:
+            return self.show_notice(f"TOO FAR TO SCAN - {exact_range(math.dist(me, target.position))}", OWN)
+        target.scanned = True
+        self.show_notice(f"SCANNED {faction_name(target.sponsor).upper()} {target.kind.upper()}", OWN)
+        self.last_action = "wait"
+        self.spend_turns(SCAN_TURNS)
+
+    def privateer_fire(self, privateer):
+        """A privateer's shot at the player, by the same rules as yours."""
+        me = self.ship_center()
+        hit, to_shield, to_hull = fire(privateer.ship, self.player.ship, privateer.position, me, self.rng,
+                                       privateer.power)
+        self.shots.append(Shot(privateer.position, me, hit, privateer.colour, pygame.time.get_ticks() + SHOT_MS))
+        if to_shield:
+            self.shield_flash_until = pygame.time.get_ticks() + SHIELD_FLASH_MS
+        if to_hull:
+            self.show_notice(f"HULL HIT - {math.ceil(to_hull)}", RESERVE_COLOR)
+
+    def destroy(self, privateer):
+        """A privateer breaks up: it leaves a wreck worth salvaging, and standing moves."""
+        self.vessels.remove(privateer)
+        self.clock.remove(privateer)
+        if self.target is privateer:
+            self.target = None
+        markets = self.world_state.markets_data()
+        goods = set()
+        for planet in self.selected_system.planets:
+            if planet.planet_guild == privateer.sponsor:
+                goods.update((markets.get(planet.name) or {}).get("goods") or {})
+        if not goods:  # the sponsor's worlds have no market yet: carry anything that sells in Sol
+            for market in markets.values():
+                goods.update((market or {}).get("goods") or {})
+        cargo, credits = roll_salvage(privateer.kind, goods, self.rng)
+        wreck = Wreck(privateer, cargo, credits, self.remove_wreck)
+        self.wrecks.append(wreck)
+        self.clock.add(wreck)
+        changes = record_kill(self.player, privateer.sponsor, privateer.kind)
+        self.show_notice(f"{faction_name(privateer.sponsor).upper()} {privateer.kind.upper()} DESTROYED - {changes}",
+                         OWN)
+
+    def remove_wreck(self, wreck):
+        if wreck in self.wrecks:
+            self.wrecks.remove(wreck)
+        self.clock.remove(wreck)
+
+    def salvage(self, wreck):
+        """Take what fits from a wreck. Returns lines for the ship computer."""
+        if wreck.empty():
+            return ["Nothing left worth taking."]
+        cargo = self.player.ship.cargo
+        lines = []
+        for good, quantity in list(wreck.cargo.items()):
+            room = cargo.capacity - cargo.get_total_quantity()
+            taken = min(quantity, room)
+            if taken:
+                cargo.add_item(good, taken)
+                lines.append(f"Took {taken} {good} aboard.")
+            if taken < quantity:
+                lines.append(f"No room for {quantity - taken} more {good}.")
+                wreck.cargo[good] = quantity - taken
+            else:
+                del wreck.cargo[good]
+        if wreck.credits:
+            self.player.currency += wreck.credits
+            lines.append(f"Recovered ${wreck.credits}.")
+            wreck.credits = 0
+        return lines
 
     def sees(self, vessel):
         """Whether the player can sense `vessel` right now."""
@@ -361,6 +499,9 @@ class StarSystemMode:
         for obj in self.selected_system.objects:
             if self._in_approach(obj, rect):
                 return obj
+        for wreck in self.wrecks:
+            if self._in_approach(wreck, rect):
+                return wreck
         return None
     
     def open_scan_terminal(self, target):
@@ -435,6 +576,12 @@ class StarSystemMode:
                 self.set_shield(not self.player.ship.shield_up)
             if event.type == pygame.KEYDOWN and event.key == PING_KEY:
                 self.show_notice(self.area_ping()[0].upper(), OWN)
+            if event.type == pygame.KEYDOWN and event.key == TARGET_KEY:
+                self.cycle_target()
+            if event.type == pygame.KEYDOWN and event.key == FIRE_KEY:
+                self.player_fire()
+            if event.type == pygame.KEYDOWN and event.key == SCAN_KEY:
+                self.player_scan()
 
         self.handle_continuous_updates()
 
@@ -468,8 +615,13 @@ class StarSystemMode:
         self._last_draw_ms = now
         self.ring_turn = min(self.clock.now, self.ring_turn + max(0.0, self.clock.now - self.ring_turn) * min(1.0, dt * RING_EASE))
         draw_sensor_overlay(screen, self.camera, self.sensors, self.clock.now, now, self.nav_font, self.ring_turn)
+        for wreck in self.wrecks:
+            centre = (wreck.position[0] - self.camera.x, wreck.position[1] - self.camera.y)
+            if screen.get_rect().inflate(64, 64).collidepoint(centre):
+                wreck.draw(screen, centre, self.nav_font)
         draw_contacts(screen, self.camera, [v for v in self.vessels if self.sees(v)],
                       self.sensors.rings, now, self.nav_font, self.ring_turn)
+        self.draw_combat_marks(screen)
         ship_top_left = (
             self.x_position * TILE_SIZE - self.camera.x,
             self.y_position * TILE_SIZE - self.camera.y,
@@ -481,7 +633,10 @@ class StarSystemMode:
         sprite_center = (ship_top_left[0] + self.frame_dimensions[0] // 2,
                          ship_top_left[1] + self.frame_dimensions[1] // 2)
         draw_shield(screen, sprite_center, self.shield_strength(now), now, now < self.shield_flash_until)
+        self.shots = [shot for shot in self.shots if now <= shot.until_ms]
+        draw_shots(screen, self.camera, self.shots, now, self.nav_font)
         self.draw_hud(screen)
+        self.draw_target_readout(screen)
         if self.notice and now < self.notice[1]:
             draw_prompt(screen, self.notice[0], self.notice[2], SCREEN_HEIGHT // 4)
         warning = self.ping_warning()
@@ -542,6 +697,42 @@ class StarSystemMode:
         for surface in surfaces:
             screen.blit(surface, (12, y))
             y += surface.get_height() + 2
+
+    def draw_combat_marks(self, screen):
+        """Intent glyphs over scanned ships you can sense, and a bracket on the target."""
+        target = self.current_target()
+        for vessel in self.vessels:
+            if not hasattr(vessel, "ship") or not self.sees(vessel):
+                continue
+            centre = (vessel.position[0] - self.camera.x, vessel.position[1] - self.camera.y)
+            if not screen.get_rect().collidepoint(centre):
+                continue
+            if vessel is target:
+                draw_bracket(screen, centre, TARGET_COLOR)
+            if vessel.scanned:
+                draw_intent(screen, centre, vessel.intent, vessel.colour, self.nav_font)
+
+    def draw_target_readout(self, screen):
+        target = self.current_target()
+        if target is None:
+            return
+        distance = math.dist(self.ship_center(), target.position)
+        reach = band(distance)
+        shot = f"HIT {round(reach[0] * 100)}%  DMG {reach[1]}" if reach else "OUT OF RANGE"
+        if target.scanned:
+            ship = target.ship
+            lines = [
+                (f"TARGET {faction_name(target.sponsor).upper()} {target.kind.upper()}", target.colour),
+                (f"HULL   {bar(ship.hull, ship.max_hull)} {math.ceil(ship.hull)}", HUD_COLOR),
+                (f"SHIELD {bar(ship.shield, ship.max_shield)} {int(ship.shield)} {'UP' if ship.shield_up else 'DOWN'}",
+                 SHIELD_COLOR),
+                (f"INTENT {intent_label(target.intent)} {INTENT_WORDS.get(target.intent[0], '')}", target.colour),
+            ]
+        else:
+            lines = [("TARGET UNKNOWN CONTACT", target.colour), ("[R] SCAN TO READ IT (1 TURN)", HUD_COLOR)]
+        lines.append((f"RANGE {exact_range(distance)}  {shot}", HUD_COLOR))
+        lines.append(("[F] FIRE  [R] SCAN  [TAB] NEXT", HUD_COLOR))
+        draw_target_panel(screen, lines, self.nav_font)
 
     def draw_beacons(self, screen):
         """Charted starports and station bays. Uncharted pads stay dark until a ping locks."""
@@ -627,6 +818,11 @@ def dodge_advice(limit, cargo):
         if loudness < limit:
             return f"DODGE: {advice} (SIGNAL UNDER {int(limit)})"
     return f"CAN'T DODGE WITH THIS CARGO (SIGNAL UNDER {int(limit)})"
+
+
+def exact_range(distance):
+    """Weapon and scan ranges to the metre; ping ranges stay rough (sensors.range_label)."""
+    return f"{int(distance)} m"
 
 
 def bar(value, maximum, width=BAR_WIDTH):

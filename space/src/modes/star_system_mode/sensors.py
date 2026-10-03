@@ -14,7 +14,8 @@ SIGNATURE_CRUISE = 700  # any move
 SIGNATURE_SHIELD = 500
 SIGNATURE_BOOST = 500
 SIGNATURE_CARGO = 400  # at a full hold
-SIGNATURE_MAX = SIGNATURE_CRUISE + SIGNATURE_SHIELD + SIGNATURE_BOOST + SIGNATURE_CARGO
+SIGNATURE_FIRING = 900  # the turn a ship fires
+SIGNATURE_MAX = SIGNATURE_CRUISE + SIGNATURE_SHIELD + SIGNATURE_BOOST + SIGNATURE_CARGO + SIGNATURE_FIRING
 PING_RANGE = 6000  # an area ping is heard this far, and finds a loud ship this far
 PING_DARK_RANGE = 3000  # a ship running dark is only found this close
 LOUD_AT = 1200  # at this signature or more, a ping finds you at its full range
@@ -23,12 +24,14 @@ RING_SPEED = 2500  # px per second your own ping's ring spreads on screen
 WEDGE_TURNS = 4  # bearing wedges fade over this many turns
 
 
-def signature(moved, shield_up, boosting, cargo_fill=0.0):
+def signature(moved, shield_up, boosting, cargo_fill=0.0, fired=False):
     loudness = SIGNATURE_CRUISE if moved else SIGNATURE_DARK
     if shield_up:
         loudness += SIGNATURE_SHIELD
     if boosting:
         loudness += SIGNATURE_BOOST
+    if fired:
+        loudness += SIGNATURE_FIRING
     return loudness + SIGNATURE_CARGO * max(0.0, min(1.0, cargo_fill))
 
 

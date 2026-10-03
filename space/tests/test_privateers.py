@@ -61,11 +61,13 @@ def test_unseen_and_unheard_they_patrol(mode):
     assert ship.state == PATROL and ship.position != start
 
 
-def test_in_sight_they_close_to_weapon_range_and_hold_shield_up(mode):
+def test_in_sight_they_close_to_weapon_range_shield_up_while_they_can_fire(mode):
+    from modes.star_system_mode.combat import charged
+
     mode.player.ship.shield_up = True  # loud enough to be seen at 700 px
     ship = raider(mode, 700, 0)
     mode.spend_turns(30)
-    assert ship.state == ENGAGE and ship.ship.shield_up
+    assert ship.state == ENGAGE and ship.ship.shield_up == charged(ship.ship)
     assert ENGAGE_RANGE - 2 * TILE_SIZE <= math.dist(ship.position, mode.ship_center()) <= ENGAGE_RANGE + TILE_SIZE
 
 

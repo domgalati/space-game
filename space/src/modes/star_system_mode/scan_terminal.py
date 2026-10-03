@@ -12,7 +12,7 @@ from world.factions import FACTIONS, faction_name, flies_assembly_colours, licen
 
 from .scan_art import BRIGHT, DIM, MID, caption_for, render_scan_art
 
-HELP_TEXT = "Available commands:\n help\n scan\n dock\n hail\n ping (area: 1 turn, gives you away)\n ping <name>\n shield on|off|status\n news\n exit"
+HELP_TEXT = "Available commands:\n help\n scan\n dock\n hail\n ping (area: 1 turn, gives you away)\n ping <name>\n salvage (wrecks)\n shield on|off|status\n news\n exit"
 NO_TARGET = "No target in scan range."
 MAX_MARKET_LINES = 3
 
@@ -53,9 +53,23 @@ def faction_lines(faction, reputation):
     return lines
 
 
+def wreck_readout(wreck):
+    lines = [f"SCAN RESULT: {wreck.name}", f"Class: Wreck ({faction_name(wreck.sponsor)} {wreck.kind})"]
+    if wreck.empty():
+        lines.append("Salvage: stripped")
+    else:
+        goods = ", ".join(f"{quantity} {good}" for good, quantity in wreck.cargo.items())
+        lines.append(f"Salvage: {goods}" + (f", ${wreck.credits}" if wreck.credits else ""))
+        lines.append("Type 'salvage' to take it aboard.")
+    lines.append(f"Breaking up in {wreck.turns_left} turns.")
+    return lines
+
+
 def scan_readout(target, markets=None, reputation=None):
     if target is None:
         return ["SHIP COMPUTER", NO_TARGET, "Type 'help' for commands."]
+    if getattr(target, "obj_type", None) == "Wreck":
+        return wreck_readout(target)
     markets = markets or {}
     lines = [f"SCAN RESULT: {target.name}"]
     if isinstance(target, Planet):
@@ -153,7 +167,9 @@ class ScanTerminal(Terminal):
             self.say(line)
         self.observe_market()
         nav = self.star_system_mode.nav
-        if self.target is not None and getattr(self.target, "name", None) and not nav.is_charted(self.target):
+        is_wreck = getattr(self.target, "obj_type", None) == "Wreck"  # debris isn't charted
+        if self.target is not None and not is_wreck and getattr(self.target, "name", None) \
+                and not nav.is_charted(self.target):
             nav.chart(self.target.name)
             self.say(f"Nav chart updated: {self.target.name}.")
 
@@ -199,8 +215,16 @@ class ScanTerminal(Terminal):
             self.show(render_news(getattr(self.star_system_mode, "news_feed", None), self.markets()))
         elif verb == "exit":
             self.deactivate()
-        elif verb in ("scan", "hail", "dock") and self.target is None:
+        elif verb in ("scan", "hail", "dock", "salvage") and self.target is None:
             self.say(NO_TARGET)
+        elif verb == "salvage":
+            if getattr(self.target, "obj_type", None) != "Wreck":
+                self.say("Nothing here to salvage.")
+            else:
+                for line in self.star_system_mode.salvage(self.target):
+                    self.say(line)
+        elif verb == "hail" and getattr(self.target, "obj_type", None) == "Wreck":
+            self.say(f"Static. Nobody aboard the {self.target.name} answers.")
         elif verb == "scan":
             self.art_time = 0.0
             for line in scan_readout(self.target, self.markets(), self.star_system_mode.player.reputation):
