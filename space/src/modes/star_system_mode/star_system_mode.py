@@ -141,23 +141,30 @@ class StarSystemMode:
         self.landing_requested = True
         self.close_scan_terminal()
 
+    def ping_targets(self):
+        return [*self.selected_system.planets, *self.selected_system.objects]
+
     def ping(self, query):
-        uncharted = [p for p in self.selected_system.planets if not self.nav.is_charted(p)]
+        targets = self.ping_targets()
+        uncharted = [body for body in targets if not self.nav.is_charted(body)]
         if not query:
             if not uncharted:
-                return ["All planets in this system are charted."]
-            return ["Usage: ping <planet>", "Uncharted: " + ", ".join(p.name for p in uncharted)]
+                return ["All contacts in this system are charted."]
+            return ["Usage: ping <name>", "Uncharted: " + ", ".join(body.name for body in uncharted)]
 
-        matches = [p for p in self.selected_system.planets if p.name.lower().startswith(query)]
+        matches = [body for body in targets if body.name.lower().startswith(query)]
         if not matches:
             return [f"No signal matching '{query}'."]
         if len(matches) > 1:
-            return ["Which one? " + ", ".join(p.name for p in matches)]
-        planet = matches[0]
-        if self.nav.is_charted(planet):
-            return [f"{planet.name} is already charted."]
+            return ["Which one? " + ", ".join(body.name for body in matches)]
+        body = matches[0]
+        if self.nav.is_charted(body):
+            return [f"{body.name} is already charted."]
 
-        return self.nav.ping(planet, self.ship_center())
+        origin = self.ship_center()
+        if hasattr(body, "orbit_radius"):
+            return self.nav.ping(body, origin)
+        return self.nav.ping_fixed(body, origin, body.world_center())
 
     def get_selected_planet(self):
         return self.selected_planet
@@ -269,7 +276,8 @@ class StarSystemMode:
             if self.nav.is_charted(planet):
                 points.extend(planet.beacon_points())
         for obj in self.selected_system.objects:
-            points.extend(obj.access_points())
+            if self.nav.is_charted(obj):
+                points.extend(obj.access_points())
         for x, y in points:
             sx, sy = int(x - self.camera.x), int(y - self.camera.y)
             if not screen.get_rect().collidepoint(sx, sy):
@@ -293,16 +301,22 @@ class StarSystemMode:
                     pygame.draw.circle(screen, CANDIDATE_ARC_COLOR, points[0], 3)
 
     def draw_nav_markers(self, screen):
-        """Edge-of-screen arrows pointing at charted planets that are off screen."""
+        """Edge-of-screen arrows pointing at charted planets and stations."""
         screen_rect = screen.get_rect()
         half_w = SCREEN_WIDTH / 2 - NAV_MARKER_MARGIN
         half_h = SCREEN_HEIGHT / 2 - NAV_MARKER_MARGIN
         center_x, center_y = SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2
-        for planet in self.selected_system.planets:
-            if not self.nav.is_charted(planet):
+        markers = list(self.selected_system.planets)
+        markers.extend(obj for obj in self.selected_system.objects if self.nav.is_charted(obj))
+        for body in markers:
+            if not self.nav.is_charted(body):
                 continue
-            sx = planet.position[0] - self.camera.x
-            sy = planet.position[1] - self.camera.y
+            if hasattr(body, "world_center"):
+                wx, wy = body.world_center()
+            else:
+                wx, wy = body.position
+            sx = wx - self.camera.x
+            sy = wy - self.camera.y
             if screen_rect.collidepoint(sx, sy):
                 continue
             dx, dy = sx - center_x, sy - center_y
@@ -313,6 +327,6 @@ class StarSystemMode:
             left = (mx + math.cos(angle + 2.5) * 8, my + math.sin(angle + 2.5) * 8)
             right = (mx + math.cos(angle - 2.5) * 8, my + math.sin(angle - 2.5) * 8)
             pygame.draw.polygon(screen, NAV_MARKER_COLOR, [tip, left, right])
-            label = self.nav_font.render(planet.name, True, NAV_MARKER_COLOR)
+            label = self.nav_font.render(body.name, True, NAV_MARKER_COLOR)
             label_rect = label.get_rect(center=(mx - math.cos(angle) * 28, my - math.sin(angle) * 18))
             screen.blit(label, label_rect.clamp(screen_rect))

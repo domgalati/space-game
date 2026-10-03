@@ -9,7 +9,7 @@ from util.economy.news import render_news
 
 from .scan_art import BRIGHT, DIM, MID, caption_for, render_scan_art
 
-HELP_TEXT = "Available commands:\n help\n scan\n dock\n hail\n ping <planet>\n news\n exit"
+HELP_TEXT = "Available commands:\n help\n scan\n dock\n hail\n ping <name>\n news\n exit"
 NO_TARGET = "No target in scan range."
 MAX_MARKET_LINES = 3
 
@@ -124,7 +124,7 @@ class ScanTerminal(Terminal):
             self.say(line)
         self.observe_market()
         nav = self.star_system_mode.nav
-        if isinstance(self.target, Planet) and not nav.is_charted(self.target):
+        if self.target is not None and getattr(self.target, "name", None) and not nav.is_charted(self.target):
             nav.chart(self.target.name)
             self.say(f"Nav chart updated: {self.target.name}.")
 
@@ -146,7 +146,9 @@ class ScanTerminal(Terminal):
         if verb == "ping" and self.star_system_mode is not None:
             system = getattr(self.star_system_mode, "selected_system", None)
             if system is not None:
-                return [planet.name for planet in system.planets]
+                names = [planet.name for planet in system.planets]
+                names.extend(obj.name for obj in system.objects)
+                return names
         return super().argument_candidates(verb)
 
     def show_matches(self, matches):

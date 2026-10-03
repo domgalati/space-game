@@ -13,6 +13,12 @@ class SpaceObject:
         self.start_pos = (0, 0)
         self.access = [tuple(point) for point in (access or [])]
 
+    def world_center(self):
+        return (
+            self.position[0] + self.image.get_width() / 2,
+            self.position[1] + self.image.get_height() / 2,
+        )
+
     def access_points(self):
         """World position of each bay. Image coords are from the sprite's top-left."""
         return [(self.position[0] + x, self.position[1] + y) for x, y in self.access]

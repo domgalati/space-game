@@ -81,6 +81,22 @@ class NavCharts:
             lines.append(f"Possible location: {percent:.0f}% of orbit. Get closer or ping from another angle.")
         return lines
 
+    def ping_fixed(self, body, origin, point):
+        """Bearing to a body that is not on an orbit. One ping charts it."""
+        distance = math.dist(origin, point)
+        true_bearing = _bearing(origin, point)
+        half_width = min(max(distance / PIXELS_PER_DEGREE, MIN_HALF_WIDTH_DEG), MAX_HALF_WIDTH_DEG)
+        reported = true_bearing + random.uniform(-half_width / 2, half_width / 2)
+        heading, compass = _heading(reported)
+        self.chart(body.name)
+        lines = [
+            f"{body.name}: bearing {heading:03.0f} ({compass}), spread {half_width:.0f} deg",
+            f"Fixed contact. {body.name} charted, nav marker added.",
+        ]
+        if distance <= STRONG_SIGNAL_PX:
+            lines.append("Strong signal. Bay is in range.")
+        return lines
+
     def candidate_runs(self, planet):
         """Contiguous runs of candidate orbit sample indices (wrapping around 360)."""
         candidates = self.candidates.get(planet.name)

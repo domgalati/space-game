@@ -18,6 +18,7 @@ ORBIT_COLOR = (21, 83, 82)
 SUN_DIM = (15, 59, 58)
 SUN_MID = (233, 159, 16)
 SUN_CORE = (255, 255, 255)
+SUN_RADIUS = 96
 
 class StarSystem:
     def __init__(self, json_path):
@@ -66,16 +67,13 @@ class StarSystem:
             last_orbit_radius = orbit_radius
 
     def _mid_system_point(self):
-        """A point between two middle orbits, off the ring, for a fuel-oasis station."""
-        index = min(2, max(0, len(self.planets) - 2))
-        inner = self.planets[index].orbit_radius
-        outer = self.planets[index + 1].orbit_radius if index + 1 < len(self.planets) else inner + MIN_ORBIT_GAP
-        radius = (inner + outer) / 2 + 1100
-        angle = 1.15
-        return (
-            int(self.map_center_x + radius * math.cos(angle)),
-            int(self.map_center_y + radius * math.sin(angle)),
-        )
+        """Top-left of a 384px station sitting just clear of the sun."""
+        half = 192
+        distance = SUN_RADIUS + half + 40
+        angle = 0.4
+        cx = self.map_center_x + distance * math.cos(angle)
+        cy = self.map_center_y + distance * math.sin(angle)
+        return (int(cx - half), int(cy - half))
 
     def generate_objects(self, object_data):
         self.objects = []
@@ -114,7 +112,7 @@ class StarSystem:
         cy = self.map_center_y - camera.y
         if cx < -120 or cy < -120 or cx > camera.width + 120 or cy > camera.height + 120:
             return
-        pygame.draw.circle(screen, SUN_DIM, (cx, cy), 96)
+        pygame.draw.circle(screen, SUN_DIM, (cx, cy), SUN_RADIUS)
         pygame.draw.circle(screen, SUN_MID, (cx, cy), 64)
         pygame.draw.circle(screen, SUN_CORE, (cx, cy), 22)
 
