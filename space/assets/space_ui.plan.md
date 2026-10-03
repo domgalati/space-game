@@ -4,13 +4,13 @@ overview: Replace space mode's placeholder text with a glyph-built HUD in the AS
 todos:
   - id: kit
     content: Theme and widget kit (palette, TeleSys glyph frames, block bars, chips, keycaps, glow text, blink and pulse timing), plus a mockup frame to approve
-    status: pending
+    status: completed
   - id: ship-panel
     content: Always-on ship status panel, top left
-    status: pending
+    status: completed
   - id: enemy-panel
     content: Enemy status panel, top right, while engaged
-    status: pending
+    status: completed
   - id: action-strip
     content: Bottom-centre action strip for dock, scan, salvage, atmosphere and heat
     status: pending
@@ -156,6 +156,14 @@ One slim bar for what you can do here and what's acting on you. It shows the mos
 6. **Markers and big moments.**
 
 Each step leaves the game playable. The ship computer (scan terminal) is already styled and stays as it is.
+
+Steps 1–3 are built. `python tools/ui/space_hud_mockup.py` renders the review frame to `assets/img/_style_samples/space_ui/mockup.png`: the real panels over a fight at Etheora, with previews of the banner, ping strip, event log, action strip and vignette made from the same kit. Where the build settled things the plan left open:
+
+- **Frames:** the border colour is dark teal lifted toward `c`, and the fill runs under the border, so the thin `-` and `|` glyphs still read over a bright planet. Each frame has a short `===` accent at its top right and bottom left.
+- **Bars:** block glyphs fill the whole 16 px cell, so bars are trimmed to cap height (10 px) to leave a gap between rows.
+- **Ship panel:** `RESERVE` is a blinking chip on the fuel row. The chip row holds `HUNTED`, `GLARE`, `PATROL`, `BOOST` and `RING`.
+- **Enemy panel:** the ship's sprite sits at half size beside the range and range band, not in the header. `RECHARGING` replaces `UP`/`DOWN` on its shield row. Intent words are the ones over the ships (`FIRING NEXT TURN`). After contact ends it holds, dimmed with a blinking `CONTACT LOST`, for 3 turns.
+- **Notices:** until step 5, the old notice and ping-warning lines sit lower, clear of the panels.
 
 ## Testing
 

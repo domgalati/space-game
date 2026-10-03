@@ -14,13 +14,12 @@ from .scan_terminal import ScanTerminal
 from .star_systems import StarSystem
 from .shield_fx import draw_shield
 from .sensor_fx import OWN, draw_contacts, draw_sensor_overlay
-from .sensors import (
-    LOUD_AT, PING_RANGE, PING_SPEED, SIGNATURE_DARK, SIGNATURE_MAX, Sensors, compass, loudest_unfound,
-    range_label, signature,
-)
+from .sensors import PING_RANGE, PING_SPEED, Sensors, compass, loudest_unfound, range_label, signature
 from world.factions import faction_name, record_kill, waves_by
 from .combat import SCAN_RANGE, SHOT_MS, Shot, band, charged, fire
-from .combat_fx import INTENT_WORDS, draw_bracket, draw_intent, draw_shots, draw_target_panel, intent_label
+from .combat_fx import draw_bracket, draw_intent, draw_shots
+from .ui.enemy_panel import EnemyPanel
+from .ui.ship_panel import ShipPanel
 from .wrecks import Wreck, roll_salvage
 from .vessels import Drone
 from .privateers import CLASSES as PRIVATEER_CLASSES, Privateer
@@ -52,26 +51,21 @@ TEST_DRONE_RANGE = (900, 3500)  # px from the ship where debug drones appear
 TEST_PRIVATEER_RANGE = (3500, 6000)  # px from the ship where debug privateers start patrolling
 TOW_FEE = 0.1  # share of credits the tug charges when the hull fails
 NOTICE_MS = 4000
+NOTICE_Y = SCREEN_HEIGHT // 4 + 44  # under the status panels, with the ping warning above it
 BOOST_BURN = 2.0
 RING_BAND = 160  # px from a charted orbit that counts as riding the ring
 RING_BURN = 0.5
 ATMO_BURN = 2.0
-LOW_FUEL = 20
 BEACON_COLOR = (0, 196, 32)
 BEACON_DIM = (207, 192, 65)
-HUD_COLOR = (200, 210, 220)
 HUD_BACKING = (0, 0, 0, 170)
-LOW_FUEL_COLOR = (232, 150, 64)
 RESERVE_COLOR = (230, 80, 70)
-SHIELD_COLOR = (90, 170, 255)
-SHIELD_DOWN_COLOR = (110, 120, 140)
 HEAT_COLOR = (230, 80, 70)
 HUNTED_COLOR = (233, 159, 16)
 SHIELD_KEY = pygame.K_s
 SHIELD_FADE_MS = 160  # shell fades in or out over this long
 SHIELD_FLASH_MS = 140  # shell flashes this long after absorbing a hit
 CRITICAL_HULL = 0.2  # below this the damage tint flickers
-BAR_WIDTH = 10
 
 class StarSystemMode:
     def __init__(self, player, starsystem, world_state=None):
@@ -120,6 +114,8 @@ class StarSystemMode:
         self.rng = random.Random()
         self.shield_changed_at = -SHIELD_FADE_MS
         self.shield_flash_until = 0
+        self.ship_panel = ShipPanel()
+        self.enemy_panel = EnemyPanel()
 
     def ship_rect(self):
         return pygame.Rect(self.x_position * TILE_SIZE, self.y_position * TILE_SIZE, TILE_SIZE, TILE_SIZE)
@@ -271,6 +267,8 @@ class StarSystemMode:
             self.destroy(target)
         else:
             self.show_notice(f"HIT - {int(to_shield + to_hull)} DAMAGE" if hit else "MISS", OWN)
+            if hit:
+                self.enemy_panel.hit(pygame.time.get_ticks())
         self.last_action = "fire"
         self.spend_turns(FIRE_TURNS)
         return hit
@@ -635,13 +633,13 @@ class StarSystemMode:
         draw_shield(screen, sprite_center, self.shield_strength(now), now, now < self.shield_flash_until)
         self.shots = [shot for shot in self.shots if now <= shot.until_ms]
         draw_shots(screen, self.camera, self.shots, now, self.nav_font)
-        self.draw_hud(screen)
-        self.draw_target_readout(screen)
+        self.ship_panel.draw(screen, self, now)
+        self.enemy_panel.draw(screen, self, now)
         if self.notice and now < self.notice[1]:
-            draw_prompt(screen, self.notice[0], self.notice[2], SCREEN_HEIGHT // 4)
+            draw_prompt(screen, self.notice[0], self.notice[2], NOTICE_Y)
         warning = self.ping_warning()
         if warning:
-            draw_prompt(screen, warning, HUNTED_COLOR, SCREEN_HEIGHT // 4 - 44, small=True)
+            draw_prompt(screen, warning, HUNTED_COLOR, NOTICE_Y - 44, small=True)
         
         if self.scan_terminal:
             self.scan_terminal.display(screen)
@@ -651,52 +649,6 @@ class StarSystemMode:
             draw_prompt(screen, "SOLAR HEAT", HEAT_COLOR)
         elif self.in_atmosphere():
             draw_prompt(screen, "ATMOSPHERE", (232, 150, 64))
-
-    def draw_hud(self, screen):
-        ship = self.player.ship
-        cargo = ship.cargo
-        lines = [
-            (f"CREDITS ${self.player.currency}", HUD_COLOR),
-            (f"CARGO {cargo.get_total_quantity()}/{cargo.capacity}", HUD_COLOR),
-        ]
-        if ship.on_reserve:
-            lines.insert(0, ("FUEL EMPTY - RESERVE THRUSTERS", RESERVE_COLOR))
-        else:
-            color = LOW_FUEL_COLOR if ship.fuel < LOW_FUEL else HUD_COLOR
-            label = f"FUEL {int(ship.fuel)}/{ship.max_fuel}"
-            if self.boosting:
-                label += "  BOOST"
-            elif self.on_charted_ring():
-                label += "  RING"
-            lines.insert(0, (label, color))
-        hull_share = ship.hull / ship.max_hull
-        hull_color = HUD_COLOR if hull_share >= 0.5 else LOW_FUEL_COLOR if hull_share >= 0.25 else RESERVE_COLOR
-        state = "UP" if ship.shield_up else "DOWN"
-        lines[1:1] = [
-            (f"HULL   {bar(ship.hull, ship.max_hull)} {math.ceil(ship.hull)}", hull_color),
-            (f"SHIELD {bar(ship.shield, ship.max_shield)} {int(ship.shield)} {state}",
-             SHIELD_COLOR if ship.shield_up else SHIELD_DOWN_COLOR),
-            (f"SIGNAL {bar(self.player_signature(), SIGNATURE_MAX)} {int(self.player_signature())} "
-             f"{signature_word(self.player_signature())}", HUD_COLOR),
-        ]
-        me = self.ship_center()
-        if self.sensors.blind(me):
-            lines.append(("GLARE - SENSORS BLIND", HEAT_COLOR))
-        if self.selected_system.in_patrol_zone(me):
-            lines.append(("ASSEMBLY PATROL", NAV_MARKER_COLOR))
-        if self.hunted():
-            lines.append(("HUNTED", HUNTED_COLOR))
-        surfaces = [self.nav_font.render(text, True, color) for text, color in lines]
-        # Planets and the sun can fill the screen, so the readout sits on a dark plate.
-        width = max(surface.get_width() for surface in surfaces) + 12
-        height = sum(surface.get_height() + 2 for surface in surfaces) + 8
-        backing = pygame.Surface((width, height), pygame.SRCALPHA)
-        backing.fill(HUD_BACKING)
-        screen.blit(backing, (6, 8))
-        y = 12
-        for surface in surfaces:
-            screen.blit(surface, (12, y))
-            y += surface.get_height() + 2
 
     def draw_combat_marks(self, screen):
         """Intent glyphs over scanned ships you can sense, and a bracket on the target."""
@@ -711,28 +663,6 @@ class StarSystemMode:
                 draw_bracket(screen, centre, TARGET_COLOR)
             if vessel.scanned:
                 draw_intent(screen, centre, vessel.intent, vessel.colour, self.nav_font)
-
-    def draw_target_readout(self, screen):
-        target = self.current_target()
-        if target is None:
-            return
-        distance = math.dist(self.ship_center(), target.position)
-        reach = band(distance)
-        shot = f"HIT {round(reach[0] * 100)}%  DMG {reach[1]}" if reach else "OUT OF RANGE"
-        if target.scanned:
-            ship = target.ship
-            lines = [
-                (f"TARGET {faction_name(target.sponsor).upper()} {target.kind.upper()}", target.colour),
-                (f"HULL   {bar(ship.hull, ship.max_hull)} {math.ceil(ship.hull)}", HUD_COLOR),
-                (f"SHIELD {bar(ship.shield, ship.max_shield)} {int(ship.shield)} {'UP' if ship.shield_up else 'DOWN'}",
-                 SHIELD_COLOR),
-                (f"INTENT {intent_label(target.intent)} {INTENT_WORDS.get(target.intent[0], '')}", target.colour),
-            ]
-        else:
-            lines = [("TARGET UNKNOWN CONTACT", target.colour), ("[R] SCAN TO READ IT (1 TURN)", HUD_COLOR)]
-        lines.append((f"RANGE {exact_range(distance)}  {shot}", HUD_COLOR))
-        lines.append(("[F] FIRE  [R] SCAN  [TAB] NEXT", HUD_COLOR))
-        draw_target_panel(screen, lines, self.nav_font)
 
     def draw_beacons(self, screen):
         """Charted starports and station bays. Uncharted pads stay dark until a ping locks."""
@@ -799,12 +729,6 @@ class StarSystemMode:
             screen.blit(label, label_rect.clamp(screen_rect))
 
 
-def signature_word(loudness):
-    if loudness <= SIGNATURE_DARK:
-        return "DARK"
-    return "QUIET" if loudness < LOUD_AT else "LOUD"
-
-
 def dodge_advice(limit, cargo):
     """The least restrictive way to fly that stays under `limit`, given what's in the hold."""
     fill = cargo.get_total_quantity() / cargo.capacity
@@ -823,11 +747,6 @@ def dodge_advice(limit, cargo):
 def exact_range(distance):
     """Weapon and scan ranges to the metre; ping ranges stay rough (sensors.range_label)."""
     return f"{int(distance)} m"
-
-
-def bar(value, maximum, width=BAR_WIDTH):
-    filled = round(width * max(0, value) / maximum)
-    return "[" + "#" * filled + "-" * (width - filled) + "]"
 
 
 def draw_prompt(screen, text, color, y=SCREEN_HEIGHT // 2, small=False):
