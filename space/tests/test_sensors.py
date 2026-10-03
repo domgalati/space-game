@@ -93,10 +93,10 @@ def test_an_enemy_ping_points_back_at_once_and_catches_you_when_it_arrives(mode)
     (wedge,) = mode.sensors.wedges
     assert wedge.hostile
     assert abs(wedge.angle - bearing(mode.ship_center(), drone.position)) <= wedge.half_width
-    assert drone.player_fix is None and "INCOMING PING" in mode.ping_warning()
+    assert drone.player_fix is None and mode.ping_warning() is not None
     mode.spend_turns(3)
     assert drone.player_fix is not None
-    assert "HAS YOUR POSITION" in mode.notice[0]
+    assert "HAS YOUR POSITION" in mode.events.latest()
 
 def test_wedges_fade_over_a_few_turns(mode):
     mode.add_vessel(Vessel(offset(mode, 2000, 0)))
@@ -143,9 +143,9 @@ def test_running_dark_dodges_a_distant_ping_and_says_so(mode):
     mode.add_vessel(drone)
     mode.last_action = "wait"
     mode.spend_turns(DRONE_PING_EVERY)
-    assert "DODGE: HOLD STILL, SHIELD DOWN" in mode.ping_warning()
+    assert mode.ping_warning().advice.startswith("DODGE: HOLD STILL, SHIELD DOWN")
     mode.spend_turns(4)
-    assert drone.player_fix is None and mode.notice[0] == "PING MISSED YOU"
+    assert drone.player_fix is None and mode.events.latest() == "PING MISSED YOU"
 
 def test_making_noise_gets_you_caught_at_long_range(mode):
     drone = StillDrone(offset(mode, 4000, 0), mode)
@@ -178,7 +178,7 @@ def test_a_ping_too_close_cannot_be_dodged(mode):
     drone = StillDrone(offset(mode, 2000, 0), mode)
     mode.add_vessel(drone)
     mode.spend_turns(DRONE_PING_EVERY)
-    assert mode.ping_warning().endswith("TOO CLOSE TO DODGE")
+    assert mode.ping_warning().advice == "TOO CLOSE TO DODGE"
 
 
 def test_your_ping_reports_rough_ranges(mode):

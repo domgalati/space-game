@@ -13,10 +13,10 @@ todos:
     status: completed
   - id: action-strip
     content: Bottom-centre action strip for dock, scan, salvage, atmosphere and heat
-    status: pending
+    status: completed
   - id: alerts
     content: Alert banner by severity, fading event log, screen-edge vignette and shake
-    status: pending
+    status: completed
   - id: markers
     content: Restyle markers (nav arrows, beacons, ping blips, intents, target bracket) and full-screen moments (tow, kill)
     status: pending
@@ -157,13 +157,15 @@ One slim bar for what you can do here and what's acting on you. It shows the mos
 
 Each step leaves the game playable. The ship computer (scan terminal) is already styled and stays as it is.
 
-Steps 1–3 are built. `python tools/ui/space_hud_mockup.py` renders the review frame to `assets/img/_style_samples/space_ui/mockup.png`: the real panels over a fight at Etheora, with previews of the banner, ping strip, event log, action strip and vignette made from the same kit. Where the build settled things the plan left open:
+Steps 1–5 are built. `python tools/ui/space_hud_mockup.py` renders a review frame of the real HUD, staged through the game, to `assets/img/_style_samples/space_ui/mockup.png`. Where the build settled things the plan left open:
 
 - **Frames:** the border colour is dark teal lifted toward `c`, and the fill runs under the border, so the thin `-` and `|` glyphs still read over a bright planet. Each frame has a short `===` accent at its top right and bottom left.
 - **Bars:** block glyphs fill the whole 16 px cell, so bars are trimmed to cap height (10 px) to leave a gap between rows.
 - **Ship panel:** `RESERVE` is a blinking chip on the fuel row. The chip row holds `HUNTED`, `GLARE`, `PATROL`, `BOOST` and `RING`.
 - **Enemy panel:** the ship's sprite sits at half size beside the range and range band, not in the header. `RECHARGING` replaces `UP`/`DOWN` on its shield row. Intent words are the ones over the ships (`FIRING NEXT TURN`). After contact ends it holds, dimmed with a blinking `CONTACT LOST`, for 3 turns.
-- **Notices:** until step 5, the old notice and ping-warning lines sit lower, clear of the panels.
+- **Action strip:** where corridors overlap, `E` and the strip both pick dock, then salvage, then scan. There is no `GLARE` item: the glare is the heat zone, so the heat band and the `GLARE` chip already say it. The runner-up item is a slim line above the strip.
+- **Alerts:** `show_notice` is now `notify(text, severity)`, with a `NOTE` level that only logs (your hits and misses, standing, wrecks breaking up, docking, salvage lines, area-ping contacts). Worse news cuts in on a showing alert. A banner that doesn't fit at 2x splits at the first ` - ` or `: ` into a 2x headline and a 1x detail line. Solar heat on the hull is one danger alert and one log line that refresh each turn, with no shake.
+- **Effects:** warnings glow the edges amber and danger red; heat holds an orange glow. Danger and kills shake the world by 3 px; the HUD over it stays still.
 
 ## Testing
 

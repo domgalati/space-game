@@ -103,4 +103,4 @@ def test_hull_failure_tows_the_ship_home_repaired_for_a_fee(mode):
     assert mode.player.currency == 1000 - int(1000 * TOW_FEE)
     spawn = system.spawn_point()
     assert (mode.x_position, mode.y_position) == (int(spawn[0]) // TILE_SIZE, int(spawn[1]) // TILE_SIZE)
-    assert "TOWED" in mode.notice[0]
+    assert "TOWED" in mode.events.latest()

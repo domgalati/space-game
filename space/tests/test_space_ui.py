@@ -171,3 +171,137 @@ def test_the_panels_draw_in_every_state(mode):
     mode.player_fire()
     mode.draw(screen)  # breaking up
     assert mode.enemy_panel.panel.broken_at is not None
+
+
+# Step 4: the action strip.
+def planet(mode, name):
+    return next(body for body in mode.selected_system.planets if body.name == name)
+
+
+def wreck_at(mode, point, cargo=None):
+    from modes.star_system_mode.wrecks import Wreck
+
+    hulk = Privateer("raider", "dominion", point, mode, rng=random.Random(4))
+    wreck = Wreck(hulk, {"Ore": 3} if cargo is None else cargo, 0, mode.remove_wreck)
+    mode.wrecks.append(wreck)
+    return wreck
+
+
+def test_the_strip_offers_dock_then_salvage_then_scan(mode):
+    from modes.star_system_mode.ui.action_strip import actions
+
+    etheora = planet(mode, "Etheora")
+    port = etheora.beacon_points()[0]
+    place(mode, port)
+    wreck = wreck_at(mode, mode.ship_center())
+    (first, *_) = actions(mode, 2.0)
+    assert (first.verb, first.name) == ("DOCK", "ETHEORA") and mode.check_collision() is etheora
+    place(mode, (port[0] + 3000, port[1]))  # open space, and the wreck follows
+    wreck.position = mode.ship_center()
+    assert actions(mode, 2.0)[0].verb == "SALVAGE" and mode.check_collision() is wreck
+    wreck.cargo = {}
+    assert actions(mode, 2.0)[0].verb == "SCAN"
+
+
+def test_the_strip_shows_atmosphere_and_solar_heat(mode):
+    from modes.star_system_mode.ui.action_strip import actions
+
+    assert actions(mode, 2.0) == []
+    place(mode, planet(mode, "Etheora").position)
+    (band,) = actions(mode, 2.0)
+    assert (band.verb, band.name) == ("ATMOSPHERE", "FUEL x2")
+    place(mode, (mode.map_center_x + 900, mode.map_center_y))
+    (band,) = actions(mode, 2.0)
+    assert band.verb == "SOLAR HEAT" and band.name.endswith("/ TURN")
+
+
+# Step 5: alerts, the event log and the screen effects.
+def test_alerts_show_the_most_severe_first_one_at_a_time():
+    from modes.star_system_mode.ui.alerts import ALERT_MS, DANGER_LEVEL, INFO, WARNING, Alerts
+
+    alerts = Alerts()
+    alerts.post("SCANNED", INFO, 0)
+    alerts.post("PINGED", WARNING, 0)
+    alerts.post("HULL HIT - 9", DANGER_LEVEL, 0)
+    shown = []
+    for now in range(0, 4 * ALERT_MS, 100):
+        alert = alerts.update(now)
+        if alert and (not shown or shown[-1] != alert.text):
+            shown.append(alert.text)
+    assert shown == ["HULL HIT - 9", "PINGED", "SCANNED"]
+    assert alerts.update(4 * ALERT_MS) is None
+
+
+def test_worse_news_cuts_in_and_a_repeating_hazard_refreshes_its_alert():
+    from modes.star_system_mode.ui.alerts import ALERT_MS, DANGER_LEVEL, INFO, Alerts
+
+    alerts = Alerts()
+    alerts.post("SCANNED", INFO, 0)
+    assert alerts.update(0).text == "SCANNED"
+    alerts.post("SOLAR HEAT - HULL -3", DANGER_LEVEL, 100, key="heat")
+    assert alerts.update(100).text == "SOLAR HEAT - HULL -3"
+    alerts.post("SOLAR HEAT - HULL -4", DANGER_LEVEL, ALERT_MS, key="heat")
+    current = alerts.update(ALERT_MS)
+    assert current.text == "SOLAR HEAT - HULL -4" and not alerts.queue  # refreshed, not queued again
+
+
+def test_the_log_keeps_the_last_five_and_each_fades_out():
+    from modes.star_system_mode.ui.alerts import LOG_MS, LOG_SIZE, NOTE, EventLog
+
+    log = EventLog()
+    for i in range(LOG_SIZE + 2):
+        log.add(f"EVENT {i}", NOTE, i * 1000)
+    assert log.texts() == [f"EVENT {i}" for i in range(2, LOG_SIZE + 2)]
+    assert len(log.visible(LOG_MS + 2000)) == LOG_SIZE - 1  # EVENT 2 has faded
+    assert log.latest() == f"EVENT {LOG_SIZE + 1}"
+
+
+def test_long_alerts_split_into_a_headline_and_a_detail_line():
+    from modes.star_system_mode.ui.alerts import split_headline
+
+    assert split_headline("PINGED - DOMINION HAS YOUR POSITION") == ("PINGED", "DOMINION HAS YOUR POSITION")
+    assert split_headline("AREA PING: 2 UNKNOWN CONTACTS.") == ("AREA PING", "2 UNKNOWN CONTACTS.")
+    assert split_headline("MISS") == ("MISS", "")
+
+
+def test_severity_sets_the_edge_glow_and_the_shake(mode):
+    from modes.star_system_mode.ui.alerts import DANGER_LEVEL, NOTE, WARNING
+    from modes.star_system_mode.ui.effects import SHAKE_MS, VIGNETTE_MS
+
+    now = pygame.time.get_ticks()
+    mode.notify("HIT - 14 DAMAGE", NOTE)
+    assert mode.vignette.level(now) == 0 and mode.banner.alerts.update(now) is None
+    mode.notify("PINGED - DOMINION HAS YOUR POSITION", WARNING)
+    assert mode.vignette.colour == WARN and mode.shake.offset(now) == (0, 0)
+    mode.notify("HULL HIT - 9", DANGER_LEVEL)
+    assert mode.vignette.colour == DANGER and mode.shake.until > now
+    assert mode.vignette.level(mode.vignette.started_at + VIGNETTE_MS) == 0
+    assert mode.shake.offset(mode.shake.until + SHAKE_MS) == (0, 0)
+
+
+def test_solar_heat_on_the_hull_raises_one_refreshing_alert_and_no_shake(mode):
+    mode.player.ship.shield_up = False
+    place(mode, (mode.map_center_x + 900, mode.map_center_y))
+    mode.spend_turns(3)
+    alerts = mode.banner.alerts
+    alerts.update(pygame.time.get_ticks())
+    assert alerts.current.key == "heat" and not alerts.queue
+    assert mode.events.texts().count(mode.events.latest()) == 1 and len(mode.events.texts()) == 1
+    assert mode.shake.until == 0
+
+
+def test_the_hud_draws_banner_ping_strip_log_and_strip(mode):
+    from modes.star_system_mode.vessels import Drone
+
+    screen = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+    place(mode, planet(mode, "Etheora").beacon_points()[0])  # in a corridor, for the action strip
+    x, y = mode.ship_center()
+    drone = Drone((x + 4000, y), mode)
+    mode.add_vessel(drone)
+    mode.vessel_ping(drone)
+    assert mode.ping_warning() is not None
+    mode.notify("PINGED - DOMINION HAS YOUR POSITION", 1)
+    mode.draw(screen)
+    mode.spend_turns(5)  # the ping lands
+    mode.draw(screen)
+    assert mode.ping_strip.outcome is not None

@@ -146,10 +146,19 @@ class Panel:
             draw_text(surface, (x, y), " ]", corner)
         return surface
 
-    def blit(self, screen, topleft, now_ms, dim=0):
-        """Draw to the screen with whatever effect is running. `dim` (0-255) darkens a hold."""
+    def blit(self, screen, topleft, now_ms, dim=0, alpha=255):
+        """Draw to the screen with whatever effect is running. `dim` (0-255) darkens a hold;
+        `alpha` fades the whole panel."""
         if not self.is_open:
             return
+        if alpha < 255:
+            self.surface.set_alpha(max(0, alpha))
+            self._blit(screen, topleft, now_ms, dim)
+            self.surface.set_alpha(None)
+            return
+        self._blit(screen, topleft, now_ms, dim)
+
+    def _blit(self, screen, topleft, now_ms, dim):
         if self.broken_at is not None:
             self._blit_breaking(screen, topleft, now_ms)
             return

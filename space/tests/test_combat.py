@@ -84,12 +84,12 @@ def test_you_cannot_fire_out_of_range_or_without_charge(mode):
     far.ship.shield_up = True  # loud enough to stay in sight past weapon range
     mode.target = far
     mode.player_fire()
-    assert "OUT OF RANGE" in mode.notice[0] and mode.clock.turn == 0
+    assert "OUT OF RANGE" in mode.events.latest() and mode.clock.turn == 0
     near = privateer(mode, 100, 0)
     mode.target = near
     mode.player.ship.shield = SHOT_COST - 1
     mode.player_fire()
-    assert "CHARGE TOO LOW" in mode.notice[0] and mode.clock.turn == 0
+    assert "CHARGE TOO LOW" in mode.events.latest() and mode.clock.turn == 0
 
 
 def test_a_kill_leaves_a_wreck_and_moves_standing(mode):
@@ -100,7 +100,7 @@ def test_a_kill_leaves_a_wreck_and_moves_standing(mode):
     assert mode.player.reputation["dominion"] == KILL_SPONSOR_STANDING
     assert mode.player.reputation["assembly"] == KILL_LAW_STANDING
     assert mode.player.kill_log == [{"sponsor": "dominion", "kind": "cutter"}]
-    assert "DESTROYED" in mode.notice[0]
+    assert any("DESTROYED" in text for text in mode.events.texts())
 
 
 def test_salvage_fills_the_hold_and_the_wreck_breaks_up(mode):
@@ -170,7 +170,7 @@ def test_scans_reach_twenty_tiles(mode):
     far.ship.shield_up = True  # loud enough to stay in sight past scan range
     mode.target = far
     mode.player_scan()
-    assert not far.scanned and "TOO FAR" in mode.notice[0]
+    assert not far.scanned and "TOO FAR" in mode.events.latest()
 
 
 def test_tab_cycles_through_contacts_in_sight(mode):
