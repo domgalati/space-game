@@ -70,13 +70,13 @@ flowchart LR
 
 Treat the system map as a **miniature solar system you crawl**, not icons on a chart.
 
-| Element | Target feel | Rough numbers (starting point) |
-|---------|-------------|-------------------------------|
-| Planet disk | Fills a large fraction of the screen when nearby | **400–900 px** diameter by type (gas giants biggest; rocky mid; moons smaller) |
-| Station | Smaller than planets, still a huge structure you skim | **~250–450 px** (below smallest planets; far above the ship) |
-| Ship | Speck against a world or station | **24×24 or 32×32** collision/visual (strip can stay animated) |
-| Orbit gaps | Real travel between worlds | **3k–8k px** between rings (raise map size or orbit cap past today’s 5760) |
-| Star | Visible gravity well / light source | Drawn sun at map center (missing today) |
+| Element | Target feel | Shipped |
+|---------|-------------|---------|
+| Planet disk | Fills the screen when you are over it | **2304 px** images, disk radius 1072 (4× the first style A pass) |
+| Station | A megastructure about the size of a planet | **2304 px** Nexum Astra, 450 px clear of the sun, bay faces south |
+| Ship | Speck against a world or station | **48×48** frames on a 24 px collision tile |
+| Orbit gaps | Real travel between worlds | **3200–4200 px** between rings, first ring past 5400 |
+| Star | Visible gravity well / light source | **Sun.png** glyph disk, radius 1700, at map center |
 
 Camera stays ship-centered (no continuous zoom at first). When you near a planet or station, it **grows into a structure you skim**, which sells “find the access point” without a separate zoom system.
 

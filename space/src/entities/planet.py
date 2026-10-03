@@ -5,9 +5,12 @@ import random
 import pygame
 
 from util.config import resolve_game_path
+from util.images import load_image
 
 # Corridor around the painted starport. Radius, so the ship has to be on that rim.
-APPROACH_RADIUS = 64
+APPROACH_RADIUS = 160
+# Style A disks fill 268/288 of the image's half-width; the limb dots sit just outside.
+DISK_FRACTION = 268 / 288
 # Style A disks paint the pad on the lit rim (same vector the glyph generator uses).
 _DOCK_LEN = math.hypot(0.62, 0.48)
 DOCK_XY = (-0.62 / _DOCK_LEN * 0.84, -0.48 / _DOCK_LEN * 0.84)
@@ -18,7 +21,8 @@ class Planet:
         self.name = name
         self.planet_type = planet_type
         self.planet_guild = planet_guild
-        self.image = pygame.image.load(image_path)
+        self.image = load_image(image_path)
+        self.radius = self.image.get_width() / 2 * DISK_FRACTION
         self.orbit_radius = orbit_radius
         self.angle = angle
         self.position = self.calculate_position(center_x, center_y)
@@ -34,6 +38,10 @@ class Planet:
         rect_x = self.position[0] - self.image.get_width() // 2
         rect_y = self.position[1] - self.image.get_height() // 2
         return pygame.Rect(rect_x, rect_y, self.image.get_width(), self.image.get_height())
+
+    def contains(self, point):
+        """True over the disk itself, not the empty corners of its image."""
+        return math.dist(point, self.position) <= self.radius
 
     def beacon_points(self):
         """World position of the starport painted on the disk."""

@@ -5,8 +5,7 @@ ORBIT_SAMPLES = 720
 PIXELS_PER_DEGREE = 100  # wedge half-width grows with distance to the planet
 MIN_HALF_WIDTH_DEG = 6
 MAX_HALF_WIDTH_DEG = 45
-CHART_ARC_PX = 800  # remaining candidate arc short enough to find by eye
-STRONG_SIGNAL_PX = 700  # close enough that the ping locks immediately
+STRONG_SIGNAL_PX = 700  # this close to a planet's rim or a station bay, the ping locks immediately
 
 COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 
@@ -56,7 +55,7 @@ class NavCharts:
         heading, compass = _heading(reported)
         lines = [f"{planet.name}: bearing {heading:03.0f} ({compass}), spread {half_width:.0f} deg"]
 
-        if distance <= STRONG_SIGNAL_PX:
+        if distance - planet.radius <= STRONG_SIGNAL_PX:
             self.chart(planet.name)
             lines.append(f"Strong signal. {planet.name} charted, nav marker added.")
             return lines
@@ -71,7 +70,8 @@ class NavCharts:
 
         arc_px = len(candidates) * 2 * math.pi * planet.orbit_radius / ORBIT_SAMPLES
         runs = self.candidate_runs(planet)
-        if len(runs) == 1 and arc_px <= CHART_ARC_PX:
+        # Once the remaining arc is no longer than the disk, flying to it finds the planet.
+        if len(runs) == 1 and arc_px <= 2 * planet.radius:
             self.chart(planet.name)
             lines.append(f"Signal locked. {planet.name} charted, nav marker added.")
         elif len(runs) > 1:
@@ -93,7 +93,7 @@ class NavCharts:
             f"{body.name}: bearing {heading:03.0f} ({compass}), spread {half_width:.0f} deg",
             f"Fixed contact. {body.name} charted, nav marker added.",
         ]
-        if distance <= STRONG_SIGNAL_PX:
+        if any(math.dist(origin, bay) <= STRONG_SIGNAL_PX for bay in body.access_points()):
             lines.append("Strong signal. Bay is in range.")
         return lines
 

@@ -1,14 +1,16 @@
 import pygame
 
+from util.images import load_image
+
 # Same corridor size as a planetary starport. `access` points are image-local.
-APPROACH_RADIUS = 64
+APPROACH_RADIUS = 160
 
 class SpaceObject:
     def __init__(self, name, obj_type, image_path, x, y, guild=None, access=None):
         self.name = name
         self.obj_type = obj_type
         self.planet_guild = guild
-        self.image = pygame.image.load(image_path)
+        self.image = load_image(image_path)
         self.position = (x, y)
         self.start_pos = (0, 0)
         self.access = [tuple(point) for point in (access or [])]

@@ -6,6 +6,7 @@ import pygame
 from entities.planet import Planet
 from entities.object import SpaceObject
 from util.config import resolve_game_path
+from util.images import load_image
 
 # Logical system is large enough for multi-thousand-pixel orbit gaps.
 # Bodies are drawn straight to the screen, so this does not allocate a bitmap.
@@ -15,10 +16,11 @@ MIN_ORBIT_RADIUS = 2200
 MIN_ORBIT_GAP = 3200
 MAX_ORBIT_GAP = 4200
 ORBIT_COLOR = (21, 83, 82)
-SUN_DIM = (15, 59, 58)
-SUN_MID = (233, 159, 16)
-SUN_CORE = (255, 255, 255)
-SUN_RADIUS = 96
+SUN_IMAGE = "space/assets/img/planets/Sun.png"
+SUN_RADIUS = 1700  # the glyph disk in Sun.png; its corona dots reach a little past it
+STATION_ANGLE = 0.4  # radians from the sun; the art is lit from the upper left, so the sun sits there
+STATION_GAP = 450  # open space between the sun's disk and the station image
+SPAWN_BELOW_BAY = 280  # a new run starts just outside the bay corridor, bay in view
 
 class StarSystem:
     def __init__(self, json_path):
@@ -27,6 +29,7 @@ class StarSystem:
         # Calculate center of the map as class attributes
         self.map_center_x = self.MAP_WIDTH // 2
         self.map_center_y = self.MAP_HEIGHT // 2
+        self.sun_image = load_image(resolve_game_path(SUN_IMAGE))
         self.planets = []
         self.objects = []
         self.orbits = []
@@ -66,32 +69,39 @@ class StarSystem:
             self.orbits.append(orbit_radius)
             last_orbit_radius = orbit_radius
 
-    def _mid_system_point(self):
-        """Top-left of a 384px station sitting just clear of the sun."""
-        half = 192
-        distance = SUN_RADIUS + half + 40
-        angle = 0.4
-        cx = self.map_center_x + distance * math.cos(angle)
-        cy = self.map_center_y + distance * math.sin(angle)
+    def _mid_system_point(self, size):
+        """Top-left of a station image `size` px square, STATION_GAP clear of the sun."""
+        half = size / 2
+        distance = SUN_RADIUS + STATION_GAP + half
+        cx = self.map_center_x + distance * math.cos(STATION_ANGLE)
+        cy = self.map_center_y + distance * math.sin(STATION_ANGLE)
         return (int(cx - half), int(cy - half))
 
     def generate_objects(self, object_data):
         self.objects = []
         for data in object_data:
+            image_path = resolve_game_path(data['image_path'])
             if data.get("anchor") == "mid" and self.planets:
-                x, y = self._mid_system_point()
+                x, y = self._mid_system_point(load_image(image_path).get_width())
             else:
                 x, y = data["x"], data["y"]
             obj = SpaceObject(
                 data['name'],
                 data['type'],
-                resolve_game_path(data['image_path']),
+                image_path,
                 x,
                 y,
                 data.get('guild'),
                 data.get('access'),
             )
             self.objects.append(obj)
+
+    def spawn_point(self):
+        """Where a new run starts: in the approach lane under the first station bay."""
+        for obj in self.objects:
+            for x, y in obj.access_points():
+                return (x, y + SPAWN_BELOW_BAY)
+        return (self.map_center_x + SUN_RADIUS + STATION_GAP, self.map_center_y)
 
     def draw(self, screen, camera):
         self.draw_sun(screen, camera)
@@ -108,13 +118,9 @@ class StarSystem:
             planet.draw(screen, camera)
 
     def draw_sun(self, screen, camera):
-        cx = self.map_center_x - camera.x
-        cy = self.map_center_y - camera.y
-        if cx < -120 or cy < -120 or cx > camera.width + 120 or cy > camera.height + 120:
-            return
-        pygame.draw.circle(screen, SUN_DIM, (cx, cy), SUN_RADIUS)
-        pygame.draw.circle(screen, SUN_MID, (cx, cy), 64)
-        pygame.draw.circle(screen, SUN_CORE, (cx, cy), 22)
+        rect = self.sun_image.get_rect(center=(self.map_center_x, self.map_center_y))
+        if camera.colliderect(rect):
+            screen.blit(self.sun_image, (rect.x - camera.x, rect.y - camera.y))
 
     def draw_orbits(self, screen, camera):
         center = (self.map_center_x - camera.x, self.map_center_y - camera.y)

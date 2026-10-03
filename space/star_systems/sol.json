@@ -10,6 +10,6 @@
         {"name": "Governus Centralis", "type": "Urban", "guild": "assembly", "image_path": "space/assets/img/planets/Baren.png"}
     ],
     "objects": [
-        {"name": "Nexum Astra", "type": "SpaceStation", "guild": "assembly", "image_path": "space/assets/img/objects/space_station2.png", "anchor": "mid", "access": [[192, 320]], "x": 12420, "y": 8280}
+        {"name": "Nexum Astra", "type": "SpaceStation", "guild": "assembly", "image_path": "space/assets/img/objects/space_station2.png", "anchor": "mid", "access": [[1152, 1920]], "x": 12420, "y": 8280}
     ]
 }

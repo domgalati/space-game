@@ -27,6 +27,7 @@ LOW_FUEL = 20
 BEACON_COLOR = (0, 196, 32)
 BEACON_DIM = (207, 192, 65)
 HUD_COLOR = (200, 210, 220)
+HUD_BACKING = (0, 0, 0, 170)
 LOW_FUEL_COLOR = (232, 150, 64)
 RESERVE_COLOR = (230, 80, 70)
 
@@ -49,8 +50,9 @@ class StarSystemMode:
             animation_cooldown_ms=90,
         )
         self.current_direction = "southeast"
-        self.x_position = self.map_center_x // TILE_SIZE
-        self.y_position = self.map_center_y // TILE_SIZE
+        spawn_x, spawn_y = self.selected_system.spawn_point()
+        self.x_position = int(spawn_x) // TILE_SIZE
+        self.y_position = int(spawn_y) // TILE_SIZE
         self.previous_x, self.previous_y = self.x_position, self.y_position
         self.parallax_offset_x, self.parallax_offset_y = 0, 0
         self.parallax_velocity_x, self.parallax_velocity_y = 0, 0
@@ -110,7 +112,7 @@ class StarSystemMode:
     def in_atmosphere(self):
         rect = self.ship_rect()
         for planet in self.selected_system.planets:
-            if rect.colliderect(planet.get_rect()) and not self._in_approach(planet, rect):
+            if planet.contains(rect.center) and not self._in_approach(planet, rect):
                 return True
         return False
 
@@ -216,10 +218,11 @@ class StarSystemMode:
     def draw(self, screen):
         # Draw logic specific to star system mode
         screen.fill((0, 0, 0))
-        self.selected_system.draw(screen, self.camera)
         draw_stars(screen, self.white_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 2, self.parallax_offset_y * 2))
         draw_stars(screen, self.purple_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 3, self.parallax_offset_y * 3))
         draw_stars(screen, self.blue_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 4, self.parallax_offset_y * 4))
+        # Bodies go over the starfield: at flight scale they fill the screen.
+        self.selected_system.draw(screen, self.camera)
         self.draw_beacons(screen)
         self.draw_candidate_arcs(screen)
         self.draw_nav_markers(screen)
@@ -261,9 +264,15 @@ class StarSystemMode:
             elif self.on_charted_ring():
                 label += "  RING"
             lines.insert(0, (label, color))
+        surfaces = [self.nav_font.render(text, True, color) for text, color in lines]
+        # Planets and the sun can fill the screen, so the readout sits on a dark plate.
+        width = max(surface.get_width() for surface in surfaces) + 12
+        height = sum(surface.get_height() + 2 for surface in surfaces) + 8
+        backing = pygame.Surface((width, height), pygame.SRCALPHA)
+        backing.fill(HUD_BACKING)
+        screen.blit(backing, (6, 8))
         y = 12
-        for text, color in lines:
-            surface = self.nav_font.render(text, True, color)
+        for surface in surfaces:
             screen.blit(surface, (12, y))
             y += surface.get_height() + 2
 

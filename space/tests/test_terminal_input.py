@@ -57,6 +57,7 @@ def scan_terminal():
         _Planet("Governus Centralis"),
         _Planet("Etheora"),
     ]
+    terminal.star_system_mode.selected_system.objects = [_Planet("Nexum Astra")]
     return terminal
 
 

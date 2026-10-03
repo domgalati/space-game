@@ -12,13 +12,20 @@ Alpha is strictly 0 or 255 so rotation and blitting stay crisp.
 Terramonta's surface uses the same noise seed as scan_art.py, so the flight
 disk and the scan-terminal ASCII show the same fissure network.
 
+The live flight art is larger than the samples, on the same 8x16 cells:
+
+    planets/{Lava,Terran,Ice,Baren}.png  2304x2304 disks, radius 1072
+    planets/Sun.png                      3712x3712 sun, radius 1700
+
 Run: python tools/art/qud_glyph/generate_samples.py
+     python tools/art/qud_glyph/generate_samples.py flight   (live planets + sun)
 """
 
 from __future__ import annotations
 
 import math
 import random
+import sys
 import zlib
 from pathlib import Path
 
@@ -35,6 +42,10 @@ FRAME = 48
 FRAMES = 6
 PLANET = 576
 STATION = 384
+# Live disks are four times the samples with the same 268/576 margin for the limb
+# dots. planet.py derives the disk radius and starport from the image width.
+FLIGHT_PLANET = 2304
+FLIGHT_RADIUS = FLIGHT_PLANET * 268 // 576
 
 _L = np.array([-0.55, -0.45, 0.70])
 LIGHT = _L / np.linalg.norm(_L)
@@ -446,10 +457,10 @@ def write_flight_planets():
     """Write the style-A disks the game loads under space/assets/img/planets/."""
     out_dir = REPO / "space" / "assets" / "img" / "planets"
     out_dir.mkdir(parents=True, exist_ok=True)
-    cols, rows = PLANET // CELL_W, PLANET // CELL_H
-    radius = 268.0
+    cols, rows = FLIGHT_PLANET // CELL_W, FLIGHT_PLANET // CELL_H
+    radius = float(FLIGHT_RADIUS)
     for filename, (name, bg_ramp, fg_keys, limb, hot_bg, warm_bg) in FLIGHT_PLANETS.items():
-        f = terramonta_fields(PLANET, radius, name)
+        f = terramonta_fields(FLIGHT_PLANET, radius, name)
         canvas = GlyphCanvas(cols, rows)
         fg_ramp = [QUD[key] for key in fg_keys]
         flats = ".,'`."
@@ -494,6 +505,151 @@ def write_flight_planets():
         path = out_dir / filename
         Image.fromarray(rgba.astype(np.uint8), "RGBA").save(path)
         print("wrote", path)
+
+
+# The star at the middle of the flight map. star_systems.SUN_RADIUS matches SUN_RADIUS.
+SUN = 3712
+SUN_RADIUS = 1700
+# Limb to core. The disk is darkest at the edge so it reads as a sphere at any crop.
+SUN_BG = ["#1c0703", "#3a1005", "#5e1a06", "#882a08", "#b0420a", "#d0620e", "#e88a16"]
+SUN_FG = ["r", "R", "o", "O", "O", "W", "Y"]
+SUN_GRANULES = 5200  # cells of convection over the visible hemisphere, about 8x4 glyphs each
+# Spots as (unit vector toward the spot, angular size). Kept off the limb so they read round.
+SUN_SPOTS = [((-0.30, -0.18, 0.94), 0.070), ((-0.22, -0.30, 0.93), 0.035),
+             ((0.38, 0.22, 0.90), 0.055), ((0.10, 0.46, 0.88), 0.030)]
+# Prominence loops as (start angle, end angle, height above the limb in px). Angles in degrees.
+SUN_PROMINENCES = [(196, 207, 130), (318, 323, 95), (62, 74, 140), (128, 131, 80), (250, 258, 110)]
+
+
+def _arc_char(dx, dy):
+    """Glyph that follows a pixel-space direction on 8x16 cells."""
+    angle = math.degrees(math.atan2(-dy, dx)) % 180
+    if angle < 22 or angle >= 158:
+        return "~"
+    if angle < 68:
+        return "/"
+    if angle < 112:
+        return "|"
+    return "\\"
+
+
+def _granules(nx, ny, nz, count, seed):
+    """Cellular convection on the sphere: 0 on the dark lanes, 1 at a granule's middle."""
+    rng = np.random.default_rng(seed)
+    sites = rng.normal(size=(count, 3))
+    sites /= np.linalg.norm(sites, axis=1, keepdims=True)
+    sites[:, 2] = np.abs(sites[:, 2])
+    amp = rng.uniform(-1, 1, count)
+    points = np.stack([nx.ravel(), ny.ravel(), nz.ravel()], axis=1)
+    inner = np.zeros(len(points))
+    bright = np.zeros(len(points))
+    for start in range(0, len(points), 4096):
+        dots = points[start:start + 4096] @ sites.T
+        top = np.argpartition(-dots, 1, axis=1)[:, :2]
+        d = np.arccos(np.clip(np.take_along_axis(dots, top, axis=1), -1, 1))
+        order = np.argsort(d, axis=1)
+        d = np.take_along_axis(d, order, axis=1)
+        nearest = np.take_along_axis(top, order, axis=1)[:, 0]
+        inner[start:start + 4096] = d[:, 1] - d[:, 0]
+        bright[start:start + 4096] = amp[nearest]
+    size = math.sqrt(2.0 / count)
+    return (np.clip(inner / size, 0, 1).reshape(nx.shape), bright.reshape(nx.shape))
+
+
+def write_sun():
+    """Limb-darkened glyph star with granulation, spots, prominences and a dotted corona."""
+    cols, rows = SUN // CELL_W, SUN // CELL_H
+    xs = (np.arange(cols) * CELL_W + CELL_W / 2 - SUN / 2) / SUN_RADIUS
+    ys = (np.arange(rows) * CELL_H + CELL_H / 2 - SUN / 2) / SUN_RADIUS
+    nx, ny = np.meshgrid(xs, ys)
+    r = np.hypot(nx, ny)
+    nz = np.sqrt(np.clip(1 - r * r, 0, 1))
+    inner, bright = _granules(nx, ny, nz, SUN_GRANULES, 71)
+    # Supergranulation: a slow bright network, strongest as faculae toward the limb.
+    network = fbm(nx * 6 + 2, ny * 6, nz * 6, 67, 3)
+    heat = 0.18 + 0.82 * nz ** 0.5 + 0.10 * (inner - 0.5) + 0.04 * bright + 0.06 * network
+    heat = np.clip(heat, 0, 0.999)
+    spot = np.zeros_like(r)
+    spot_center = np.zeros(r.shape + (2,))
+    for (sx, sy, sz), size in SUN_SPOTS:
+        n = math.sqrt(sx * sx + sy * sy + sz * sz)
+        dot = np.clip((nx * sx + ny * sy + nz * sz) / n, -1, 1)
+        value = np.clip(1.6 - np.arccos(dot) / size, 0, 1.6)
+        closer = value > spot
+        spot = np.where(closer, value, spot)
+        spot_center[closer] = (sx / n, sy / n)
+    theta = np.arctan2(ny, nx)
+    streamer = 0.5 + 0.5 * np.sin(theta * 7 + 2.0 * np.sin(theta * 3))
+
+    canvas = GlyphCanvas(cols, rows)
+    fg_ramp = [QUD[key] for key in SUN_FG]
+    tones = len(SUN_BG)
+    for row in range(rows):
+        for col in range(cols):
+            rr = r[row, col]
+            h = _cell_hash(col, row, 7)
+            if rr > 1.0:
+                # Corona: dots thin out with height; streamers carry radial streaks.
+                density = math.exp(-(rr - 1.0) / 0.03) * (0.25 + 0.75 * streamer[row, col])
+                if (h % 1000) / 1000 < density * 0.85:
+                    if streamer[row, col] > 0.8 and h % 4 == 0:
+                        char = _arc_char(nx[row, col], ny[row, col])
+                    else:
+                        char = "*" if h % 29 == 0 else ":" if h % 3 == 0 else "'" if h % 3 == 1 else "."
+                    color = "O" if rr < 1.015 else "o" if rr < 1.035 else "R" if rr < 1.06 else "r"
+                    canvas.set(col, row, char, QUD[color])
+                continue
+            if rr > 0.994:
+                canvas.set(col, row, "^" if h % 3 else "~", QUD["W"] if h % 4 else QUD["O"], SUN_BG[2])
+                continue
+            s = spot[row, col]
+            if s > 1.0:
+                canvas.set(col, row, "@" if h % 5 == 0 else "o" if h % 2 else " ", QUD["r"], "#0e0302")
+                continue
+            if s > 0.0:
+                # Penumbra filaments radiate from the umbra.
+                cx, cy = spot_center[row, col]
+                char = _arc_char(nx[row, col] - cx, ny[row, col] - cy) if h % 3 else ":"
+                canvas.set(col, row, char, QUD["o"] if s < 0.5 else QUD["R"], "#2a0a04")
+                continue
+            tone = int(heat[row, col] * tones)
+            bg, fg = SUN_BG[tone], fg_ramp[tone]
+            e = inner[row, col]
+            if e < 0.16:
+                # Intergranular lanes: a cooler tone and sparse dust.
+                bg = SUN_BG[max(tone - 1, 0)]
+                char = "." if h % 3 == 0 else " "
+                fg = fg_ramp[max(tone - 2, 0)]
+            elif e < 0.42:
+                char = ":" if h % 3 == 0 else "+" if h % 3 == 1 else "="
+            elif e < 0.78:
+                char = "o" if h % 3 else "*"
+            else:
+                char = "@" if bright[row, col] > 0.4 else "O"
+                fg = fg_ramp[min(tone + 1, tones - 1)]
+            canvas.set(col, row, char, fg, bg)
+
+    # Prominences: braided loops standing on the limb, drawn over the corona.
+    for start, end, height in SUN_PROMINENCES:
+        a0, a1 = math.radians(start), math.radians(end)
+        for strand, (offset, twist, color) in enumerate(((0, 0.0, "O"), (14, 0.6, "o"), (-12, -0.5, "R"))):
+            last = None
+            for i in range(601):
+                t = i / 600
+                arch = math.sin(math.pi * t)
+                a = a0 + (a1 - a0) * t + math.radians(twist) * arch * math.sin(6 * math.pi * t + strand)
+                radius = SUN_RADIUS + 6 + (height + offset) * arch
+                px = SUN / 2 + radius * math.cos(a)
+                py = SUN / 2 + radius * math.sin(a)
+                col, row = int(px // CELL_W), int(py // CELL_H)
+                if last is not None and (col, row) != last[:2]:
+                    canvas.set(col, row, _arc_char(px - last[2], py - last[3]), QUD[color])
+                last = (col, row, px, py)
+
+    rgba = canvas.render()
+    path = REPO / "space" / "assets" / "img" / "planets" / "Sun.png"
+    Image.fromarray(rgba.astype(np.uint8), "RGBA").save(path)
+    print("wrote", path)
 
 
 def glyph_station():
@@ -1117,4 +1273,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if sys.argv[1:] == ["flight"]:
+        write_flight_planets()
+        write_sun()
+    else:
+        main()
