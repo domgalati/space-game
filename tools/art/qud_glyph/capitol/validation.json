@@ -1,0 +1,28 @@
+{
+  "size": [
+    2304,
+    2304
+  ],
+  "mode": "RGBA",
+  "cell_size": [
+    8,
+    16
+  ],
+  "grid": [
+    288,
+    144
+  ],
+  "font": "TeleSys.ttf at 16px",
+  "literal_ascii_only": true,
+  "cell_count": 15840,
+  "every_cell_matches_font_mask": true,
+  "alpha_values": [
+    0,
+    255
+  ],
+  "south_approach_clear": true,
+  "bay_center": [
+    1152,
+    1920
+  ]
+}

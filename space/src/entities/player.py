@@ -1,6 +1,7 @@
 ## The classes in this file represent what values are stored when the player saves the game.
 
-FUEL_PER_STEP = 0.3  # fuel burned per tile flown in star system mode
+FUEL_PER_STEP = 0.25  # cruise burn per tile flown in star system mode
+DOCK_FUEL = 6  # spent when a dock actually succeeds
 
 class Player:
     def __init__(self):
@@ -17,14 +18,15 @@ class Player:
 class Ship:
     def __init__(self):
         self.health = 100
-        self.max_fuel = 100
-        self.fuel = 100
+        self.max_fuel = 1000
+        self.fuel = 1000
         self.equipment = []
         self.stats = {'hull': 10, 'cargo_space': 10, 'speed': 10}
         self.cargo = Inventory(capacity=100)
 
-    def burn_fuel(self, steps=1):
-        self.fuel = max(0.0, self.fuel - FUEL_PER_STEP * steps)
+    def burn_fuel(self, steps=1, multiplier=1.0, amount=None):
+        cost = amount if amount is not None else FUEL_PER_STEP * steps * multiplier
+        self.fuel = max(0.0, self.fuel - cost)
 
     @property
     def on_reserve(self):

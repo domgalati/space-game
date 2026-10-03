@@ -99,13 +99,13 @@ def test_round_trip_profits():
 
 
 def test_refuel_prices_off_fuel_cells_and_fills_partially_when_short():
-    player = rich_player(credits=1000)
+    player = rich_player(credits=5760)
     player.ship.fuel = 40.5
     station = economy("Nexum Astra", **{"Fuel Cells": 150})
     assert trade.fuel_price(station) == 6
     trade.refuel(player, station)
-    assert player.ship.fuel == 100
-    assert player.currency == 1000 - 60 * 6
+    assert player.ship.fuel == 1000
+    assert player.currency == 0
 
     player = rich_player(credits=80)
     player.ship.fuel = 0
