@@ -86,16 +86,17 @@ def test_area_ping_is_refused_in_the_glare(mode):
     assert mode.clock.turn == 0
 
 
-def test_an_enemy_ping_points_back_at_it_and_fixes_your_position(mode):
-    drone = StillDrone(offset(mode, -3000, 1000), mode)
+def test_an_enemy_ping_points_back_at_once_and_catches_you_when_it_arrives(mode):
+    drone = StillDrone(offset(mode, -2000, 1000), mode)  # about 2240 m: three turns out
     mode.add_vessel(drone)
     mode.spend_turns(DRONE_PING_EVERY)
-    assert drone.player_fix is not None
     (wedge,) = mode.sensors.wedges
     assert wedge.hostile
     assert abs(wedge.angle - bearing(mode.ship_center(), drone.position)) <= wedge.half_width
-    assert len(mode.sensors.rings) == 1
-
+    assert drone.player_fix is None and "INCOMING PING" in mode.ping_warning()
+    mode.spend_turns(3)
+    assert drone.player_fix is not None
+    assert "HAS YOUR POSITION" in mode.notice[0]
 
 def test_wedges_fade_over_a_few_turns(mode):
     mode.add_vessel(Vessel(offset(mode, 2000, 0)))
@@ -135,3 +136,53 @@ def test_test_drones_spawn_near_the_ship_and_wander(mode):
     assert all(900 <= math.dist(p, mode.ship_center()) <= 3500 for p in start)
     mode.spend_turns(DRONE_PING_EVERY - 1)
     assert [v.position for v in mode.vessels] != start
+
+
+def test_running_dark_dodges_a_distant_ping_and_says_so(mode):
+    drone = StillDrone(offset(mode, 4000, 0), mode)
+    mode.add_vessel(drone)
+    mode.last_action = "wait"
+    mode.spend_turns(DRONE_PING_EVERY)
+    assert "DODGE: HOLD STILL, SHIELD DOWN" in mode.ping_warning()
+    mode.spend_turns(4)
+    assert drone.player_fix is None and mode.notice[0] == "PING MISSED YOU"
+
+def test_making_noise_gets_you_caught_at_long_range(mode):
+    drone = StillDrone(offset(mode, 4000, 0), mode)
+    mode.add_vessel(drone)
+    mode.player.ship.shield_up = True
+    mode.spend_turns(DRONE_PING_EVERY + 4)
+    assert drone.player_fix is not None
+
+def test_your_ping_only_finds_dark_ships_within_half_range(mode):
+    dark = Vessel(offset(mode, 4000, 0))
+    loud = Vessel(offset(mode, 0, 4000))
+    loud.moved = True
+    for vessel in (dark, loud):
+        mode.add_vessel(vessel)
+    assert mode.area_ping()[0] == "Area ping: 1 unknown contact."
+    assert dark.player_fix is not None  # it still heard you
+
+
+def test_the_catch_range_slides_from_dark_to_loud():
+    from modes.star_system_mode.sensors import LOUD_AT, PING_DARK_RANGE, catch_range, loudest_unfound
+
+    assert catch_range(SIGNATURE_DARK) == PING_DARK_RANGE
+    assert PING_DARK_RANGE < catch_range(SIGNATURE_CRUISE) < PING_RANGE
+    assert catch_range(LOUD_AT) == catch_range(LOUD_AT * 2) == PING_RANGE
+    assert loudest_unfound(PING_DARK_RANGE) is None
+    assert catch_range(loudest_unfound(4500)) == pytest.approx(4500)
+
+
+def test_a_ping_too_close_cannot_be_dodged(mode):
+    drone = StillDrone(offset(mode, 2000, 0), mode)
+    mode.add_vessel(drone)
+    mode.spend_turns(DRONE_PING_EVERY)
+    assert mode.ping_warning().endswith("TOO CLOSE TO DODGE")
+
+
+def test_your_ping_reports_rough_ranges(mode):
+    mode.add_vessel(Vessel(offset(mode, 1234, 0)))
+    lines = mode.area_ping()
+    assert "Contact E, about 1200 m" in lines[1]
+    assert mode.sensors.wedges[0].distance == pytest.approx(1234)

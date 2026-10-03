@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: privateer-ai
     content: Privateers as clock actors (patrol, hunt, engage, search, retreat, wave friends by) with faction sprites
-    status: pending
+    status: completed
   - id: combat
     content: Light weapon, targeting, scan-to-reveal intents, shield as battery, range-based hits, wrecks and salvage
     status: pending
@@ -89,6 +89,7 @@ All numbers below are starting points to tune.
   - Every privateer within that same range hears it and learns your bearing.
   - `ping <planet>` keeps working as it does today.
 - **Enemy pings:** a hunting privateer area-pings about every 4 turns. Its ring rolls across your screen and leaves a wedge pointing back at it, so you know you're being hunted and from roughly where.
+- **Dodging a ping:** an enemy ping travels 1000 m per turn, so you see it coming. A warning gives its range, direction, turns until it arrives, and the quietest change that dodges it. It catches you only if you're within its catch range when it arrives: 3000 m running dark, sliding up to 6000 m at signal 1200 or louder (moving with the shield down, at 700, is caught within about 4300 m). Then a notice says `PINGED - DOMINION HAS YOUR POSITION` or `PING MISSED YOU`, and a `HUNTED` HUD tag stays up while any privateer is after you. Your own area ping reports each contact's rough range.
 - **Running dark** works both ways: a ship running dark doesn't show until it's within a few tiles, or until an area ping catches it.
 - **Sun glare:** inside the sun's heat zone nobody can lock, ping or scan, in either direction. You vanish from their sensors and they vanish from yours, while the heat eats your shield and hull.
 - **Patrol zones:** within about 2500 px of Assembly worlds and Nexum Astra, privateers break off. The HUD shows ASSEMBLY PATROL.

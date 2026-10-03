@@ -23,6 +23,10 @@ class Vessel:
     def signature(self):
         return signature(self.moved, self.shield_up, self.boosting, self.cargo_fill)
 
+    def hunting(self):
+        """Whether this ship is after the player."""
+        return False
+
     def take_turn(self):
         self.moved = False
 

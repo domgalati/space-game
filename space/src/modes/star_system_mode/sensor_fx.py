@@ -9,7 +9,7 @@ import pygame
 
 from util.config import SCREEN_HEIGHT, SCREEN_WIDTH
 
-from .sensors import PING_RANGE
+from .sensors import PING_RANGE, range_label
 
 OWN = (119, 191, 207)  # Qud "C"
 HOSTILE = (233, 159, 16)  # Qud "O"
@@ -77,7 +77,9 @@ def _last_point_on_screen(origin, angle):
     return last
 
 
-def draw_sensor_overlay(screen, camera, sensors, now_turn, now_ms, font):
+def draw_sensor_overlay(screen, camera, sensors, now_turn, now_ms, font, ring_turn=None):
+    """`ring_turn` is a smoothed clock for drawing enemy rings between turns."""
+    ring_turn = now_turn if ring_turn is None else ring_turn
     overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
     markers = []
     for wedge in sensors.wedges:
@@ -91,36 +93,46 @@ def draw_sensor_overlay(screen, camera, sensors, now_turn, now_ms, font):
             _draw_edge(overlay, origin, wedge.angle + side * wedge.half_width, color, int(EDGE_ALPHA * strength))
         point = _last_point_on_screen(origin, wedge.angle)
         if point:
-            markers.append((point, color, strength))
+            markers.append((point, color, strength, wedge.distance))
     for ring in sensors.rings:
-        radius = ring.radius(now_ms)
+        radius = ring.radius(now_ms, ring_turn)
         center = _to_screen(ring.origin, camera)
         if radius <= 0 or not _ring_on_screen(center, radius):
             continue
         alpha = int(RING_ALPHA * (1 - radius / PING_RANGE))
         _draw_ring(overlay, center, radius, HOSTILE if ring.hostile else OWN, alpha)
     screen.blit(overlay, (0, 0))
-    for point, color, strength in markers:
+    for point, color, strength, distance in markers:
+        alpha = int(255 * max(0.35, strength))
         label = font.render("?", True, color)
         label = pygame.transform.scale(label, (label.get_width() * MARKER_SCALE, label.get_height() * MARKER_SCALE))
-        label.set_alpha(int(255 * max(0.35, strength)))
-        screen.blit(label, label.get_rect(center=point))
+        label.set_alpha(alpha)
+        rect = label.get_rect(center=point)
+        screen.blit(label, rect)
+        reading = font.render(range_label(distance), True, color)
+        reading.set_alpha(alpha)
+        spot = reading.get_rect(midtop=(rect.centerx, rect.bottom))
+        screen.blit(reading, spot.clamp(screen.get_rect()))
 
 
-def _blinking(position, rings, now_ms):
-    return any(abs(math.dist(ring.origin, position) - ring.radius(now_ms)) < BLINK_PX for ring in rings)
+def _blinking(position, rings, now_ms, ring_turn):
+    return any(abs(math.dist(ring.origin, position) - ring.radius(now_ms, ring_turn)) < BLINK_PX for ring in rings)
 
 
-def draw_contacts(screen, camera, positions, rings, now_ms, font):
-    """Ships you can sense: a glyph on screen, an edge marker when they're off it."""
+def draw_contacts(screen, camera, vessels, rings, now_ms, font, ring_turn=0):
+    """Ships you can sense: their sprite (or a glyph) on screen, an edge marker when off it."""
     screen_rect = screen.get_rect()
     half_w = SCREEN_WIDTH / 2 - EDGE_MARGIN
     half_h = SCREEN_HEIGHT / 2 - EDGE_MARGIN
     center_x, center_y = SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2
-    for position in positions:
-        color = BLINK if _blinking(position, rings, now_ms) else HOSTILE
-        sx, sy = _to_screen(position, camera)
+    for vessel in vessels:
+        colour = getattr(vessel, "colour", HOSTILE)
+        color = BLINK if _blinking(vessel.position, rings, now_ms, ring_turn) else colour
+        sx, sy = _to_screen(vessel.position, camera)
         if screen_rect.collidepoint(sx, sy):
+            if hasattr(vessel, "draw"):
+                vessel.draw(screen, (sx, sy), now_ms)
+                continue
             glyph = font.render(VESSEL_GLYPH, True, color)
             screen.blit(glyph, glyph.get_rect(center=(sx, sy)))
             continue
