@@ -1,6 +1,7 @@
-"""Persistent world facts: story flags, per-NPC memory, and each location's residents.
+"""In-session world facts: story flags, per-NPC memory, residents, markets, and news.
 
-Written to a generated file that is never committed; a real save-slot system comes later.
+Load/save helpers remain for tests and a future save-slot system. The game currently
+starts a fresh ``WorldState()`` every run and does not write to disk.
 """
 import os
 
@@ -19,9 +20,19 @@ class WorldState:
         self.globals = data.get("globals") or {}
         self.npcs = data.get("npcs") or {}  # npc_id -> {mood, vars, visited}
         self.rosters = data.get("rosters") or {}  # location -> [npc record]
+        self.news = data.get("news") or {}  # see util.economy.news_feed
+        self.markets = None  # live economy data for this run; see markets_data()
+
+    def markets_data(self):
+        """Session market book. Loaded once from the base yaml, then mutated in place."""
+        if self.markets is None:
+            from util.economy.economy import load_market_data
+            self.markets = load_market_data()
+        return self.markets
 
     @classmethod
     def load(cls, path=None):
+        """Reload from disk. Unused by the game until save slots exist."""
         path = path or resolve_game_path(SAVE_PATH)
         data = None
         if os.path.exists(path):
@@ -42,9 +53,11 @@ class WorldState:
             "globals": self.globals,
             "npcs": self.npcs,
             "rosters": self.rosters,
+            "news": self.news,
         }
 
     def save(self):
+        """Write to disk. The game does not call this until save slots exist."""
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         temp = f"{self.path}.tmp"
         with open(temp, "w", encoding="utf-8") as file:

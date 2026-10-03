@@ -84,11 +84,12 @@ def goods_opinion(npc, economy, rng=random):
     ))
 
 
-def market_rumor(here, rng=random):
+def market_rumor(here, rng=random, markets=None):
     """A spoken line about prices somewhere other than ``here``."""
+    book = markets if markets is not None else load_market_data()
     markets = [
         (place, good, info)
-        for place, data in load_market_data().items()
+        for place, data in book.items()
         if place != here
         for good, info in (data or {}).get("goods", {}).items()
     ]
@@ -100,7 +101,7 @@ def market_rumor(here, rng=random):
         return f"Word is {good} is fetching a premium on {place}."
     if ratio <= 0.85:
         return f"Heard {good} is going cheap on {place}. Might be worth the trip."
-    return f"Last I heard, {place} was paying ${info['currentPrice']:g} for {good}."
+    return f"Last I heard, {place} was paying ${info['currentPrice']:.0f} for {good}."
 
 
 def job_line(npc, rng=random):

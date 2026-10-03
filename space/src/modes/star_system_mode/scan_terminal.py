@@ -5,11 +5,11 @@ import pygame
 from entities.planet import Planet
 from modes.planetary_mode.terminal import Terminal
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, resolve_game_path
-from util.economy.economy import load_market_data
+from util.economy.news import render_news
 
 from .scan_art import BRIGHT, DIM, MID, caption_for, render_scan_art
 
-HELP_TEXT = "Available commands:\n help\n scan\n dock\n hail\n ping <planet>\n exit"
+HELP_TEXT = "Available commands:\n help\n scan\n dock\n hail\n ping <planet>\n news\n exit"
 NO_TARGET = "No target in scan range."
 MAX_MARKET_LINES = 3
 
@@ -26,33 +26,34 @@ def has_landing_map(target):
     return os.path.exists(resolve_game_path(f"space/assets/maps/{target.name}.tmx"))
 
 
-def market_lines(target):
-    goods = load_market_data().get(target.name, {}).get("goods", {})
+def market_lines(target, markets):
+    goods = (markets.get(target.name) or {}).get("goods", {})
     if not goods:
         return ["Market: no data"]
     ranked = sorted(goods.items(), key=lambda item: item[1]["currentPrice"], reverse=True)
     lines = ["Market (highest prices):"]
     for good, info in ranked[:MAX_MARKET_LINES]:
-        lines.append(f"  {good}: ${info['currentPrice']:g}")
+        lines.append(f"  {good}: ${info['currentPrice']:.0f}")
     return lines
 
 
-def scan_readout(target):
+def scan_readout(target, markets=None):
     if target is None:
         return ["SHIP COMPUTER", NO_TARGET, "Type 'help' for commands."]
+    markets = markets or {}
     lines = [f"SCAN RESULT: {target.name}"]
     if isinstance(target, Planet):
         lines.append(f"Class: Planet ({target.planet_type})")
         lines.append(f"Guild: {target.planet_guild.capitalize()}")
         landing = "CLEARED" if has_landing_map(target) else "NO DOCKING FACILITY"
         lines.append(f"Landing: {landing}")
-        lines.extend(market_lines(target))
+        lines.extend(market_lines(target, markets))
     else:
         lines.append(f"Class: {target.obj_type}")
         if target.planet_guild:
             lines.append(f"Guild: {target.planet_guild.capitalize()}")
         lines.append("Landing: BAYS OPEN" if has_landing_map(target) else "Landing: DOCKING BAYS CLOSED")
-        lines.extend(market_lines(target))
+        lines.extend(market_lines(target, markets))
     lines.append("Type 'help' for commands.")
     return lines
 
@@ -79,6 +80,8 @@ def _crt_scanlines(size):
 class ScanTerminal(Terminal):
     """Ship-computer terminal for star system mode; target is the body in scan range, if any."""
 
+    columns = TEXT_WRAP
+
     def __init__(self, target, star_system_mode):
         super().__init__(terminal_type="scan", planetary_mode=None, planet_name=target)
         self.target = target
@@ -101,10 +104,25 @@ class ScanTerminal(Terminal):
         for line in text.split("\n"):
             self.output_buffer.extend(self.wrap_text(line, TEXT_WRAP))
 
+    def markets(self):
+        world = getattr(self.star_system_mode, "world_state", None)
+        return world.markets_data() if world is not None else {}
+
+    def observe_market(self):
+        """A scan doubles as a news check: the target's market and stories reach the wire."""
+        feed = getattr(self.star_system_mode, "news_feed", None)
+        if self.target is None or feed is None:
+            return
+        goods = (self.markets().get(self.target.name) or {}).get("goods") or {}
+        if goods:
+            feed.observe(self.target.name, goods)
+            self.say("Market data synced to the news wire.")
+
     def activate(self):
         super().activate()
-        for line in scan_readout(self.target):
+        for line in scan_readout(self.target, self.markets()):
             self.say(line)
+        self.observe_market()
         nav = self.star_system_mode.nav
         if isinstance(self.target, Planet) and not nav.is_charted(self.target):
             nav.chart(self.target.name)
@@ -119,10 +137,20 @@ class ScanTerminal(Terminal):
         self.art_time += dt
 
     def process_input(self, event):
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE and not self.pager and not self.boot:
             self.deactivate()
             return
         super().process_input(event)
+
+    def argument_candidates(self, verb):
+        if verb == "ping" and self.star_system_mode is not None:
+            system = getattr(self.star_system_mode, "selected_system", None)
+            if system is not None:
+                return [planet.name for planet in system.planets]
+        return super().argument_candidates(verb)
+
+    def show_matches(self, matches):
+        self.say("  " + "  ".join(matches))
 
     def execute_command(self, command):
         command = command.strip().lower()
@@ -134,14 +162,17 @@ class ScanTerminal(Terminal):
         elif verb == "ping":
             for line in self.star_system_mode.ping(argument.strip()):
                 self.say(line)
+        elif verb == "news":
+            self.show(render_news(getattr(self.star_system_mode, "news_feed", None), self.markets()))
         elif verb == "exit":
             self.deactivate()
         elif verb in ("scan", "hail", "dock") and self.target is None:
             self.say(NO_TARGET)
         elif verb == "scan":
             self.art_time = 0.0
-            for line in scan_readout(self.target):
+            for line in scan_readout(self.target, self.markets()):
                 self.say(line)
+            self.observe_market()
         elif verb == "hail":
             self.say(hail_response(self.target))
         elif verb == "dock":

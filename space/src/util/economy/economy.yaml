@@ -33,6 +33,18 @@ Terramonta:
     Construction Alloys:
       basePrice: 500
       currentPrice: 500
+    Advanced Electronics:
+      basePrice: 160
+      currentPrice: 160
+    Robotics Components:
+      basePrice: 170
+      currentPrice: 170
+    Rations:
+      basePrice: 95
+      currentPrice: 95
+    Medical Supplies:
+      basePrice: 320
+      currentPrice: 320
   events:
     Mining Accident:
       Raw Minerals:
@@ -149,6 +161,12 @@ Nexum Astra:
     Energy Cells:
       basePrice: 210
       currentPrice: 210
+    AI Processors:
+      basePrice: 165
+      currentPrice: 165
+    Robotics Components:
+      basePrice: 150
+      currentPrice: 150
   events:
     Customs Crackdown:
       Luxury Goods:
@@ -216,6 +234,18 @@ Etheora:
     Experimental Gadgets:
       basePrice: 100
       currentPrice: 100
+    Steel:
+      basePrice: 270
+      currentPrice: 270
+    Construction Alloys:
+      basePrice: 650
+      currentPrice: 650
+    Rations:
+      basePrice: 90
+      currentPrice: 90
+    Luxury Goods:
+      basePrice: 1150
+      currentPrice: 1150
   events:
     AI Breakthrough:
       AI Processors:

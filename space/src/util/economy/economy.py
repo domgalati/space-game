@@ -4,68 +4,86 @@ import random
 import yaml
 
 from util.config import resolve_game_path
+from util.economy.news import event_price
 
 BASE_DATA = "space/src/util/economy/economy.yaml"
 GENERATED_DATA = "space/src/util/economy/economy_generated.yaml"
 
+NEWS_CHANCE = 0.35  # per market, per landing
+SETTLE_RATE = 0.5  # share of the gap to base price closed per landing
 
-def load_market_data():
-    """Latest known prices: the generated snapshot where it has a location, base data otherwise."""
-    with open(resolve_game_path(BASE_DATA), "r") as file:
-        data = yaml.safe_load(file) or {}
-    generated = resolve_game_path(GENERATED_DATA)
-    if os.path.exists(generated):
-        with open(generated, "r") as file:
-            data.update(yaml.safe_load(file) or {})
+
+def _read_yaml(path):
+    with open(path, "r") as file:
+        return yaml.safe_load(file) or {}
+
+
+def load_market_data(base_path=None, snapshot_path=None):
+    """Base goods and events.
+
+    Pass ``snapshot_path`` only in tests. The game keeps live prices in memory for the
+    session and does not read or write the generated snapshot yet.
+    """
+    data = _read_yaml(base_path or resolve_game_path(BASE_DATA))
+    if not snapshot_path:
+        return data
+    snapshot = _read_yaml(snapshot_path) if os.path.exists(snapshot_path) else {}
+    for place, market in data.items():
+        saved = ((snapshot.get(place) or {}).get("goods")) or {}
+        for good, info in ((market or {}).get("goods") or {}).items():
+            price = (saved.get(good) or {}).get("currentPrice")
+            if price is not None:
+                info["currentPrice"] = round(price, 2)
     return data
 
 
 class Economy:
-    def __init__(self, planet_name, economy_data):
+    def __init__(self, planet_name, economy_data, feed=None):
         self.planet_name = planet_name
         self.data = economy_data
+        self.feed = feed
         self.log_callback = None
 
     def set_log_callback(self, callback):
         self.log_callback = callback
 
-    def apply_price_change(self, item, price_change):
-        base_price = self.data[self.planet_name]['goods'][item]['basePrice']
-        change_factor = int(price_change.replace('%', '')) / 100
+    def goods(self):
+        """This location's goods, or {} when it has no market."""
+        return (self.data.get(self.planet_name) or {}).get("goods") or {}
 
-        if '+' in price_change:
-            new_price = base_price * (1 + change_factor)
-        elif '-' in price_change:
-            new_price = base_price * (1 - change_factor)
-        else:
-            new_price = base_price
+    def apply_price_change(self, item, price_change, place=None):
+        info = self.data[place or self.planet_name]['goods'][item]
+        info['currentPrice'] = event_price(info['basePrice'], price_change)
 
-        self.data[self.planet_name]['goods'][item]['currentPrice'] = new_price
+    def market_news(self, rng=random):
+        """Time passes between landings: prices settle toward base, and some markets get news."""
+        headlines = []
+        for place, market in self.data.items():
+            goods = (market or {}).get("goods") or {}
+            for info in goods.values():
+                gap = info["basePrice"] - info["currentPrice"]
+                info["currentPrice"] = round(info["currentPrice"] + gap * SETTLE_RATE, 2)
+            events = (market or {}).get("events") or {}
+            if not events or rng.random() >= NEWS_CHANCE:
+                continue
+            event = rng.choice(sorted(events))
+            moves = []
+            for item, change in events[event].items():
+                if item in goods:
+                    self.apply_price_change(item, change['priceChange'], place)
+                    moves.append({
+                        "good": item,
+                        "price": int(round(goods[item]["currentPrice"])),
+                        "change": change['priceChange'],
+                    })
+            if self.feed is not None:
+                self.feed.record(place, event, moves)
+            headlines.append(f"News from {place}: {event}.")
+        if self.log_callback:
+            for headline in headlines:
+                self.log_callback(headline)
+        return headlines
 
-    def fire_event(self):
-        if random.uniform(0, 100) < 1.5:  # 2% chance to trigger an event
-            event = random.choice(list(self.data[self.planet_name]['events']))
-            print(f"Prices on {self.planet_name} have changed due to {event}")
-            event_message = f"Prices on {self.planet_name} have changed due to {event}"
-            if self.log_callback:
-                self.log_callback(event_message)
-
-            for item, change in self.data[self.planet_name]['events'][event].items():
-                self.apply_price_change(item, change['priceChange'])
-                print(f"{item} price updated.")
-
-    def dump_updated_data(self, outfile):
-        with open(resolve_game_path(outfile), "w") as file:
-            yaml.dump(self.data, file, default_flow_style=False)
-            print(f"Updated economy data dumped to {outfile}")
-
-# Usage
-if __name__ == "__main__":
-    gen_path = resolve_game_path("space/src/util/economy/economy_generated.yaml")
-    with open(gen_path, "r") as file:
-        data = yaml.safe_load(file)
-
-    economy = Economy("Terramonta", data)
-    economy.fire_event()
-    economy.dump_updated_data("space/src/util/economy/economy_generated.yaml")
-    
+    def save(self, outfile=GENERATED_DATA):
+        """No-op until save slots exist. Prices live on the in-memory market data."""
+        return

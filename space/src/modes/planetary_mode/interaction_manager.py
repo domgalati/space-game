@@ -121,7 +121,8 @@ class InteractionManager:
         elif objectname == "Bar Counter":
             here = self.economy.planet_name if self.economy else None
             self.logger.add_log_message("The bartender slides a drink over and leans in.")
-            self.logger.add_log_message(f'"{topics.market_rumor(here)}"')
+            book = self.economy.data if self.economy else None
+            self.logger.add_log_message(f'"{topics.market_rumor(here, markets=book)}"')
         elif objectname == "Command Console":
             self.logger.add_log_message("ACCESS RESTRICTED: Assembly command staff only.")
 

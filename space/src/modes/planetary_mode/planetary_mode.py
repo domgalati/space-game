@@ -1,4 +1,3 @@
-import yaml
 import pygame
 #import pytmx
 import random
@@ -11,6 +10,7 @@ from .ui_planetary import UI_Planetary
 from .interaction_manager import InteractionManager
 from .terminal import Terminal
 from util.economy.economy import Economy
+from util.economy.news_feed import NewsFeed
 from dialogue.conversation import Conversation
 from world.roster import NPCRoster
 from world.world_state import WorldState
@@ -21,20 +21,29 @@ CAMERA_DEADZONE = 0.3  # share of the view the player can roam before the camera
 
 class PlanetaryMode:
     def __init__(self, selected_planet, player, screen, world_state=None):
-        economy_file_path = resolve_game_path("space/src/util/economy/economy.yaml")
-        with open(economy_file_path, "r") as file:
-            economy_data = yaml.safe_load(file)
-
         self.planet = selected_planet
         self.player = player
-        self.world_state = world_state or WorldState.load()
+        self.world_state = world_state or WorldState()
         self.screen = screen
         self.player_sprite = pygame.image.load(
             resolve_game_path("space/assets/img/objects/player.png")
         ).convert_alpha()
         self.ui_planetary = UI_Planetary()  # Create an instance of UI_Planetary       
-        self.font = pygame.font.Font(resolve_game_path("space/assets/fonts/Modern Pixel.otf"), 16)
-        self.logger = Logger(log_height=200, screen_width=SCREEN_WIDTH, font=self.font)
+        # Windraw Aesthetic for the event log (personal-use license).
+        # https://www.1001fonts.com/windraw-aesthetic-font.html
+        # Cairopixel fills in punctuation Windraw does not ship.
+        log_font_path = resolve_game_path("space/assets/fonts/Windraw Aesthetic Italic.ttf")
+        self.font = pygame.font.Font(log_font_path, 16)
+        log_fallback = pygame.font.Font(
+            resolve_game_path("space/assets/fonts/Cairopixel.ttf"), 16
+        )
+        self.logger = Logger(
+            log_height=200,
+            screen_width=SCREEN_WIDTH,
+            font=self.font,
+            fallback_font=log_fallback,
+            font_path=log_font_path,
+        )
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height)
         self.map_surface = pygame.Surface((SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height))
         map_filename = resolve_game_path(f"space/assets/maps/{self.planet.name}.tmx")       
@@ -43,8 +52,12 @@ class PlanetaryMode:
         self.player_position = self._player_start()
         self._center_camera()
         self.map_manager.initialize_animation_data()
-        self.economy = Economy(selected_planet.name, economy_data)
+        self.news_feed = NewsFeed(self.world_state)
+        self.economy = Economy(selected_planet.name, self.world_state.markets_data(), feed=self.news_feed)
         self.economy.set_log_callback(self.logger.add_log_message)
+        self.news_feed.advance()
+        self.economy.market_news()
+        self.news_feed.observe(selected_planet.name, self.economy.goods())
         self.npc_manager = NPCManager(self.map_manager, selected_planet, NPCRoster(self.world_state))
         self.interaction_manager = InteractionManager(
             self.map_manager, self.npc_manager, self.logger, economy=self.economy
@@ -170,14 +183,10 @@ class PlanetaryMode:
             self.interaction_manager.check_for_adjacent_interactables(
                 self.player_position, TILE_SIZE
             )
-            self.economy.fire_event()
-            self.economy.dump_updated_data("space/src/util/economy/economy_generated.yaml")
-            print(f"Player position: {self.player_position}")
-            print(f"Camera position: {self.camera}")
             return True
 
         if not self._blocked_move_logged:
-            self.logger.add_log_message("You can't go that way!")
+            self.logger.add_log_message("Your path is blocked")
             self._blocked_move_logged = True
         return False
 
@@ -283,7 +292,6 @@ class PlanetaryMode:
         pass
 
     def return_to_star_system_mode(self):
-        self.world_state.save()
         self.switch_to_star_system_mode = True
 
     def activate_terminal(self, terminal_type="docking"):

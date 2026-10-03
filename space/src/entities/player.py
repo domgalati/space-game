@@ -1,5 +1,7 @@
 ## The classes in this file represent what values are stored when the player saves the game.
 
+FUEL_PER_STEP = 0.3  # fuel burned per tile flown in star system mode
+
 class Player:
     def __init__(self):
         self.health = 100
@@ -10,14 +12,23 @@ class Player:
         self.currency = 0
         self.reputation = {'assembly': 0, 'caravaneers': 0, 'cohort': 0, 'dominion': 0}
         self.charted_planets = set()
+        self.ship = Ship()
 
 class Ship:
     def __init__(self):
         self.health = 100
+        self.max_fuel = 100
         self.fuel = 100
         self.equipment = []
         self.stats = {'hull': 10, 'cargo_space': 10, 'speed': 10}
         self.cargo = Inventory(capacity=100)
+
+    def burn_fuel(self, steps=1):
+        self.fuel = max(0.0, self.fuel - FUEL_PER_STEP * steps)
+
+    @property
+    def on_reserve(self):
+        return self.fuel <= 0
 
 class Inventory:
     def __init__(self, capacity):

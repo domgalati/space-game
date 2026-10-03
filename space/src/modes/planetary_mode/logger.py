@@ -1,56 +1,77 @@
 import pygame
-from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
+import pygame.freetype
+
+from util.config import SCREEN_WIDTH
+
 
 class Logger:
-    def __init__(self, log_height, screen_width, font):
+    def __init__(self, log_height, screen_width, font, fallback_font=None, font_path=None):
         self.log_messages = []
         self.log_height = log_height
         self.log_scroll_position = 0
         self.max_log_scroll = 0
         self.font = font
+        self.fallback_font = fallback_font or font
         self.log_surface = pygame.Surface((screen_width, log_height))
+        # Windraw (and similar display faces) omit most punctuation; fall back per glyph.
+        self._missing = set()
+        if font_path and fallback_font is not None:
+            ft = pygame.freetype.Font(font_path, font.get_height())
+            for code in range(32, 127):
+                ch = chr(code)
+                metrics = ft.get_metrics(ch)
+                if not metrics or metrics[0] is None:
+                    self._missing.add(ch)
+
+    def _font_for(self, ch):
+        return self.fallback_font if ch in self._missing else self.font
+
+    def _text_width(self, text):
+        return sum(self._font_for(ch).size(ch)[0] for ch in text)
+
+    def _blit_text(self, text, color, x, y):
+        for ch in text:
+            glyph = self._font_for(ch).render(ch, False, color)
+            self.log_surface.blit(glyph, (x, y))
+            x += glyph.get_width()
 
     def add_log_message(self, message):
         self.log_messages.append(message)
-        total_line_count = sum(len(self.wrap_text(msg, SCREEN_WIDTH - 20, self.font)) for msg in self.log_messages)
-        self.max_log_scroll = max(0, total_line_count * 20 - self.log_height)
+        line_height = max(20, self.font.get_linesize() + 4)
+        total_line_count = sum(
+            len(self.wrap_text(msg, SCREEN_WIDTH - 220)) for msg in self.log_messages
+        )
+        self.max_log_scroll = max(0, total_line_count * line_height - self.log_height)
         self.log_scroll_position = self.max_log_scroll
 
-    def wrap_text(self, text, max_width, font):
-        """
-        Splits the text into lines so that each line fits within the max_width.
-        Returns a list of lines.
-        """
-        words = text.split(' ')
+    def wrap_text(self, text, max_width):
+        """Split text into lines that fit within max_width."""
+        words = text.split(" ")
         lines = []
         current_line = ""
 
         for word in words:
-            # Check the width of the line with the new word added
-            line_width = font.size(current_line + word)[0]
-            if line_width <= max_width:
-                current_line += word + " "
+            candidate = current_line + word + " "
+            if self._text_width(candidate) <= max_width or not current_line:
+                current_line = candidate
             else:
-                # If the line is too long, start a new line
                 lines.append(current_line)
-                current_line = "    " + word + " "  # Indent wrapped lines
+                current_line = "    " + word + " "
 
-        # Add the last line
         lines.append(current_line)
         return lines
 
     def draw_log(self):
-        self.log_surface.fill((0, 0, 0))  # Clear the log surface
+        self.log_surface.fill((0, 0, 0))
 
-        font = self.font
-        line_height = 20  # Adjust as needed for your font size
-        max_line_width = SCREEN_WIDTH - 20  # Adjust as needed for your sidebar size
+        line_height = max(20, self.font.get_linesize() + 4)
+        max_line_width = SCREEN_WIDTH - 220
+        color = (255, 255, 255)
 
         current_line = 0
         for message in self.log_messages:
-            wrapped_lines = self.wrap_text(message, max_line_width, font)
-            for line in wrapped_lines:
-                if current_line * line_height >= self.log_scroll_position and current_line * line_height < self.log_scroll_position + self.log_height:
-                    text_surface = font.render(line, True, (255, 255, 255))
-                    self.log_surface.blit(text_surface, (10, current_line * line_height - self.log_scroll_position))
+            for line in self.wrap_text(message, max_line_width):
+                y = current_line * line_height - self.log_scroll_position
+                if 0 <= y < self.log_height:
+                    self._blit_text(line, color, 10, y)
                 current_line += 1

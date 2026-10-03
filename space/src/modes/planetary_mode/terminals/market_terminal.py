@@ -1,11 +1,14 @@
-from .docking_terminal import get_planet_goods
+from util.economy import trade
 
 
-def handle_command(command, location):
+def handle_command(command, mode):
+    verb, _, argument = command.strip().lower().partition(" ")
     commands = {
-        "help": "List of available commands:\n help\n info\n prices\n exit",
-        "info": f"{location.name} Exchange. Current prices for registered haulers.",
-        "prices": get_planet_goods(location),
+        "help": "List of available commands:\n help\n info\n" + trade.TRADE_HELP + "\n exit",
+        "info": f"{mode.planet.name} Exchange. Current prices for registered haulers.",
         "exit": "",
     }
-    return commands.get(command, "Unknown command. Type 'help' for available commands.")
+    result = trade.handle(verb, argument, mode.player, mode.economy)
+    if result is not None:
+        return result
+    return commands.get(verb, "Unknown command. Type 'help' for available commands.")

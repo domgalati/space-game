@@ -13,6 +13,7 @@ dependencies = [
     "pygame>=2.5.0",
     "pytmx>=3.31",
     "PyYAML>=6.0.1",
+    "rich>=13",
 ]
 
 [project.optional-dependencies]

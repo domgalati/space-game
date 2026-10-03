@@ -61,7 +61,9 @@ class GameContext:
             "location": lambda: self.location or "",
             "job_line": lambda: topics.job_line(npc, self.rng),
             "goods_opinion": lambda: topics.goods_opinion(npc, economy, self.rng) or "Can't complain. Can't afford to.",
-            "rumor": lambda: topics.market_rumor(self.location, self.rng),
+            "rumor": lambda: topics.market_rumor(
+                self.location, self.rng, self.economy.data if self.economy else None
+            ),
         }
         self._commands = {
             "give": self._give,

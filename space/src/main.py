@@ -1,10 +1,21 @@
 # main.py
 import pygame
-from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, resolve_game_path
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT
 from modes.star_system_mode.star_system_mode import StarSystemMode
 from modes.planetary_mode.planetary_mode import PlanetaryMode
 from entities.player import Player
 from world.world_state import WorldState
+
+STARTING_CREDITS = 1500
+STARTING_SYSTEM = "sol"
+# Skip flight and open on the system's first planet. Off for a normal new run.
+DEBUG_START_ON_PLANET = False
+
+
+def new_run():
+    player = Player()
+    player.currency = STARTING_CREDITS
+    return player, WorldState()
 
 
 def main():
@@ -15,19 +26,15 @@ def main():
     pygame.display.set_caption("Space Game")
     clock = pygame.time.Clock()
 
-    ### DEBUG LOAD ###
-    # These variables only exist to load directly into planetary mode when coding.
-    from modes.star_system_mode.star_systems import StarSystem
+    player, world_state = new_run()
+    star_system_mode = StarSystemMode(player, STARTING_SYSTEM, world_state)
 
-    selected_planet = StarSystem(resolve_game_path("space/star_systems/sol.json")).planets[0]
-    #### END OF DEBUG LOAD ###
-
-    player = Player()
-    world_state = WorldState.load()
-    star_system_mode = StarSystemMode(player, "sol")
-    planetary_mode = PlanetaryMode(selected_planet, player, screen, world_state)
-    # current_mode = star_system_mode
-    current_mode = planetary_mode  # Start in planetary mode for debugging
+    if DEBUG_START_ON_PLANET:
+        current_mode = PlanetaryMode(
+            star_system_mode.selected_system.planets[0], player, screen, world_state
+        )
+    else:
+        current_mode = star_system_mode
 
     running = True
     while running:
@@ -56,7 +63,6 @@ def main():
 
         pygame.display.flip()
 
-    world_state.save()
     pygame.quit()
 
 

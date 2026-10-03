@@ -1,23 +1,19 @@
-from util.economy.economy import load_market_data
+from util.economy import trade
 
 
-def handle_command(command, planet_name):
+def handle_command(command, mode):
+    verb, _, argument = command.strip().lower().partition(" ")
     commands = {
-        "help": "List of available commands:\n help\n info\n depart\n map\n prices\n exit",
+        "help": "List of available commands:\n help\n info\n" + trade.TRADE_HELP + "\n refuel\n depart\n map\n exit",
         "info": "Docking Terminal v1.0. Use this terminal for managing docking operations.",
         "map" : "Unable to fetch minimap at this tme",
-        "prices": get_planet_goods(planet_name),
         "long":"this is a test of a very long string this is a test of a very long string this is a test of a very long string this is a test of a very long string this is a test of a very long string this is a test of a very long string ",
         "depart": "",
         "exit":"",
         }
-    return commands.get(command, "Unknown command. Type 'help' for available commands.")
-
-def get_planet_goods(planet_name):
-    planet_data = load_market_data().get(planet_name.name, {})
-    if not planet_data:
-        return f"No economic data available for {planet_name.name}."
-
-    goods_info = planet_data.get('goods', {})
-    goods_list = "\n".join([f"{good}: ${info['currentPrice']}" for good, info in goods_info.items()])
-    return goods_list
+    if verb == "refuel":
+        return trade.refuel(mode.player, mode.economy)
+    result = trade.handle(verb, argument, mode.player, mode.economy)
+    if result is not None:
+        return result
+    return commands.get(verb, "Unknown command. Type 'help' for available commands.")

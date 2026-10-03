@@ -10,24 +10,35 @@ from util.sprite_animation import AnimatedSprite
 from .nav_charts import NavCharts
 from .scan_terminal import ScanTerminal
 from .star_systems import StarSystem
+from util.economy.news_feed import NewsFeed
+from world.world_state import WorldState
 
 CANDIDATE_ARC_COLOR = (255, 191, 0)
 NAV_MARKER_COLOR = (120, 220, 140)
 NAV_MARKER_MARGIN = 28
+RESERVE_SLOWDOWN = 5  # move cooldown multiplier once the tank is empty
+LOW_FUEL = 20
+HUD_COLOR = (200, 210, 220)
+LOW_FUEL_COLOR = (232, 150, 64)
+RESERVE_COLOR = (230, 80, 70)
 
 class StarSystemMode:
-    def __init__(self, player, starsystem): 
+    def __init__(self, player, starsystem, world_state=None):
+        self.world_state = world_state or WorldState()
+        self.news_feed = NewsFeed(self.world_state)
         self.selected_system = StarSystem(resolve_game_path(f"space/star_systems/{starsystem}.json"))
         self.input_handler = InputHandler(self.selected_system, self)  # Instantiate InputHandler
+        self.cruise_cooldown = self.input_handler.movement_cooldown
         self.grid_size = (self.selected_system.MAP_WIDTH // TILE_SIZE, self.selected_system.MAP_HEIGHT // TILE_SIZE)
         self.white_stars, self.purple_stars, self.blue_stars = initialize_stars(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.map_center_x = self.selected_system.MAP_WIDTH // 2
         self.map_center_y = self.selected_system.MAP_HEIGHT // 2
-        self.cargo_sheet = 'space/assets/img/cargo6frame.png'
-        self.frame_dimensions = (48, 48)
+        self.cargo_sheet = 'space/assets/img/barge6frame.png'
+        self.frame_dimensions = (96, 96)
         self.num_frames = 6
         self.animated_cargoship = AnimatedSprite(
-            resolve_game_path(self.cargo_sheet), self.frame_dimensions, self.num_frames
+            resolve_game_path(self.cargo_sheet), self.frame_dimensions, self.num_frames,
+            animation_cooldown_ms=90,
         )
         self.current_direction = "southeast"
         self.x_position = self.map_center_x // TILE_SIZE
@@ -46,7 +57,13 @@ class StarSystemMode:
 
     def handle_input(self):
         # Handle input specific to this mode
+        ship = self.player.ship
+        slowdown = RESERVE_SLOWDOWN if ship.on_reserve else 1
+        self.input_handler.movement_cooldown = self.cruise_cooldown * slowdown
+        before = (self.x_position, self.y_position)
         self.x_position, self.y_position = self.input_handler.handle_movement(self.x_position, self.y_position, self.grid_size)
+        if (self.x_position, self.y_position) != before:
+            ship.burn_fuel()
         new_direction = determine_direction(self.x_position, self.y_position, self.previous_x, self.previous_y)
         if new_direction:
             self.current_direction = new_direction
@@ -151,8 +168,15 @@ class StarSystemMode:
         draw_stars(screen, self.blue_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 4, self.parallax_offset_y * 4))
         self.draw_candidate_arcs(screen)
         self.draw_nav_markers(screen)
-        spaceship_frame = self.animated_cargoship.get_frame(self.current_direction)
-        screen.blit(spaceship_frame, (self.x_position * TILE_SIZE - self.camera.x, self.y_position * TILE_SIZE - self.camera.y))
+        ship_top_left = (
+            self.x_position * TILE_SIZE - self.camera.x,
+            self.y_position * TILE_SIZE - self.camera.y,
+        )
+        spaceship_frame, blit_pos = self.animated_cargoship.blit_position(
+            self.current_direction, ship_top_left
+        )
+        screen.blit(spaceship_frame, blit_pos)
+        self.draw_hud(screen)
         
         if self.scan_terminal:
             self.scan_terminal.display(screen)
@@ -160,8 +184,24 @@ class StarSystemMode:
             font = pygame.font.Font(None, 36)
             text_surface = font.render("[E] Scan", True, (255, 255, 255))
             screen.blit(text_surface, (SCREEN_WIDTH // 2 - text_surface.get_width() // 2, SCREEN_HEIGHT // 2))
-        
-        print(f"camera: {self.camera}")
+
+    def draw_hud(self, screen):
+        ship = self.player.ship
+        cargo = ship.cargo
+        lines = [
+            (f"CREDITS ${self.player.currency}", HUD_COLOR),
+            (f"CARGO {cargo.get_total_quantity()}/{cargo.capacity}", HUD_COLOR),
+        ]
+        if ship.on_reserve:
+            lines.insert(0, ("FUEL EMPTY - RESERVE THRUSTERS", RESERVE_COLOR))
+        else:
+            color = LOW_FUEL_COLOR if ship.fuel < LOW_FUEL else HUD_COLOR
+            lines.insert(0, (f"FUEL {int(ship.fuel)}/{ship.max_fuel}", color))
+        y = 12
+        for text, color in lines:
+            surface = self.nav_font.render(text, True, color)
+            screen.blit(surface, (12, y))
+            y += surface.get_height() + 2
 
     def draw_candidate_arcs(self, screen):
         """Highlight the parts of each uncharted orbit where pings say the planet could be."""
