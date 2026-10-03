@@ -1,0 +1,62 @@
+{
+  "source": "C:\\Users\\andih\\repo\\space\\space\\assets\\img\\objects\\terminal_screen.png",
+  "source_sha256": "de07c1bc41fde888961f17bd9aef58a1ccdfb49e6d8a82d5847cf4cea8902ef9",
+  "screen_bounds_xyxy_exclusive": [
+    91,
+    88,
+    783,
+    409
+  ],
+  "screen_pixel_count": 221580,
+  "font": "C:\\Users\\andih\\repo\\space\\space\\assets\\fonts\\TeleSys.ttf",
+  "font_size": 16,
+  "native_glyph_cell": [
+    8,
+    16
+  ],
+  "antialiasing": false,
+  "outputs": [
+    {
+      "file": "ship/terminal_screen.png",
+      "size": [
+        880,
+        520
+      ],
+      "mode": "RGBA",
+      "colors": 11,
+      "glyph_count": 476,
+      "screen_pixels_unchanged": true,
+      "screen_boundary_unchanged": true,
+      "alpha_channel_unchanged": true,
+      "sha256": "435a4531092a53ec7be7e356c05fa2e05c7c4ca26c2d1050ce0ba95b8e91bc55"
+    },
+    {
+      "file": "market/terminal_screen.png",
+      "size": [
+        880,
+        520
+      ],
+      "mode": "RGBA",
+      "colors": 11,
+      "glyph_count": 507,
+      "screen_pixels_unchanged": true,
+      "screen_boundary_unchanged": true,
+      "alpha_channel_unchanged": true,
+      "sha256": "4d473fa0a6100e55914e202703be3947866996a22d34d12776b8f3a0abe2cc71"
+    },
+    {
+      "file": "docking/terminal_screen.png",
+      "size": [
+        880,
+        520
+      ],
+      "mode": "RGBA",
+      "colors": 12,
+      "glyph_count": 452,
+      "screen_pixels_unchanged": true,
+      "screen_boundary_unchanged": true,
+      "alpha_channel_unchanged": true,
+      "sha256": "3d79ff6c04a9f81d9603bce17ecce2a318746badb80bce45f57f6c3d26b98716"
+    }
+  ]
+}

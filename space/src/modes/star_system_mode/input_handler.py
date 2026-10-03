@@ -46,6 +46,14 @@ class InputHandler:
             self.last_movement_time = current_time
         return ship_x_position, ship_y_position
 
+    def handle_wait(self, key, cooldown):
+        """True when `key` should pass a turn in place; holding it repeats at cruise pace."""
+        now = time.time()
+        if pygame.key.get_pressed()[key] and now - self.last_movement_time > cooldown:
+            self.last_movement_time = now
+            return True
+        return False
+
 def determine_direction(ship_x_position, ship_y_position, previous_x, previous_y):
     new_direction = None
     if ship_x_position > previous_x and ship_y_position > previous_y:

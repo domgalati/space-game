@@ -1,3 +1,4 @@
+import math
 import os
 
 import pygame
@@ -9,7 +10,7 @@ from util.economy.news import render_news
 
 from .scan_art import BRIGHT, DIM, MID, caption_for, render_scan_art
 
-HELP_TEXT = "Available commands:\n help\n scan\n dock\n hail\n ping <name>\n news\n exit"
+HELP_TEXT = "Available commands:\n help\n scan\n dock\n hail\n ping <name>\n shield on|off|status\n news\n exit"
 NO_TARGET = "No target in scan range."
 MAX_MARKET_LINES = 3
 
@@ -164,6 +165,8 @@ class ScanTerminal(Terminal):
         elif verb == "ping":
             for line in self.star_system_mode.ping(argument.strip()):
                 self.say(line)
+        elif verb == "shield":
+            self.say(self.shield_command(argument.strip()))
         elif verb == "news":
             self.show(render_news(getattr(self.star_system_mode, "news_feed", None), self.markets()))
         elif verb == "exit":
@@ -184,6 +187,17 @@ class ScanTerminal(Terminal):
                 self.say(f"Docking denied: {self.target.name} has no docking facility.")
         elif verb:
             self.say("Unknown command. Type 'help' for available commands.")
+
+    def shield_command(self, argument):
+        ship = self.star_system_mode.player.ship
+        if argument in ("on", "up"):
+            self.star_system_mode.set_shield(True)
+        elif argument in ("off", "down"):
+            self.star_system_mode.set_shield(False)
+        elif argument not in ("", "status"):
+            return "Usage: shield on|off|status"
+        state = "UP" if ship.shield_up else "DOWN"
+        return f"Shield {state}: {int(ship.shield)}/{ship.max_shield}. Hull {math.ceil(ship.hull)}/{ship.max_hull}."
 
     def draw_art_panel(self, surface):
         if self.art_surface is None:

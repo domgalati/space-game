@@ -11,6 +11,11 @@ _DIRECTION_ANGLES = {
     "east": -90,
     "northeast": -45,
 }
+# Damage tint steps. Each step keeps less green and blue and adds red, so the glyph
+# strokes stay readable while the hull reddens.
+TINT_LEVELS = 5
+_TINT_KEEP = 0.18  # green/blue lost per step
+_TINT_RED = 30  # red added per step
 
 
 class AnimatedSprite:
@@ -25,6 +30,7 @@ class AnimatedSprite:
         self._last_frame_ms = pygame.time.get_ticks()
         # Cache rotated frames so turning does not re-filter every draw.
         self._oriented = {}
+        self._tinted = {}
         for index, frame in enumerate(self.frames):
             for direction, angle in _DIRECTION_ANGLES.items():
                 key = (index, direction)
@@ -49,7 +55,7 @@ class AnimatedSprite:
         if direction != "none":
             self.current_direction = direction
 
-    def get_frame(self, direction):
+    def get_frame(self, direction, tint=0):
         """Return the current animation frame oriented toward `direction`.
 
         Source art must face north. Cardinal and diagonal headings are produced
@@ -58,11 +64,21 @@ class AnimatedSprite:
         """
         if direction not in _DIRECTION_ANGLES:
             direction = "north"
-        return self._oriented[(self.current_frame, direction)]
+        key = (self.current_frame, direction)
+        if not tint:
+            return self._oriented[key]
+        tint = min(tint, TINT_LEVELS - 1)
+        if key + (tint,) not in self._tinted:
+            frame = self._oriented[key].copy()
+            keep = round(255 * (1 - _TINT_KEEP * tint))
+            frame.fill((255, keep, keep, 255), special_flags=pygame.BLEND_RGBA_MULT)
+            frame.fill((_TINT_RED * tint, 0, 0, 0), special_flags=pygame.BLEND_RGBA_ADD)
+            self._tinted[key + (tint,)] = frame
+        return self._tinted[key + (tint,)]
 
-    def blit_position(self, direction, top_left):
+    def blit_position(self, direction, top_left, tint=0):
         """Top-left for blitting a possibly expanded rotated frame, centered on the source rect."""
-        frame = self.get_frame(direction)
+        frame = self.get_frame(direction, tint)
         cx = top_left[0] + self.frame_width // 2
         cy = top_left[1] + self.frame_height // 2
         return frame, frame.get_rect(center=(cx, cy)).topleft

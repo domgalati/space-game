@@ -21,6 +21,8 @@ SUN_RADIUS = 1700  # the glyph disk in Sun.png; its corona dots reach a little p
 STATION_ANGLE = 0.4  # radians from the sun; the art is lit from the upper left, so the sun sits there
 STATION_GAP = 450  # open space between the sun's disk and the station image
 SPAWN_BELOW_BAY = 280  # a new run starts just outside the bay corridor, bay in view
+HEAT_START = 0.6  # fraction of SUN_RADIUS where solar heat begins; the outer sun is safe
+HEAT_MAX = 8  # damage per turn at the very core
 
 class StarSystem:
     def __init__(self, json_path):
@@ -102,6 +104,13 @@ class StarSystem:
             for x, y in obj.access_points():
                 return (x, y + SPAWN_BELOW_BAY)
         return (self.map_center_x + SUN_RADIUS + STATION_GAP, self.map_center_y)
+
+    def heat_at(self, point):
+        """Damage per turn from the sun: none past HEAT_START, rising steeply to HEAT_MAX at the core."""
+        depth = math.dist(point, (self.map_center_x, self.map_center_y)) / SUN_RADIUS
+        if depth >= HEAT_START:
+            return 0.0
+        return HEAT_MAX * ((HEAT_START - depth) / HEAT_START) ** 2
 
     def draw(self, screen, camera):
         self.draw_sun(screen, camera)

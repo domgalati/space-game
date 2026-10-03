@@ -9,6 +9,7 @@ PRICE_FLOOR = 0.3
 FUEL_CELL = "Fuel Cells"
 FUEL_UNITS_PER_CELL = 25
 DEFAULT_FUEL_PRICE = 8  # per unit, where the market doesn't stock Fuel Cells
+REPAIR_PRICE = 8  # per hull point at a docking terminal
 
 TRADE_HELP = " prices\n buy <qty> <good>\n sell <qty> <good>\n cargo\n news"
 
@@ -128,6 +129,21 @@ def refuel(player, economy):
     ship.fuel = min(ship.max_fuel, ship.fuel + units)
     note = "" if units == needed else " Partial fill: not enough credits."
     return f"Took on {units} fuel for ${units * price}. Tank: {int(ship.fuel)}/{ship.max_fuel}.{note}"
+
+
+def repair(player):
+    """Patch the hull at REPAIR_PRICE per point, as far as the credits go."""
+    ship = player.ship
+    needed = math.ceil(ship.max_hull - ship.hull)
+    if needed <= 0:
+        return "Hull is already sound."
+    points = min(needed, player.currency // REPAIR_PRICE)
+    if points <= 0:
+        return f"Repairs are ${REPAIR_PRICE}/point and you can't afford any."
+    player.currency -= points * REPAIR_PRICE
+    ship.hull = min(ship.max_hull, ship.hull + points)
+    note = "" if points == needed else " Partial repair: not enough credits."
+    return f"Repaired {points} hull for ${points * REPAIR_PRICE}. Hull: {math.ceil(ship.hull)}/{ship.max_hull}.{note}"
 
 
 def price_board(player, economy):

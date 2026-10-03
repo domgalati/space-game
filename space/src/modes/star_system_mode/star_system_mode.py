@@ -6,10 +6,12 @@ import pygame
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, resolve_game_path
 from .input_handler import InputHandler, determine_direction, update_parallax
 from .nightsky import initialize_stars, draw_stars, PARALLAX_FACTOR, PARALLAX_DAMPING_FACTOR, VELOCITY_THRESHOLD
-from util.sprite_animation import AnimatedSprite
+from util.sprite_animation import TINT_LEVELS, AnimatedSprite
+from util.turns import Ticker, TurnClock, turns_for
 from .nav_charts import NavCharts
 from .scan_terminal import ScanTerminal
 from .star_systems import StarSystem
+from .shield_fx import draw_shield
 from util.economy.news_feed import NewsFeed
 from world.world_state import WorldState
 from entities.player import DOCK_FUEL
@@ -17,8 +19,16 @@ from entities.player import DOCK_FUEL
 CANDIDATE_ARC_COLOR = (255, 191, 0)
 NAV_MARKER_COLOR = (120, 220, 140)
 NAV_MARKER_MARGIN = 28
-RESERVE_SLOWDOWN = 5  # move cooldown multiplier once the tank is empty
-BOOST_SCALE = 0.5  # hold shift: twice as fast, twice the burn
+RESERVE_SLOWDOWN = 5  # real-time move cooldown multiplier once the tank is empty
+BOOST_SCALE = 0.5  # real-time move cooldown while boosting
+# Move speeds in turn time (util.turns): a move takes SPEED / speed turns.
+CRUISE_SPEED = 100
+BOOST_SPEED = 200  # hold shift: half a turn per tile, twice the burn
+RESERVE_SPEED = 50  # empty tank: two turns per tile
+WAIT_KEY = pygame.K_SPACE
+WAIT_TURNS = 1
+TOW_FEE = 0.1  # share of credits the tug charges when the hull fails
+NOTICE_MS = 4000
 BOOST_BURN = 2.0
 RING_BAND = 160  # px from a charted orbit that counts as riding the ring
 RING_BURN = 0.5
@@ -30,6 +40,14 @@ HUD_COLOR = (200, 210, 220)
 HUD_BACKING = (0, 0, 0, 170)
 LOW_FUEL_COLOR = (232, 150, 64)
 RESERVE_COLOR = (230, 80, 70)
+SHIELD_COLOR = (90, 170, 255)
+SHIELD_DOWN_COLOR = (110, 120, 140)
+HEAT_COLOR = (230, 80, 70)
+SHIELD_KEY = pygame.K_s
+SHIELD_FADE_MS = 160  # shell fades in or out over this long
+SHIELD_FLASH_MS = 140  # shell flashes this long after absorbing a hit
+CRITICAL_HULL = 0.2  # below this the damage tint flickers
+BAR_WIDTH = 10
 
 class StarSystemMode:
     def __init__(self, player, starsystem, world_state=None):
@@ -65,6 +83,11 @@ class StarSystemMode:
         self.nav = NavCharts((self.map_center_x, self.map_center_y), player.charted_planets)
         self.nav_font = pygame.font.Font(resolve_game_path("space/assets/fonts/OfficeCodePro-Light.ttf"), 14)
         self.boosting = False
+        self.clock = TurnClock()
+        self.clock.add(Ticker(self.upkeep_turn))
+        self.notice = None  # (text, shown until ms)
+        self.shield_changed_at = -SHIELD_FADE_MS
+        self.shield_flash_until = 0
 
     def ship_rect(self):
         return pygame.Rect(self.x_position * TILE_SIZE, self.y_position * TILE_SIZE, TILE_SIZE, TILE_SIZE)
@@ -89,9 +112,67 @@ class StarSystemMode:
         self.x_position, self.y_position = self.input_handler.handle_movement(self.x_position, self.y_position, self.grid_size)
         if (self.x_position, self.y_position) != before:
             ship.burn_fuel(multiplier=self.burn_multiplier())
+            self.spend_turns(self.move_turns())
+        elif self.input_handler.handle_wait(WAIT_KEY, self.cruise_cooldown):
+            self.spend_turns(WAIT_TURNS)
         new_direction = determine_direction(self.x_position, self.y_position, self.previous_x, self.previous_y)
         if new_direction:
             self.current_direction = new_direction
+
+    def move_turns(self):
+        if self.player.ship.on_reserve:
+            return turns_for(RESERVE_SPEED)
+        return turns_for(BOOST_SPEED if self.boosting else CRUISE_SPEED)
+
+    def spend_turns(self, turns):
+        """The player acted; let the world catch up, then tow the ship home if the hull failed."""
+        self.clock.advance(turns)
+        if self.player.ship.hull <= 0:
+            self.tow()
+
+    def upkeep_turn(self):
+        """Once per turn: the sun's heat lands, then the shield recharges if nothing hit."""
+        ship = self.player.ship
+        to_shield, _ = ship.take_damage(self.selected_system.heat_at(self.ship_center()))
+        if to_shield:
+            self.shield_flash_until = pygame.time.get_ticks() + SHIELD_FLASH_MS
+        ship.end_turn()
+
+    def tow(self):
+        """Hull failure: a tug hauls the ship back under the station bay, repaired, for a fee."""
+        ship = self.player.ship
+        fee = int(self.player.currency * TOW_FEE)
+        self.player.currency -= fee
+        ship.hull = ship.max_hull
+        ship.shield = ship.max_shield
+        x, y = self.selected_system.spawn_point()
+        self.x_position, self.y_position = int(x) // TILE_SIZE, int(y) // TILE_SIZE
+        self.previous_x, self.previous_y = self.x_position, self.y_position
+        home = self.selected_system.objects[0].name if self.selected_system.objects else "the station"
+        self.show_notice(f"HULL FAILURE - TOWED TO {home.upper()} - FEE ${fee}")
+
+    def show_notice(self, text):
+        self.notice = (text, pygame.time.get_ticks() + NOTICE_MS)
+
+    def set_shield(self, up):
+        self.player.ship.shield_up = up
+        self.shield_changed_at = pygame.time.get_ticks()
+
+    def shield_strength(self, now):
+        """How solid the shell looks: charge, eased in or out after a toggle."""
+        ship = self.player.ship
+        fade = min(1.0, (now - self.shield_changed_at) / SHIELD_FADE_MS)
+        shown = fade if ship.shield_up else 1 - fade
+        return shown * ship.shield / ship.max_shield
+
+    def hull_tint(self, now):
+        """Damage tint step for the ship sprite; it flickers once the hull is critical."""
+        ship = self.player.ship
+        damage = 1 - ship.hull / ship.max_hull
+        tint = min(TINT_LEVELS - 1, int(damage * TINT_LEVELS))
+        if ship.hull < ship.max_hull * CRITICAL_HULL and (now // 250) % 2:
+            tint -= 1
+        return tint
 
     def burn_multiplier(self):
         multiplier = BOOST_BURN if self.boosting else 1.0
@@ -138,7 +219,9 @@ class StarSystemMode:
         self.scan_terminal = None
 
     def request_landing(self, planet):
-        self.player.ship.burn_fuel(amount=DOCK_FUEL)
+        ship = self.player.ship
+        ship.burn_fuel(amount=DOCK_FUEL)
+        ship.shield = ship.max_shield  # station power tops the shield up while docked
         self.selected_planet = planet
         self.landing_requested = True
         self.close_scan_terminal()
@@ -199,6 +282,8 @@ class StarSystemMode:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
                 self.open_scan_terminal(self.check_collision())
                 return
+            if event.type == pygame.KEYDOWN and event.key == SHIELD_KEY:
+                self.set_shield(not self.player.ship.shield_up)
 
         self.handle_continuous_updates()
 
@@ -230,22 +315,26 @@ class StarSystemMode:
             self.x_position * TILE_SIZE - self.camera.x,
             self.y_position * TILE_SIZE - self.camera.y,
         )
+        now = pygame.time.get_ticks()
         spaceship_frame, blit_pos = self.animated_cargoship.blit_position(
-            self.current_direction, ship_top_left
+            self.current_direction, ship_top_left, self.hull_tint(now)
         )
         screen.blit(spaceship_frame, blit_pos)
+        sprite_center = (ship_top_left[0] + self.frame_dimensions[0] // 2,
+                         ship_top_left[1] + self.frame_dimensions[1] // 2)
+        draw_shield(screen, sprite_center, self.shield_strength(now), now, now < self.shield_flash_until)
         self.draw_hud(screen)
+        if self.notice and now < self.notice[1]:
+            draw_prompt(screen, self.notice[0], RESERVE_COLOR, SCREEN_HEIGHT // 4)
         
         if self.scan_terminal:
             self.scan_terminal.display(screen)
         elif self.check_collision():
-            font = pygame.font.Font(None, 36)
-            text_surface = font.render("[E] Scan", True, (255, 255, 255))
-            screen.blit(text_surface, (SCREEN_WIDTH // 2 - text_surface.get_width() // 2, SCREEN_HEIGHT // 2))
+            draw_prompt(screen, "[E] Scan", (255, 255, 255))
+        elif self.selected_system.heat_at(self.ship_center()) > 0:
+            draw_prompt(screen, "SOLAR HEAT", HEAT_COLOR)
         elif self.in_atmosphere():
-            font = pygame.font.Font(None, 36)
-            text_surface = font.render("ATMOSPHERE", True, (232, 150, 64))
-            screen.blit(text_surface, (SCREEN_WIDTH // 2 - text_surface.get_width() // 2, SCREEN_HEIGHT // 2))
+            draw_prompt(screen, "ATMOSPHERE", (232, 150, 64))
 
     def draw_hud(self, screen):
         ship = self.player.ship
@@ -264,6 +353,14 @@ class StarSystemMode:
             elif self.on_charted_ring():
                 label += "  RING"
             lines.insert(0, (label, color))
+        hull_share = ship.hull / ship.max_hull
+        hull_color = HUD_COLOR if hull_share >= 0.5 else LOW_FUEL_COLOR if hull_share >= 0.25 else RESERVE_COLOR
+        state = "UP" if ship.shield_up else "DOWN"
+        lines[1:1] = [
+            (f"HULL   {bar(ship.hull, ship.max_hull)} {math.ceil(ship.hull)}", hull_color),
+            (f"SHIELD {bar(ship.shield, ship.max_shield)} {int(ship.shield)} {state}",
+             SHIELD_COLOR if ship.shield_up else SHIELD_DOWN_COLOR),
+        ]
         surfaces = [self.nav_font.render(text, True, color) for text, color in lines]
         # Planets and the sun can fill the screen, so the readout sits on a dark plate.
         width = max(surface.get_width() for surface in surfaces) + 12
@@ -339,3 +436,18 @@ class StarSystemMode:
             label = self.nav_font.render(body.name, True, NAV_MARKER_COLOR)
             label_rect = label.get_rect(center=(mx - math.cos(angle) * 28, my - math.sin(angle) * 18))
             screen.blit(label, label_rect.clamp(screen_rect))
+
+
+def bar(value, maximum, width=BAR_WIDTH):
+    filled = round(width * max(0, value) / maximum)
+    return "[" + "#" * filled + "-" * (width - filled) + "]"
+
+
+def draw_prompt(screen, text, color, y=SCREEN_HEIGHT // 2):
+    """Centred notice on a dark plate, so it reads over a planet or the sun."""
+    surface = pygame.font.Font(None, 36).render(text, True, color)
+    x = SCREEN_WIDTH // 2 - surface.get_width() // 2
+    backing = pygame.Surface((surface.get_width() + 16, surface.get_height() + 8), pygame.SRCALPHA)
+    backing.fill(HUD_BACKING)
+    screen.blit(backing, (x - 8, y - 4))
+    screen.blit(surface, (x, y))
