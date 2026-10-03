@@ -163,4 +163,4 @@ def test_a_sponsor_friend_is_told_they_were_recognised(mode):
     ship = raider(mode, 1000, 0, sponsor="cohort")
     mode.vessel_ping(ship)
     mode.spend_turns(1)  # its ping arrives
-    assert mode.notice[0] == "PINGED BY COHORT - THEY KNOW YOU"
+    assert mode.events.latest() == "PINGED BY COHORT - THEY KNOW YOU"
