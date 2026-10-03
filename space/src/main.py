@@ -12,6 +12,8 @@ STARTING_SYSTEM = "sol"
 # Skip flight and open on the system's first planet. Off for a normal new run.
 DEBUG_START_ON_PLANET = False
 START_FULLSCREEN = False
+# Sensor test drones that wander near the start and ping. A debug aid until privateers exist.
+DEBUG_DRONES = 3
 FULLSCREEN_KEY = pygame.K_F11  # switches between fullscreen and a window
 
 
@@ -62,6 +64,7 @@ def main():
 
     player, world_state = new_run()
     star_system_mode = StarSystemMode(player, STARTING_SYSTEM, world_state)
+    star_system_mode.spawn_test_drones(DEBUG_DRONES)
 
     if DEBUG_START_ON_PLANET:
         current_mode = PlanetaryMode(

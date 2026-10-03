@@ -12,7 +12,7 @@ from world.factions import FACTIONS, faction_name, flies_assembly_colours, licen
 
 from .scan_art import BRIGHT, DIM, MID, caption_for, render_scan_art
 
-HELP_TEXT = "Available commands:\n help\n scan\n dock\n hail\n ping <name>\n shield on|off|status\n news\n exit"
+HELP_TEXT = "Available commands:\n help\n scan\n dock\n hail\n ping (area: 1 turn, gives you away)\n ping <name>\n shield on|off|status\n news\n exit"
 NO_TARGET = "No target in scan range."
 MAX_MARKET_LINES = 3
 

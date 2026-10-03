@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: sensors
     content: Signature, contact levels, area ping with its spreading ring and bearing wedges, enemy pings, sun glare, patrol zones
-    status: pending
+    status: completed
   - id: privateer-ai
     content: Privateers as clock actors (patrol, hunt, engage, search, retreat, wave friends by) with faction sprites
     status: pending
@@ -76,8 +76,8 @@ All numbers below are starting points to tune.
 
   | State | Signature |
   |---|---|
-  | Running dark: shield down, no boost, no pings, no firing | about 300 px |
-  | Cruising | about 700 px |
+  | Running dark: holding still (waiting or pinging) with the shield down | about 300 px |
+  | Any move | about 700 px |
   | Raised shield | +500 |
   | Boosting | +500 |
   | Firing (that turn) | +900 |

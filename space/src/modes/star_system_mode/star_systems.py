@@ -7,6 +7,7 @@ from entities.planet import Planet
 from entities.object import SpaceObject
 from util.config import resolve_game_path
 from util.images import load_image
+from world.factions import LAW
 
 # Logical system is large enough for multi-thousand-pixel orbit gaps.
 # Bodies are drawn straight to the screen, so this does not allocate a bitmap.
@@ -23,6 +24,7 @@ STATION_GAP = 450  # open space between the sun's disk and the station image
 SPAWN_BELOW_BAY = 280  # a new run starts just outside the bay corridor, bay in view
 HEAT_START = 0.6  # fraction of SUN_RADIUS where solar heat begins; the outer sun is safe
 HEAT_MAX = 8  # damage per turn at the very core
+PATROL_RADIUS = 2500  # privateers break off this close to Assembly worlds and stations
 
 class StarSystem:
     def __init__(self, json_path):
@@ -111,6 +113,14 @@ class StarSystem:
         if depth >= HEAT_START:
             return 0.0
         return HEAT_MAX * ((HEAT_START - depth) / HEAT_START) ** 2
+
+    def patrol_zones(self):
+        """Centres of the Assembly's patrol zones: its worlds and stations."""
+        centres = [planet.position for planet in self.planets if planet.planet_guild == LAW]
+        return centres + [obj.world_center() for obj in self.objects if obj.planet_guild == LAW]
+
+    def in_patrol_zone(self, point):
+        return any(math.dist(point, centre) <= PATROL_RADIUS for centre in self.patrol_zones())
 
     def draw(self, screen, camera):
         self.draw_sun(screen, camera)
