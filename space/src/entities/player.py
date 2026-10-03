@@ -2,6 +2,8 @@
 
 FUEL_PER_STEP = 0.25  # cruise burn per tile flown in star system mode
 DOCK_FUEL = 6  # spent when a dock actually succeeds
+SHIELD_RECHARGE = 2  # per clean turn while raised; empty to full in 50 moves
+SHIELD_RECHARGE_DOWN = 5  # per clean turn while lowered; empty to full in 20 moves
 
 class Player:
     def __init__(self):
@@ -17,7 +19,12 @@ class Player:
 
 class Ship:
     def __init__(self):
-        self.health = 100
+        self.max_hull = 100
+        self.hull = 100
+        self.max_shield = 100
+        self.shield = 100
+        self.shield_up = False
+        self.hit_this_turn = False
         self.max_fuel = 1000
         self.fuel = 1000
         self.equipment = []
@@ -31,6 +38,24 @@ class Ship:
     @property
     def on_reserve(self):
         return self.fuel <= 0
+
+    def take_damage(self, amount):
+        """A raised shield soaks damage until empty; the rest hits the hull. Returns (shield, hull) taken."""
+        if amount <= 0:
+            return 0, 0
+        to_shield = min(amount, self.shield) if self.shield_up else 0
+        self.shield -= to_shield
+        to_hull = min(amount - to_shield, self.hull)
+        self.hull -= to_hull
+        self.hit_this_turn = True
+        return to_shield, to_hull
+
+    def end_turn(self):
+        """A move that took no damage recharges the shield, faster while it is lowered."""
+        if not self.hit_this_turn:
+            rate = SHIELD_RECHARGE if self.shield_up else SHIELD_RECHARGE_DOWN
+            self.shield = min(self.max_shield, self.shield + rate)
+        self.hit_this_turn = False
 
 class Inventory:
     def __init__(self, capacity):

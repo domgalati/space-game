@@ -4,9 +4,9 @@ from util.terminal_text import PALETTE, Transient, to_lines
 from .terminals import docking_terminal, market_terminal
 
 COMMANDS = {
-    "docking": ["help", "info", "prices", "buy", "sell", "cargo", "news", "refuel", "depart", "map", "exit"],
+    "docking": ["help", "info", "prices", "buy", "sell", "cargo", "news", "refuel", "repair", "depart", "map", "exit"],
     "market": ["help", "info", "prices", "buy", "sell", "cargo", "news", "exit"],
-    "scan": ["help", "scan", "dock", "hail", "ping", "news", "exit"],
+    "scan": ["help", "scan", "dock", "hail", "ping", "shield", "news", "exit"],
 }
 QUANTITIES = ("all", "max")
 
