@@ -13,3 +13,5 @@ space/src/util/economy/economy_generated.yaml
 combine.sh
 all_output.txt
 todo.md
+build/
+.vscode/
