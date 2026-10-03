@@ -5,16 +5,27 @@ import math
 import pygame
 from entities.planet import Planet
 from entities.object import SpaceObject
-from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, resolve_game_path
+from util.config import resolve_game_path
+
+# Logical system is large enough for multi-thousand-pixel orbit gaps.
+# Bodies are drawn straight to the screen, so this does not allocate a bitmap.
+MAP_WIDTH = 86000
+MAP_HEIGHT = 86000
+MIN_ORBIT_RADIUS = 2200
+MIN_ORBIT_GAP = 3200
+MAX_ORBIT_GAP = 4200
+ORBIT_COLOR = (21, 83, 82)
+SUN_DIM = (15, 59, 58)
+SUN_MID = (233, 159, 16)
+SUN_CORE = (255, 255, 255)
 
 class StarSystem:
     def __init__(self, json_path):
-        self.MAP_WIDTH = SCREEN_WIDTH * 24
-        self.MAP_HEIGHT = SCREEN_HEIGHT * 24
+        self.MAP_WIDTH = MAP_WIDTH
+        self.MAP_HEIGHT = MAP_HEIGHT
         # Calculate center of the map as class attributes
         self.map_center_x = self.MAP_WIDTH // 2
-        self.map_center_y = self.MAP_HEIGHT // 2        
-        self.map_surface = None
+        self.map_center_y = self.MAP_HEIGHT // 2
         self.planets = []
         self.objects = []
         self.orbits = []
@@ -28,22 +39,14 @@ class StarSystem:
             object_data = data.get('objects', [])
             random.seed(seed)
 
-            self.map_surface = pygame.Surface((self.MAP_WIDTH, self.MAP_HEIGHT)) # Create a surface for the map
             self.generate_planets(planet_data)
             self.generate_objects(object_data)
 
     def generate_planets(self, planet_data):
-        min_orbit_radius = 500
-        max_orbit_radius = 5760
-        min_distance_between_orbits = 500
-        max_distance_between_orbits = 1000
-        last_orbit_radius = min_orbit_radius
+        last_orbit_radius = MIN_ORBIT_RADIUS
 
         for data in planet_data:
-            if last_orbit_radius > max_orbit_radius:
-                break
-
-            orbit_radius = last_orbit_radius + random.randint(min_distance_between_orbits, max_distance_between_orbits)
+            orbit_radius = last_orbit_radius + random.randint(MIN_ORBIT_GAP, MAX_ORBIT_GAP)
             angle = random.uniform(0, 2 * math.pi)
             
             start_pos = data.get('start_pos', (0, 0))
@@ -62,34 +65,64 @@ class StarSystem:
             self.orbits.append(orbit_radius)
             last_orbit_radius = orbit_radius
 
+    def _mid_system_point(self):
+        """A point between two middle orbits, off the ring, for a fuel-oasis station."""
+        index = min(2, max(0, len(self.planets) - 2))
+        inner = self.planets[index].orbit_radius
+        outer = self.planets[index + 1].orbit_radius if index + 1 < len(self.planets) else inner + MIN_ORBIT_GAP
+        radius = (inner + outer) / 2 + 1100
+        angle = 1.15
+        return (
+            int(self.map_center_x + radius * math.cos(angle)),
+            int(self.map_center_y + radius * math.sin(angle)),
+        )
+
     def generate_objects(self, object_data):
         self.objects = []
         for data in object_data:
+            if data.get("anchor") == "mid" and self.planets:
+                x, y = self._mid_system_point()
+            else:
+                x, y = data["x"], data["y"]
             obj = SpaceObject(
                 data['name'],
                 data['type'],
                 resolve_game_path(data['image_path']),
-                data['x'],
-                data['y'],
+                x,
+                y,
                 data.get('guild'),
+                data.get('access'),
             )
             self.objects.append(obj)
 
     def draw(self, screen, camera):
-        screen.blit(self.map_surface, (0, 0), camera)
+        self.draw_sun(screen, camera)
+        self.draw_orbits(screen, camera)
         font = pygame.font.Font(resolve_game_path("space/assets/fonts/OfficeCodePro-Light.ttf"), 14)
 
         for obj in self.objects:
-            obj.draw(self.map_surface, camera)
+            obj.draw(screen, camera)
 
         for planet in self.planets:
-            orbit_radius = planet.orbit_radius
-            pygame.draw.circle(self.map_surface, (255, 255, 255), (self.map_center_x, self.map_center_y), orbit_radius, 1)
+            if self.is_orbit_visible(planet.orbit_radius, camera):
+                self.draw_planet_name_along_orbit(planet, font, screen, camera, planet.orbit_radius)
 
-            if self.is_orbit_visible(orbit_radius, camera):
-                self.draw_planet_name_along_orbit(planet, font, screen, camera, orbit_radius)
+            planet.draw(screen, camera)
 
-            planet.draw(self.map_surface)
+    def draw_sun(self, screen, camera):
+        cx = self.map_center_x - camera.x
+        cy = self.map_center_y - camera.y
+        if cx < -120 or cy < -120 or cx > camera.width + 120 or cy > camera.height + 120:
+            return
+        pygame.draw.circle(screen, SUN_DIM, (cx, cy), 96)
+        pygame.draw.circle(screen, SUN_MID, (cx, cy), 64)
+        pygame.draw.circle(screen, SUN_CORE, (cx, cy), 22)
+
+    def draw_orbits(self, screen, camera):
+        center = (self.map_center_x - camera.x, self.map_center_y - camera.y)
+        for radius in self.orbits:
+            if self.is_orbit_visible(radius, camera):
+                pygame.draw.circle(screen, ORBIT_COLOR, center, radius, 1)
 
     
     def draw_planet_name_along_orbit(self, planet, font, screen, camera, orbit_radius, segment_start_ratio=0.25, segment_end_ratio=0.50):

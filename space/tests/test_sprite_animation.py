@@ -20,13 +20,13 @@ def _pygame():
 @pytest.fixture
 def barge():
     path = resolve_game_path("space/assets/img/barge6frame.png")
-    return AnimatedSprite(path, (96, 96), 6, animation_cooldown_ms=90)
+    return AnimatedSprite(path, (48, 48), 6, animation_cooldown_ms=90)
 
 
 def test_barge_sheet_loads_six_frames(barge):
     assert barge.num_frames == 6
     assert len(barge.frames) == 6
-    assert barge.frames[0].get_size() == (96, 96)
+    assert barge.frames[0].get_size() == (48, 48)
 
 
 @pytest.mark.parametrize("direction", list(_DIRECTION_ANGLES))
@@ -44,7 +44,7 @@ def test_rotated_frames_stay_centered_on_source_rect(barge, direction):
     top_left = (100, 200)
     frame, blit_pos = barge.blit_position(direction, top_left)
     rect = frame.get_rect(topleft=blit_pos)
-    assert rect.center == (100 + 48, 200 + 48)
+    assert rect.center == (100 + 24, 200 + 24)
 
 
 def test_exhaust_frames_differ(barge):

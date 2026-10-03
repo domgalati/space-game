@@ -1,17 +1,32 @@
 import pygame
 
+# Same corridor size as a planetary starport. `access` points are image-local.
+APPROACH_RADIUS = 64
+
 class SpaceObject:
-    def __init__(self, name, obj_type, image_path, x, y, guild=None):
+    def __init__(self, name, obj_type, image_path, x, y, guild=None, access=None):
         self.name = name
         self.obj_type = obj_type
         self.planet_guild = guild
         self.image = pygame.image.load(image_path)
         self.position = (x, y)
         self.start_pos = (0, 0)
+        self.access = [tuple(point) for point in (access or [])]
+
+    def access_points(self):
+        """World position of each bay. Image coords are from the sprite's top-left."""
+        return [(self.position[0] + x, self.position[1] + y) for x, y in self.access]
+
+    def approach_rects(self):
+        rects = []
+        for x, y in self.access_points():
+            rects.append(pygame.Rect(x - APPROACH_RADIUS, y - APPROACH_RADIUS,
+                                     APPROACH_RADIUS * 2, APPROACH_RADIUS * 2))
+        return rects
 
     def draw(self, surface, camera):
         if camera.colliderect(self.get_rect()):
-            surface.blit(self.image, self.position)
+            surface.blit(self.image, (self.position[0] - camera.x, self.position[1] - camera.y))
 
     def get_rect(self):
         return pygame.Rect(self.position[0], self.position[1], self.image.get_width(), self.image.get_height())

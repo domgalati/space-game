@@ -7,9 +7,11 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageEnhance
 
-SRC = Path(__file__).with_name("ship-mockup-designs.jpg")
-OUT = Path(__file__).with_name("barge6frame.png")
-SOURCE_OUT = Path(__file__).with_name("_barge_source.png")
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[3]
+SRC = HERE / "ship-mockup-designs.jpg"
+OUT = REPO / "space" / "assets" / "img" / "barge6frame.png"
+SOURCE_OUT = HERE / "_barge_source.png"
 FRAME = 96
 FRAMES = 6
 

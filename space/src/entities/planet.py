@@ -6,6 +6,12 @@ import pygame
 
 from util.config import resolve_game_path
 
+# Corridor around the painted starport. Radius, so the ship has to be on that rim.
+APPROACH_RADIUS = 64
+# Style A disks paint the pad on the lit rim (same vector the glyph generator uses).
+_DOCK_LEN = math.hypot(0.62, 0.48)
+DOCK_XY = (-0.62 / _DOCK_LEN * 0.84, -0.48 / _DOCK_LEN * 0.84)
+
 
 class Planet:
     def __init__(self, name, planet_type, planet_guild, image_path, orbit_radius, angle, center_x, center_y,start_pos=(0, 0)):
@@ -29,8 +35,28 @@ class Planet:
         rect_y = self.position[1] - self.image.get_height() // 2
         return pygame.Rect(rect_x, rect_y, self.image.get_width(), self.image.get_height())
 
-    def draw(self, surface):
-        adjusted_pos = (self.position[0] - self.image.get_width() // 2, self.position[1] - self.image.get_height() // 2)
+    def beacon_points(self):
+        """World position of the starport painted on the disk."""
+        half = self.image.get_width() / 2
+        return [(
+            self.position[0] + DOCK_XY[0] * half,
+            self.position[1] + DOCK_XY[1] * half,
+        )]
+
+    def approach_rects(self):
+        rects = []
+        for x, y in self.beacon_points():
+            rects.append(pygame.Rect(x - APPROACH_RADIUS, y - APPROACH_RADIUS,
+                                     APPROACH_RADIUS * 2, APPROACH_RADIUS * 2))
+        return rects
+
+    def draw(self, surface, camera):
+        if not camera.colliderect(self.get_rect()):
+            return
+        adjusted_pos = (
+            self.position[0] - self.image.get_width() // 2 - camera.x,
+            self.position[1] - self.image.get_height() // 2 - camera.y,
+        )
         surface.blit(self.image, adjusted_pos)
 
 def generate_planets(json_path, center_x, center_y):
