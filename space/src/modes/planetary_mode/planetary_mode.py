@@ -8,7 +8,7 @@ from .logger import Logger
 from .map_manager import MapManager
 from .ui_planetary import UI_Planetary
 from .interaction_manager import InteractionManager
-from .terminal import Terminal
+from .terminal import Terminal, bezel_path
 from util.economy.economy import Economy
 from util.economy.news_feed import NewsFeed
 from dialogue.conversation import Conversation
@@ -297,9 +297,7 @@ class PlanetaryMode:
     def activate_terminal(self, terminal_type="docking"):
         self.interaction_layer.fill((0, 0, 0, 0))  # Clear the layer
         # Load the docking terminal interface image
-        terminal_image = pygame.image.load(
-            resolve_game_path("space/assets/img/objects/terminal_screen.png")
-        ).convert_alpha() 
+        terminal_image = pygame.image.load(bezel_path(terminal_type)).convert_alpha()
         # Resize the image to fit the map_surface
         #terminal_image = pygame.transform.scale(terminal_image, (SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height))   
         # Draw the image onto the map_surface

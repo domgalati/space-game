@@ -287,3 +287,15 @@ def test_scan_escape_closes_the_pager_before_the_terminal():
     assert terminal.active and not closed
     press(terminal, pygame.K_ESCAPE)
     assert closed
+
+
+def test_each_terminal_has_its_own_bezel_with_the_original_screen_size():
+    from modes.planetary_mode.terminal import BEZELS, DEFAULT_BEZEL, bezel_path
+    from util.config import resolve_game_path
+
+    size = pygame.image.load(resolve_game_path(DEFAULT_BEZEL)).get_size()
+    paths = {bezel_path(kind) for kind in ("docking", "market", "scan")}
+    assert len(paths) == len(BEZELS)
+    for path in paths:
+        assert pygame.image.load(path).get_size() == size
+    assert bezel_path("unknown") == resolve_game_path(DEFAULT_BEZEL)

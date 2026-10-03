@@ -4,7 +4,7 @@ import os
 import pygame
 
 from entities.planet import Planet
-from modes.planetary_mode.terminal import Terminal
+from modes.planetary_mode.terminal import Terminal, bezel_path
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, resolve_game_path
 from util.economy.news import render_news
 
@@ -87,9 +87,7 @@ class ScanTerminal(Terminal):
         super().__init__(terminal_type="scan", planetary_mode=None, planet_name=target)
         self.target = target
         self.star_system_mode = star_system_mode
-        self.background = pygame.image.load(
-            resolve_game_path("space/assets/img/objects/terminal_screen.png")
-        ).convert_alpha()
+        self.background = pygame.image.load(bezel_path("scan")).convert_alpha()
         self.surface = pygame.Surface(self.background.get_size(), pygame.SRCALPHA)
 
         art_font = pygame.font.Font(resolve_game_path("space/assets/fonts/TeleSys.ttf"), ART_FONT_SIZE)

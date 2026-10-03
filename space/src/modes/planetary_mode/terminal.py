@@ -9,6 +9,18 @@ COMMANDS = {
     "scan": ["help", "scan", "dock", "hail", "ping", "shield", "news", "exit"],
 }
 QUANTITIES = ("all", "max")
+# Bezel art per terminal. Every variant keeps the original screen opening, so text layout is unchanged.
+_BEZELS = "space/assets/img/_style_samples/terminal_variants"
+BEZELS = {
+    "docking": f"{_BEZELS}/docking/terminal_screen.png",
+    "market": f"{_BEZELS}/market/terminal_screen.png",
+    "scan": f"{_BEZELS}/ship/terminal_screen.png",
+}
+DEFAULT_BEZEL = "space/assets/img/objects/terminal_screen.png"
+
+
+def bezel_path(terminal_type):
+    return resolve_game_path(BEZELS.get(terminal_type, DEFAULT_BEZEL))
 
 
 def _common_prefix(words):
