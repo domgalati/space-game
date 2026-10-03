@@ -36,7 +36,7 @@ def test_hesk_definition_builds_an_npc():
     assert npc.species == "muroth"
     assert npc.portrait_recipe["layers"]["accessory"] == "goggles"
     assert npc.portrait_recipe["layers"]["back_hair"] is None
-    assert npc.sprite.endswith("foreman.png")
+    assert npc.sprite == "space/assets/img/npcs/characters/hesk_durran.png"
     load_program(npc.dialogue_file)
 
 

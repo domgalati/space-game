@@ -8,6 +8,7 @@ name: Hesk Durran
 species: muroth
 job: Foreman
 guild: assembly
+sprite: space/assets/img/npcs/characters/hesk_durran.png
 hobbies: [Coffee Roasting, Chess, Backyard Dam Construction]
 dialogue: space/dialogue/characters/hesk_durran.yarn
 start_node: Start

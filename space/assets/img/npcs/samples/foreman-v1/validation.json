@@ -1,0 +1,65 @@
+[
+  {
+    "species": "human",
+    "file": "human-foreman-v1.png",
+    "width": 24,
+    "height": 24,
+    "format": "PNG",
+    "mode": "RGBA",
+    "opaque_colors": 7,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "source_crop": {
+      "left": 423,
+      "top": 329,
+      "width": 408,
+      "height": 808
+    },
+    "export_width": 12,
+    "export_height": 22
+  },
+  {
+    "species": "vessari",
+    "file": "vessari-foreman-v1.png",
+    "width": 24,
+    "height": 24,
+    "format": "PNG",
+    "mode": "RGBA",
+    "opaque_colors": 8,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "source_crop": {
+      "left": 477,
+      "top": 154,
+      "width": 292,
+      "height": 919
+    },
+    "export_width": 10,
+    "export_height": 22
+  },
+  {
+    "species": "muroth",
+    "file": "muroth-foreman-v1.png",
+    "width": 24,
+    "height": 24,
+    "format": "PNG",
+    "mode": "RGBA",
+    "opaque_colors": 8,
+    "alpha_values": [
+      0,
+      255
+    ],
+    "source_crop": {
+      "left": 397,
+      "top": 272,
+      "width": 460,
+      "height": 838
+    },
+    "export_width": 16,
+    "export_height": 22
+  }
+]
