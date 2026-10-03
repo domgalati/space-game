@@ -4,7 +4,7 @@ overview: Faction privateers built on the 1 move = 1 turn clock. A sensor game (
 todos:
   - id: factions
     content: Give worlds to factions, everyone-against-the-Assembly stance, reputation that moves, hail and scan text
-    status: pending
+    status: completed
   - id: sensors
     content: Signature, contact levels, area ping with its spreading ring and bearing wedges, enemy pings, sun glare, patrol zones
     status: pending

@@ -2,6 +2,7 @@
 import math
 
 from util.economy.news import render_news
+from world.factions import credit_trade, faction_name
 
 PRICE_IMPACT = 0.005  # each unit bought raises the price this much; each unit sold lowers it
 PRICE_CEILING = 2.0  # times base price
@@ -173,14 +174,20 @@ def cargo_report(player, economy):
     return "\n".join(lines)
 
 
-def handle(verb, argument, player, economy):
-    """Shared trade commands; returns None for verbs that aren't trade commands."""
+def handle(verb, argument, player, economy, faction=None):
+    """Shared trade commands; returns None for verbs that aren't trade commands.
+
+    Buying and selling at a faction's world earns a little standing with it.
+    """
     if verb == "prices":
         return price_board(player, economy)
-    if verb == "buy":
-        return buy(player, economy, argument)
-    if verb == "sell":
-        return sell(player, economy, argument)
+    if verb in ("buy", "sell"):
+        before = player.currency
+        result = (buy if verb == "buy" else sell)(player, economy, argument)
+        gained = credit_trade(player, faction, abs(player.currency - before))
+        if gained:
+            result += f" {faction_name(faction)} standing +{gained}."
+        return result
     if verb == "cargo":
         return cargo_report(player, economy)
     if verb == "news":

@@ -2,11 +2,11 @@
     "seed": 12345,
     "planets": [
         {"name": "Terramonta", "type": "Industrial", "guild": "assembly", "image_path": "space/assets/img/planets/Lava.png", "start_pos": [1248, 144]},
-        {"name": "Etheora", "type": "Urban", "guild": "assembly", "image_path": "space/assets/img/planets/Baren.png"},
-        {"name": "Arboresia", "type": "Suburban", "guild": "assembly", "image_path": "space/assets/img/planets/Terran.png"},
-        {"name": "Ageria", "type": "Terran", "guild": "assembly", "image_path": "space/assets/img/planets/Terran.png"},
-        {"name": "Cosmopolara", "type": "Urban", "guild": "assembly", "image_path": "space/assets/img/planets/Terran.png"},
-        {"name": "Ferrica", "type": "Industrial", "guild": "assembly", "image_path": "space/assets/img/planets/Ice.png"},
+        {"name": "Etheora", "type": "Urban", "guild": "caravaneers", "image_path": "space/assets/img/planets/Baren.png"},
+        {"name": "Arboresia", "type": "Suburban", "guild": "cohort", "image_path": "space/assets/img/planets/Terran.png"},
+        {"name": "Ageria", "type": "Terran", "guild": "cohort", "image_path": "space/assets/img/planets/Terran.png"},
+        {"name": "Cosmopolara", "type": "Urban", "guild": "caravaneers", "image_path": "space/assets/img/planets/Terran.png"},
+        {"name": "Ferrica", "type": "Industrial", "guild": "dominion", "image_path": "space/assets/img/planets/Ice.png"},
         {"name": "Governus Centralis", "type": "Urban", "guild": "assembly", "image_path": "space/assets/img/planets/Baren.png"}
     ],
     "objects": [

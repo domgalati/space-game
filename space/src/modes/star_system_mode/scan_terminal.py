@@ -7,6 +7,8 @@ from entities.planet import Planet
 from modes.planetary_mode.terminal import Terminal, bezel_path
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, resolve_game_path
 from util.economy.news import render_news
+from world.disposition import disposition_word
+from world.factions import FACTIONS, faction_name, flies_assembly_colours, licenses_raiders, waves_by
 
 from .scan_art import BRIGHT, DIM, MID, caption_for, render_scan_art
 
@@ -38,37 +40,65 @@ def market_lines(target, markets):
     return lines
 
 
-def scan_readout(target, markets=None):
+def faction_lines(faction, reputation):
+    """Who holds a body, how they see you, and whether they license raiders."""
+    if not faction:
+        return []
+    lines = [f"Faction: {faction_name(faction)}"]
+    if reputation is not None:
+        standing = reputation.get(faction, 0)
+        lines.append(f"Your standing: {disposition_word(standing)} ({standing:+d})")
+    if licenses_raiders(faction):
+        lines.append("Licenses privateers against Assembly shipping.")
+    return lines
+
+
+def scan_readout(target, markets=None, reputation=None):
     if target is None:
         return ["SHIP COMPUTER", NO_TARGET, "Type 'help' for commands."]
     markets = markets or {}
     lines = [f"SCAN RESULT: {target.name}"]
     if isinstance(target, Planet):
         lines.append(f"Class: Planet ({target.planet_type})")
-        lines.append(f"Guild: {target.planet_guild.capitalize()}")
+        lines.extend(faction_lines(target.planet_guild, reputation))
         landing = "CLEARED" if has_landing_map(target) else "NO DOCKING FACILITY"
         lines.append(f"Landing: {landing}")
         lines.extend(market_lines(target, markets))
     else:
         lines.append(f"Class: {target.obj_type}")
-        if target.planet_guild:
-            lines.append(f"Guild: {target.planet_guild.capitalize()}")
+        lines.extend(faction_lines(target.planet_guild, reputation))
         lines.append("Landing: BAYS OPEN" if has_landing_map(target) else "Landing: DOCKING BAYS CLOSED")
         lines.extend(market_lines(target, markets))
     lines.append("Type 'help' for commands.")
     return lines
 
 
-def hail_response(target):
+GREETINGS = {
+    "assembly": "Vessel acknowledged. Assembly lanes are open.",
+    "dominion": "Transponder logged. Keep to your assigned lane.",
+    "cohort": "Welcome, traveller. The Commons keeps an open sky.",
+    "caravaneers": "Ho, hauler. The Moot trades fair with those who trade fair.",
+}
+
+
+def hail_response(target, reputation=None):
+    reputation = reputation or {}
+    faction = target.planet_guild
     if not isinstance(target, Planet):
         if has_landing_map(target):
             return (f'{target.name} Dockmaster: "Welcome in, hauler. Bays are open and customs '
                     f'is light today. Send \'dock\' when ready."')
         return f'{target.name}: "Docking bays are closed to independent haulers for now."'
-    if has_landing_map(target):
-        guild = target.planet_guild.capitalize()
-        return f'{target.name} Traffic Control: "Vessel acknowledged. {guild} lanes are open. Send \'dock\' when ready."'
-    return f"Static. Nobody on {target.name} answers your hail."
+    voice = FACTIONS.get(faction, {}).get("voice", "Traffic Control")
+    greeting = GREETINGS.get(faction, "Vessel acknowledged.")
+    berth = "Send 'dock' when ready." if has_landing_map(target) else "We've no berth for independents."
+    words = f"{greeting} {berth}"
+    if licenses_raiders(faction):
+        if waves_by(reputation, faction):
+            words += " Our privateers have your registry. They'll let you pass."
+        elif flies_assembly_colours(reputation):
+            words += " You fly Assembly colours. Our privateers have noticed."
+    return f'{target.name} {voice}: "{words}"'
 
 
 def _crt_scanlines(size):
@@ -119,7 +149,7 @@ class ScanTerminal(Terminal):
 
     def activate(self):
         super().activate()
-        for line in scan_readout(self.target, self.markets()):
+        for line in scan_readout(self.target, self.markets(), self.star_system_mode.player.reputation):
             self.say(line)
         self.observe_market()
         nav = self.star_system_mode.nav
@@ -173,11 +203,11 @@ class ScanTerminal(Terminal):
             self.say(NO_TARGET)
         elif verb == "scan":
             self.art_time = 0.0
-            for line in scan_readout(self.target, self.markets()):
+            for line in scan_readout(self.target, self.markets(), self.star_system_mode.player.reputation):
                 self.say(line)
             self.observe_market()
         elif verb == "hail":
-            self.say(hail_response(self.target))
+            self.say(hail_response(self.target, self.star_system_mode.player.reputation))
         elif verb == "dock":
             if has_landing_map(self.target):
                 self.star_system_mode.request_landing(self.target)
