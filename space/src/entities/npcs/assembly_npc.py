@@ -1,5 +1,6 @@
 import pygame
 from .npc import NPC
+from .sprites import map_sprite
 
 first_names = [
     "Jimmy", "John", "Paddy", "Rob", "Jeff", "Mikey", "Mike",
@@ -70,24 +71,24 @@ hobbies = [
 class Miner(NPC):
     def __init__(self):
         super().__init__() #Base Class Attributes
-        self.sprite = "space/assets/img/objects/miner.png"
+        self.sprite = map_sprite("assembly", "Miner", "human")
 
 class Foreman(NPC):
     def __init__(self):
         super().__init__() #Base Class Attributes
-        self.sprite = "space/assets/img/objects/foreman.png"
+        self.sprite = map_sprite("assembly", "Foreman", "human")
 
 class Politician(NPC):
     def __init__(self):
         super().__init__() #Base Class Attributes
-        self.sprite = "space/assets/img/objects/politician.png"
+        self.sprite = map_sprite("assembly", "Politician", "human")
 
 class Security(NPC):
     def __init__(self):
         super().__init__() #Base Class Attributes
-        self.sprite = "space/assets/img/objects/security.png"
+        self.sprite = map_sprite("assembly", "Security", "human")
 
 class Dockworker(NPC):
     def __init__(self):
         super().__init__() #Base Class Attributes
-        self.sprite = "space/assets/img/objects/dockworker.png"
+        self.sprite = map_sprite("assembly", "Dockworker", "human")

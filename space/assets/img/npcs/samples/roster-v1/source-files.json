@@ -1,0 +1,15 @@
+{
+  "miner-human": "sources/miner-human.png",
+  "miner-vessari": "sources/miner-vessari.png",
+  "miner-muroth": "sources/miner-muroth.png",
+  "dockworker-human": "sources/dockworker-human.png",
+  "dockworker-vessari": "sources/dockworker-vessari.png",
+  "dockworker-muroth": "sources/dockworker-muroth.png",
+  "security-human": "sources/security-human.png",
+  "security-vessari": "sources/security-vessari.png",
+  "security-muroth": "sources/security-muroth.png",
+  "politician-human": "sources/politician-human.png",
+  "politician-vessari": "sources/politician-vessari.png",
+  "politician-muroth": "sources/politician-muroth.png",
+  "hesk-durran": "sources/hesk-durran.png"
+}

@@ -5,8 +5,9 @@ import zlib
 from entities.npcs.npc import NPC
 from entities.npcs.portrait import roll_appearance
 from entities.npcs.species import SPECIES, roll_species
+from entities.npcs.sprites import map_sprite
 
-DEFAULT_SPRITE = "space/assets/img/objects/dockworker.png"
+DEFAULT_SPRITE = map_sprite("assembly", "Dockworker", "human")
 
 
 def _guild_module(guild):
@@ -48,5 +49,10 @@ def build_npc(record):
     npc.dialogue_file = record.get("dialogue")
     npc.start_node = record.get("start_node") or "Start"
     npc.base_mood = record.get("mood")
-    npc.sprite = record.get("sprite") or npc.sprite or DEFAULT_SPRITE
+    npc.sprite = (
+        record.get("sprite")
+        or map_sprite(npc.guild, npc.job_title, npc.species)
+        or npc.sprite
+        or DEFAULT_SPRITE
+    )
     return npc

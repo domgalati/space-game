@@ -1,0 +1,470 @@
+[
+  {
+    "id": "M1",
+    "asset": "miner-human",
+    "file": "miner-human-v1.png",
+    "size": [
+      24,
+      24
+    ],
+    "mode": "RGBA",
+    "opaque_colors": 7,
+    "alpha": [
+      0,
+      255
+    ],
+    "palette": [
+      "161e30",
+      "424e63",
+      "949da7",
+      "e0dfd9",
+      "c39837",
+      "dba36d",
+      "aa714b",
+      "a94632"
+    ],
+    "source_crop": {
+      "left": 336,
+      "top": 235,
+      "width": 487,
+      "height": 901
+    },
+    "silhouette_export": [
+      16,
+      22
+    ],
+    "sha256": "421addf7bb1099e0b1d30bcba91337c38c5b54ed69177b22a6aaf30399b0ba24"
+  },
+  {
+    "id": "M2",
+    "asset": "miner-vessari",
+    "file": "miner-vessari-v1.png",
+    "size": [
+      24,
+      24
+    ],
+    "mode": "RGBA",
+    "opaque_colors": 7,
+    "alpha": [
+      0,
+      255
+    ],
+    "palette": [
+      "161e30",
+      "424e63",
+      "949da7",
+      "e0dfd9",
+      "c39837",
+      "94b1bd",
+      "287c89",
+      "a94632"
+    ],
+    "source_crop": {
+      "left": 367,
+      "top": 230,
+      "width": 438,
+      "height": 891
+    },
+    "silhouette_export": [
+      12,
+      22
+    ],
+    "sha256": "763807954c5c70bd9a346a7014668a91009d3f374043f4c28f24565c7b569a02"
+  },
+  {
+    "id": "M3",
+    "asset": "miner-muroth",
+    "file": "miner-muroth-v1.png",
+    "size": [
+      24,
+      24
+    ],
+    "mode": "RGBA",
+    "opaque_colors": 8,
+    "alpha": [
+      0,
+      255
+    ],
+    "palette": [
+      "161e30",
+      "424e63",
+      "949da7",
+      "e0dfd9",
+      "c39837",
+      "d9ab5a",
+      "523f29",
+      "a94632"
+    ],
+    "source_crop": {
+      "left": 259,
+      "top": 195,
+      "width": 724,
+      "height": 882
+    },
+    "silhouette_export": [
+      18,
+      22
+    ],
+    "sha256": "8a5ed538e242690126eb38376c35ce5a40504874b80992954ac6fe5650c17411"
+  },
+  {
+    "id": "D1",
+    "asset": "dockworker-human",
+    "file": "dockworker-human-v1.png",
+    "size": [
+      24,
+      24
+    ],
+    "mode": "RGBA",
+    "opaque_colors": 7,
+    "alpha": [
+      0,
+      255
+    ],
+    "palette": [
+      "161e30",
+      "424e63",
+      "949da7",
+      "e0dfd9",
+      "c39837",
+      "dba36d",
+      "aa714b",
+      "527047"
+    ],
+    "source_crop": {
+      "left": 431,
+      "top": 239,
+      "width": 392,
+      "height": 882
+    },
+    "silhouette_export": [
+      12,
+      22
+    ],
+    "sha256": "9bcb010f57cf1c48fdc6dc80b86c9ae80c50930c7c60d55d7a878cb290bb67bd"
+  },
+  {
+    "id": "D2",
+    "asset": "dockworker-vessari",
+    "file": "dockworker-vessari-v1.png",
+    "size": [
+      24,
+      24
+    ],
+    "mode": "RGBA",
+    "opaque_colors": 7,
+    "alpha": [
+      0,
+      255
+    ],
+    "palette": [
+      "161e30",
+      "424e63",
+      "949da7",
+      "e0dfd9",
+      "c39837",
+      "94b1bd",
+      "287c89",
+      "527047"
+    ],
+    "source_crop": {
+      "left": 433,
+      "top": 157,
+      "width": 388,
+      "height": 924
+    },
+    "silhouette_export": [
+      10,
+      22
+    ],
+    "sha256": "66b497ba77b40c06b0088dc5a729483153f93e953f89c452918869a6446e0644"
+  },
+  {
+    "id": "D3",
+    "asset": "dockworker-muroth",
+    "file": "dockworker-muroth-v1.png",
+    "size": [
+      24,
+      24
+    ],
+    "mode": "RGBA",
+    "opaque_colors": 7,
+    "alpha": [
+      0,
+      255
+    ],
+    "palette": [
+      "161e30",
+      "424e63",
+      "949da7",
+      "e0dfd9",
+      "c39837",
+      "d9ab5a",
+      "523f29",
+      "527047"
+    ],
+    "source_crop": {
+      "left": 357,
+      "top": 314,
+      "width": 540,
+      "height": 788
+    },
+    "silhouette_export": [
+      16,
+      22
+    ],
+    "sha256": "1abb8d7e160b3a9d81d5d5a32377f9f0d9b4172b0291d9de118dfce4bc32a2e8"
+  },
+  {
+    "id": "S1",
+    "asset": "security-human",
+    "file": "security-human-v1.png",
+    "size": [
+      24,
+      24
+    ],
+    "mode": "RGBA",
+    "opaque_colors": 6,
+    "alpha": [
+      0,
+      255
+    ],
+    "palette": [
+      "161e30",
+      "424e63",
+      "949da7",
+      "e0dfd9",
+      "c39837",
+      "dba36d",
+      "aa714b",
+      "426493"
+    ],
+    "source_crop": {
+      "left": 431,
+      "top": 299,
+      "width": 392,
+      "height": 810
+    },
+    "silhouette_export": [
+      12,
+      22
+    ],
+    "sha256": "279a4fb0c14d549fd565735b774cf86106e4c168133fe1c151552d9454c6a36a"
+  },
+  {
+    "id": "S2",
+    "asset": "security-vessari",
+    "file": "security-vessari-v1.png",
+    "size": [
+      24,
+      24
+    ],
+    "mode": "RGBA",
+    "opaque_colors": 7,
+    "alpha": [
+      0,
+      255
+    ],
+    "palette": [
+      "161e30",
+      "424e63",
+      "949da7",
+      "e0dfd9",
+      "c39837",
+      "94b1bd",
+      "287c89",
+      "426493"
+    ],
+    "source_crop": {
+      "left": 440,
+      "top": 251,
+      "width": 376,
+      "height": 813
+    },
+    "silhouette_export": [
+      10,
+      22
+    ],
+    "sha256": "f8a9a19aff304d7714c55e95f89930d17758e4c74a084df47b81e96de694b124"
+  },
+  {
+    "id": "S3",
+    "asset": "security-muroth",
+    "file": "security-muroth-v1.png",
+    "size": [
+      24,
+      24
+    ],
+    "mode": "RGBA",
+    "opaque_colors": 8,
+    "alpha": [
+      0,
+      255
+    ],
+    "palette": [
+      "161e30",
+      "424e63",
+      "949da7",
+      "e0dfd9",
+      "c39837",
+      "d9ab5a",
+      "523f29",
+      "426493"
+    ],
+    "source_crop": {
+      "left": 314,
+      "top": 235,
+      "width": 626,
+      "height": 881
+    },
+    "silhouette_export": [
+      16,
+      22
+    ],
+    "sha256": "04105f607709283abdc4fbc7aff2ee5db599a829ee3ba5840b915273166ed0d0"
+  },
+  {
+    "id": "P1",
+    "asset": "politician-human",
+    "file": "politician-human-v1.png",
+    "size": [
+      24,
+      24
+    ],
+    "mode": "RGBA",
+    "opaque_colors": 8,
+    "alpha": [
+      0,
+      255
+    ],
+    "palette": [
+      "161e30",
+      "424e63",
+      "949da7",
+      "e0dfd9",
+      "c39837",
+      "dba36d",
+      "aa714b",
+      "592650"
+    ],
+    "source_crop": {
+      "left": 442,
+      "top": 281,
+      "width": 370,
+      "height": 818
+    },
+    "silhouette_export": [
+      12,
+      22
+    ],
+    "sha256": "5ca14b726d666ab3694d7cb05c44b254fefe3ad068cd6ac925f9c1682def3a54"
+  },
+  {
+    "id": "P2",
+    "asset": "politician-vessari",
+    "file": "politician-vessari-v1.png",
+    "size": [
+      24,
+      24
+    ],
+    "mode": "RGBA",
+    "opaque_colors": 8,
+    "alpha": [
+      0,
+      255
+    ],
+    "palette": [
+      "161e30",
+      "424e63",
+      "949da7",
+      "e0dfd9",
+      "c39837",
+      "94b1bd",
+      "287c89",
+      "592650"
+    ],
+    "source_crop": {
+      "left": 462,
+      "top": 296,
+      "width": 331,
+      "height": 770
+    },
+    "silhouette_export": [
+      10,
+      22
+    ],
+    "sha256": "15d45ac57fa2a9ae9f8b87e5bb668b4a95b4a8a6c010f4b9f583829d1dd01582"
+  },
+  {
+    "id": "P3",
+    "asset": "politician-muroth",
+    "file": "politician-muroth-v1.png",
+    "size": [
+      24,
+      24
+    ],
+    "mode": "RGBA",
+    "opaque_colors": 7,
+    "alpha": [
+      0,
+      255
+    ],
+    "palette": [
+      "161e30",
+      "424e63",
+      "949da7",
+      "e0dfd9",
+      "c39837",
+      "d9ab5a",
+      "523f29",
+      "592650"
+    ],
+    "source_crop": {
+      "left": 255,
+      "top": 326,
+      "width": 663,
+      "height": 816
+    },
+    "silhouette_export": [
+      16,
+      22
+    ],
+    "sha256": "7fa3a51142f282924bed111d84d77c6af4cc092dce0e405248c484964c077788"
+  },
+  {
+    "id": "H1",
+    "asset": "hesk-durran",
+    "file": "hesk-durran-v1.png",
+    "size": [
+      24,
+      24
+    ],
+    "mode": "RGBA",
+    "opaque_colors": 8,
+    "alpha": [
+      0,
+      255
+    ],
+    "palette": [
+      "161e30",
+      "424e63",
+      "949da7",
+      "e0dfd9",
+      "c39837",
+      "b98137",
+      "523f29",
+      "76c6d7"
+    ],
+    "source_crop": {
+      "left": 298,
+      "top": 282,
+      "width": 658,
+      "height": 804
+    },
+    "silhouette_export": [
+      16,
+      22
+    ],
+    "sha256": "fefb55fc0ceed9f5d8049600135ec1767cedcef91c8e140c325ceb267d082bc9"
+  }
+]
