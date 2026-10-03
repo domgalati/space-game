@@ -4,18 +4,18 @@ overview: Faction privateers built on the 1 move = 1 turn clock. A sensor game (
 todos:
   - id: factions
     content: Give worlds to factions, everyone-against-the-Assembly stance, reputation that moves, hail and scan text
-    status: pending
+    status: completed
   - id: sensors
-    content: Signature, contact levels, area ping with its spreading ring and bearing wedges, enemy pings, sun glare, patrol zones
-    status: pending
+    content: Signature, contact levels, area ping with its spreading ring and bearing wedges, enemy pings you can dodge, sun glare, patrol zones
+    status: completed
   - id: privateer-ai
-    content: Privateers as clock actors (patrol, hunt, engage, search, retreat, wave friends by) with faction sprites
-    status: pending
+    content: Privateers as clock actors (patrol, hunt, search, engage, retreat, wave friends by) with faction sprites
+    status: completed
   - id: combat
     content: Light weapon, targeting, scan-to-reveal intents, shield as battery, range-based hits, wrecks and salvage
-    status: pending
+    status: completed
   - id: world-hooks
-    content: Raid events spawn privateers, bounties and news, distress beacons (mostly traps)
+    content: Raid events and background patrols spawn privateers, bounties and news, distress beacons (mostly traps)
     status: pending
   - id: caravaneer-people
     content: A Caravaneer NPC set (jobs, sprites, portrait outfits, dialogue lines) so Etheora's surface matches its new faction
@@ -33,148 +33,171 @@ Your shield is your armour, your weapon's battery and your loudest signal at the
 - **The sun is cover.** Its glare blinds sensors, and you pay for hiding there in hull.
 - **Reputation decides who hunts you.**
 
-All numbers below are starting points to tune.
+Steps 1–4 are built. Numbers are the shipped values; all are constants and easy to tune. Distances are in metres: one pixel is one metre, and a tile is 24 m.
 
-## Decided in the interview
+## Decided
 
-- **Core:** tactical duels plus hunt and hide. Pings should be visual.
+- **Core:** tactical duels plus hunt and hide, with visual pings.
 - **Who:** faction privateers. Worlds are given to factions, and everyone is against the Assembly.
-- **Reputation:** rivals hunt you, and friends of a privateer's sponsor get waved by.
-- **Your ship:** starts with a light weapon that draws on the shield as its battery.
+- **Reputation:** rivals hunt you, and friends of a privateer's sponsor get waved by. A hauler with no standing anywhere is hunted.
+- **Your ship:** a light weapon that draws on the shield as its battery.
 - **Enemy intents:** shown only after you scan the ship.
 - **Weapon fire:** instant hits whose chance and damage drop with range.
-- **What gives you away:** pinging, a raised shield, boosting and a heavy hold.
+- **What gives you away:** pinging, moving, a raised shield, boosting, firing and a heavy hold.
+- **Running dark:** holding still (waiting or pinging) with the shield down.
 - **Where you can hide:** sun glare, running dark, and Assembly patrol zones.
-- **How pirates show up:** news rumors, then unknown blips; also distress-beacon lures, mostly traps with some real.
-- **How fights end:** pirates retreat when hurt, leave wrecks to salvage, and the Assembly pays bounties.
+- **Keys:** F fire, Tab next target, R scan, P area ping, S shield, Space wait.
+- **How pirates show up:** news rumors then blips, background patrols, and distress-beacon lures (step 5).
+- **How fights end:** pirates retreat when hurt, leave wrecks to salvage, and the Assembly pays bounties (bounties in step 5).
 - **Etheora's people:** they become Caravaneers (step 6). Until then its surface stays Assembly.
 
 **Not doing (for now):** pirates hailing or negotiating, nemesis captains, hiding behind planets, escalating heavier ships, chokepoint ambushes, cargo loss on defeat (the existing tow stays).
 
-## The world
+## 1. Factions (built)
 
-**Territory** (planet faction fields in `sol.json`):
+Code: `world/factions.py`; territory in `star_systems/sol.json`.
 
-| Faction | Holds |
-|---|---|
-| Assembly | Governus Centralis, Terramonta, Nexum Astra |
-| Dominion | Ferrica |
-| Cohort | Ageria, Arboresia |
-| Caravaneers | Cosmopolara, Etheora |
+| Faction | Holds | Hails as |
+|---|---|---|
+| Assembly | Governus Centralis, Terramonta, Nexum Astra | Assembly Traffic Control |
+| Dominion | Ferrica | Dominion Port Authority |
+| Cohort | Ageria, Arboresia | Cohort Commons Relay |
+| Caravaneers | Cosmopolara, Etheora | Caravaneer Moot |
 
-- **Everyone against the Assembly:** the Dominion, Cohort and Caravaneers license privateers against Assembly-friendly shipping. The Assembly is the law: it runs patrol zones and pays bounties.
-- **Who hunts you:** a privateer waves you by if your standing with its sponsor is +30 or more; it may still ping you to check. Otherwise you're prey, and the higher your Assembly standing, the more often they spawn near you and the longer they chase.
-- **Reputation that moves:**
-  - a kill: standing down with the sponsor, up with the Assembly;
-  - a bounty paid: up with the Assembly;
-  - rescuing a real distress beacon: up with the rescued hauler's faction;
-  - trading at a faction's worlds: a little up.
+- **Everyone against the Assembly:** the Dominion, Cohort and Caravaneers license privateers against Assembly-friendly shipping. The Assembly is the law: it runs patrol zones and will pay bounties.
+- **Waved by:** a privateer leaves you alone at +30 standing with its sponsor. It still pings you, and you get `PINGED BY COHORT - THEY KNOW YOU`.
+- **Hunted harder:** each 5 points of Assembly standing adds a turn to how long a privateer searches for you. At +30 Assembly, outer factions' hails warn "You fly Assembly colours. Our privateers have noticed."
+- **Standing** stays within -100..+100 (dialogue changes included) and moves by:
 
-## Hunt and hide
+  | Event | Change |
+  |---|---|
+  | Trading at a faction's world | +1 per $1000 bought or sold, carried over, up to +40 from trade alone |
+  | Destroying a privateer | sponsor -5, Assembly +3 |
+  | Bounty paid (step 5) | Assembly up |
+  | Rescuing a real distress beacon (step 5) | rescued hauler's faction up |
 
-- **Signature:** recalculated every turn. It's the range at which others can sense you.
+- **Hails and scans:** each faction answers in its own voice. Worlds without a landing map say "We've no berth for independents." Scans show the faction, your standing (`Friendly (+25)`), and "Licenses privateers against Assembly shipping" for the outer three.
+
+## 2. Hunt and hide (built)
+
+Code: `modes/star_system_mode/sensors.py` (logic), `sensor_fx.py` (drawing).
+
+- **Signature:** the range at which others can sense a ship. It works the same both ways and is recalculated every turn. The HUD shows it as `SIGNAL [####------] 700 QUIET` (DARK at 300, LOUD at 1200 and up).
 
   | State | Signature |
   |---|---|
-  | Running dark: shield down, no boost, no pings, no firing | about 300 px |
-  | Cruising | about 700 px |
+  | Holding still (waiting or pinging), shield down: running dark | 300 |
+  | Moved this turn | 700 |
   | Raised shield | +500 |
   | Boosting | +500 |
-  | Firing (that turn) | +900 |
+  | Fired this turn | +900 |
   | Full hold (scaled by how full) | up to +400 |
 
-- **Area ping:** `ping` with no name, or the P key. It costs 1 turn.
-  - A ring of glyph dots spreads out from your ship, and anything it crosses blinks.
-  - Unknown ships within about 6000 px appear as `?` blips, each with a bearing wedge (a translucent cone toward it, narrower when closer) that fades over a few turns.
-  - Every privateer within that same range hears it and learns your bearing.
-  - `ping <planet>` keeps working as it does today.
-- **Enemy pings:** a hunting privateer area-pings about every 4 turns. Its ring rolls across your screen and leaves a wedge pointing back at it, so you know you're being hunted and from roughly where.
-- **Running dark** works both ways: a ship running dark doesn't show until it's within a few tiles, or until an area ping catches it.
-- **Sun glare:** inside the sun's heat zone nobody can lock, ping or scan, in either direction. You vanish from their sensors and they vanish from yours, while the heat eats your shield and hull.
-- **Patrol zones:** within about 2500 px of Assembly worlds and Nexum Astra, privateers break off. The HUD shows ASSEMBLY PATROL.
-- **Losing you:** a privateer that loses track of you flies to where it last saw you, area-pings, and gives up after about 12 turns.
+- **Area ping:** P, or `ping` with no name in the ship computer. It costs 1 turn.
+  - A cyan ring of glyph dots spreads from your ship (2500 m per second on screen), and ships in sight blink as it passes.
+  - Hidden ships it finds get a bearing wedge (dotted edges, faint fill, narrower when closer) with a `?` and a rough range (to the nearest 100 m). Wedges fade over 4 turns. The ship computer lists each contact, for example `Contact E, about 1200 m`.
+  - It finds a ship within its catch range (below), and every ship within 6000 m hears it and gets a fix on you.
+  - `ping <planet>` works as before.
+- **Enemy pings:** your sensors pick up the pulse as it leaves, so an amber wedge points back at the pinger at once. The wavefront then travels 1000 m per turn and catches or misses you when it arrives.
+  - **Warning:** `INCOMING PING 4000 m NW, 3 TURNS - DODGE: HOLD STILL, SHIELD DOWN (SIGNAL UNDER 600)`. The advice is the least restrictive way of flying that dodges, accounting for cargo. Within 3000 m it says `TOO CLOSE TO DODGE`; in glare, `THE GLARE HIDES YOU`.
+  - **Arrival:** `PINGED - DOMINION HAS YOUR POSITION` or `PING MISSED YOU`.
+- **Catch range:** how close a ping must be to find a ship. 3000 m running dark, sliding to 6000 m at signal 1200 or louder.
+
+  | You're doing | Signal | Caught within |
+  |---|---|---|
+  | Holding still, shield down | 300 | 3000 m |
+  | Moving, shield down | 700 | about 4300 m |
+  | Holding still, shield up | 800 | about 4700 m |
+  | Moving with shield up, or louder | 1200+ | 6000 m |
+
+- **Sun glare:** inside the sun's heat zone (within 60% of its radius) nobody can sense, ping, lock or scan, in either direction. The HUD shows `GLARE - SENSORS BLIND`.
+- **Patrol zones:** within 2500 m of Assembly worlds and Nexum Astra. Privateers never enter them and break off when you're inside. The HUD shows `ASSEMBLY PATROL`. There are no patrol ships yet; it's just a zone.
+- **HUNTED:** an amber HUD tag while any privateer is hunting, searching for or engaging you.
 
 ## Contacts
 
-| Level | What you know |
-|---|---|
-| Blip | A `?` and a bearing, from an area ping or an enemy ping. |
-| Contact | Its position; it's within sight and not running dark. |
-| Scanned | Sponsor, ship class, hull and shield, and its intent each turn. |
+| Level | What you know | How it's shown |
+|---|---|---|
+| Blip | A bearing and rough range, from an area ping or an enemy ping | wedge, `?` and range |
+| Contact | Its position: within its signature of you, outside glare | its sprite, or an edge arrow off screen |
+| Scanned | Sponsor, class, hull, shield and its next intent | intent glyph above it and the target panel |
 
-A scan costs 1 turn, reaches about 20 tiles, and doesn't work in glare. Scanned status lasts for the encounter.
+Test drones (`<o>`, from step 2) are sensor targets only: unarmed and not targetable.
 
-## Fights (all on the turn clock)
+## 3. Privateers (built)
 
-- **Privateer ships:** actors on the turn clock, at these speeds:
+Code: `modes/star_system_mode/privateers.py`, `vessels.py`; art from `tools/art/qud_glyph/generate_privateers.py` into `assets/img/ships/`.
 
-  | Class | Speed | |
-  |---|---|---|
-  | Cutter | 150 | fast, fragile |
-  | Raider | 100 | |
-  | Gunship | 75 | slow, hits hard |
+| Class | Speed | Hull | Shield | Damage |
+|---|---|---|---|---|
+| Cutter | 150 | 40 | 30 | 0.8× |
+| Raider | 100 | 70 | 50 | 1.0× |
+| Gunship | 75 | 120 | 80 | 1.5× |
 
-  They boost like you do (double speed, double fuel) to chase or flee.
-- **Your actions:**
-  - move, boost and wait as now;
-  - fire: 1 turn;
-  - scan: 1 turn;
-  - area ping: 1 turn;
-  - shield toggle: free.
-- **Instant hits by range** (light weapon):
+Each has a 400 fuel tank and boosts at double speed and double burn while over 100 fuel.
+
+- **Patrol:** wander within 2000 m of home, pinging every 12 actions.
+- **Hunt:** head for their last fix on you, boosting while more than 600 m away, pinging every 4 actions.
+- **Search:** at the fix with no contact, wander within 6 tiles pinging. Give up after 12 turns plus 1 per 5 Assembly standing. If a ping places you somewhere new, hunt again.
+- **Engage:** once they sense you, close to 8 tiles (192 m) and hold, with the shield up while they can fire and down to recharge when they can't.
+- **Retreat:** below 40% hull, boost for home and stay there.
+- **Never:** fly into glare or patrol zones, or hunt you inside a patrol zone or when you're friendly with their sponsor.
+- **Look:** 48×48 glyph sprites in the barge's style, colored by faction (Dominion red `#b3424e`, Cohort green `#5bae70`, Caravaneer orange `#cc733f`), rotated to their heading, with the damage tint and shield shell your ship has.
+- **Testing:** `DEBUG_PRIVATEERS` and `DEBUG_DRONES` in `main.py` spawn them near the start (default 0).
+
+## 4. Fights (built)
+
+Code: `modes/star_system_mode/combat.py`, `combat_fx.py`, `wrecks.py`.
+
+- **Your actions:** move, boost and wait as before; fire 1 turn; scan 1 turn; area ping 1 turn; shield toggle free.
+- **Weapon** (yours, and privateers' times their class damage):
 
   | Range | Distance | Hit chance | Damage |
   |---|---|---|---|
-  | Close | up to 4 tiles | 90% | 10 |
-  | Effective | up to 8 tiles | 65% | 7 |
-  | Long | up to 12 tiles | 35% | 4 |
+  | Close | up to 96 m (4 tiles) | 90% | 20 |
+  | Effective | up to 192 m (8 tiles) | 65% | 14 |
+  | Long | up to 288 m (12 tiles) | 35% | 8 |
 
-  Damage goes through the existing shield-then-hull system.
-- **Shield as battery:**
-  - a shot costs 12 shield charge, is loud, and counts as taking damage, so the shield doesn't recharge that turn;
-  - with the shield lowered you can still fire from stored charge, but you're exposed;
-  - privateers follow the same rules, so a scanned enemy's charge tells you whether it can shoot.
-- **Intent glyphs** (scanned enemies only, drawn above the ship in TeleSys):
+  Hits go through the shield-then-hull system. Out of range, too little charge, or glare give a notice and cost no turn.
+- **Shield as battery:** a shot costs 12 shield charge whether the shield is up or down, is loud, and stops the shield recharging that turn. Enemy hits on your raised shield drain your battery too. A privateer too low to fire drops its shield to recharge faster, which leaves its hull open.
+- **Targeting:** Tab cycles armed ships in sight, nearest first. F and R use the target, or the nearest if there isn't one. A white bracket marks it.
+- **Scanning:** R, 1 turn, up to 480 m (20 tiles), not in glare. Scanned status lasts until the privateer gives up the hunt.
+- **Intents:** each action a privateer declares what it will do next. It only fires on an action it declared as firing, so a scanned privateer always warns you a turn ahead; stepping out of range or sight spoils the shot.
 
   | Glyph | Meaning |
   |---|---|
+  | `(*) 65%` | firing next turn, with its hit chance |
   | `>>` | closing in |
-  | `(*)` | firing next turn, with its hit chance |
+  | `==` | holding range |
   | `<<` | retreating |
   | `?` | searching |
-  | `((` | pinging |
+  | `((` | pinging next turn |
+  | `..` | patrolling |
 
-- **Glare** blocks locks both ways, so diving toward the sun breaks off a firefight.
-- **Retreat:** below 30% hull a privateer boosts for home. Chasing it costs your fuel.
-- **Wrecks:** a destroyed privateer leaves a wreck that lasts about 40 turns. Approach it, press E and `salvage` it for goods from its sponsor's worlds and some credits.
-- **Bounties:** kills are logged. Assembly docking terminals pay them out with a `bounty` command, and the news reports them.
-- **Losing:** hull 0 still means the tow.
+- **Target panel** (top right): scanned shows sponsor, class, hull, shield and intent; unscanned shows "UNKNOWN CONTACT". Both show exact range, your hit chance and damage, and the keys.
+- **Shots:** a 140 ms chunky beam in the shooter's colour (yours cyan); a miss stops short in a spark. Notices: `HIT - 14 DAMAGE`, `MISS`, `HULL HIT - 9`.
+- **Kills:** standing moves (sponsor -5, Assembly +3) and the kill is logged in `player.kill_log` for bounties.
+- **Wrecks:** last 40 turns. Fly up, press E for the ship computer (wreck readout and its own debris art), and `salvage`: goods and credits by class (cutter 2–4 goods and $40–80, raider 3–6 and $80–150, gunship 5–10 and $150–300). Goods come from the sponsor's worlds' markets; while those have none (only Terramonta, Etheora and Nexum Astra have markets), from anything that sells in Sol. What doesn't fit the hold stays aboard.
+- **Losing:** hull 0 means the tow.
+- **Balance** (simulated duels, firing whenever charged and recharging with the shield down): cutters fall in 25–60 turns and barely hurt you; raiders retreat after about 80 turns, having cost you 30–55 hull; gunships tow you or grind on. Run from gunships.
 
-## Rumors, blips and lures
+## 5. World hooks (next)
 
 - **Raids are real:** the existing `Pirate Raids Reported` economy event spawns a raid group, with one of the outer factions as sponsor, around that world for the event's duration.
   - The news story is the rumor; out there they show up as blips.
   - Wiping out the group ends the event early ("raids subside"), easing prices.
-- **Background patrols:** a few privateers stay near their own faction's worlds.
+- **Background patrols:** a few privateers stay near their own faction's worlds. Spawn rate should rise with Assembly standing.
+- **Bounties:** Assembly docking terminals pay out logged kills with a `bounty` command (raising Assembly standing), and the news reports them.
 - **Distress beacons:** they always broadcast, so they show up as SOS blips.
   - About 70% are traps: privateers running dark nearby spring the ambush when you come within about 12 tiles.
   - The rest are genuine stranded haulers you can `refuel` for credits and standing with their faction.
   - Scanning from just outside the trap's trigger range (scans reach 20 tiles) tells you which kind it is.
 
-## Look
+## 6. Caravaneer people (later)
 
-- **Privateer ships:** 48×48 glyph sprites in the barge's style, colored by faction from the portrait palette: Dominion red `#b3424e`, Cohort green `#5bae70`, Caravaneer orange `#cc733f`. They get the same damage tint and blocky shield shell as your ship.
-- **Shots:** a one-frame chunky beam in the shooter's color. A miss ends in a spark short of the target.
-- **Area ping ring:** a coarse dotted ring built like the shield shell, spreading out over about 0.6 seconds of real time. Your rings are cyan and enemy rings amber.
-- **HUD:** a signature meter (QUIET to LOUD), a target panel (name, sponsor, class, hull and shield, hit chance), and GLARE and ASSEMBLY PATROL tags.
+A planet's faction in space comes from `sol.json`, but the people on its surface come from its map file, and only the Assembly has an NPC set today. Etheora is the only reassigned world with a surface map, so this step makes its people Caravaneers. Cosmopolara will use the same set once it has a map. It only depends on step 1.
 
-## Caravaneer people
-
-A planet's faction in space comes from `sol.json`, but the people on its surface come from its map file, and only the Assembly has an NPC set today. Etheora is the only reassigned world with a surface map, so this step makes its people Caravaneers. Cosmopolara will use the same set once it has a map.
-
-The pieces, following the Assembly's set:
-
-- **`entities/npcs/caravaneers_npc.py`:** job classes, name lists and hobbies. `npc_generator` already loads a faction's set by name, so nothing else changes there.
+- **`entities/npcs/caravaneers_npc.py`:** job classes, name lists and hobbies. `npc_generator` already loads a faction's set by name.
 - **Jobs (proposal, confirm when we get here):**
 
   | Caravaneer | Like the Assembly's |
@@ -186,22 +209,12 @@ The pieces, following the Assembly's set:
   | Outrider (escort and security) | Security |
 
 - **Sprites:** a 24×24 sprite per job in `assets/img/objects/`, recolored from the existing miner and foreman sprites in Caravaneer orange.
-- **Portraits:** an outfit per job, drawn by `tools/gen_portrait_placeholders.py` and listed in the portrait manifest. The Caravaneer accent color `#cc733f` is already there.
+- **Portraits:** an outfit per job, drawn by `tools/gen_portrait_placeholders.py` and listed in the portrait manifest. The Caravaneer accent `#cc733f` is already there.
 - **Dialogue:** goods and job lines per job in `dialogue/topics.py`, plus Etheora's tech-goods bias.
-- **Etheora's map:** `guild` set to `caravaneers`, `npc_jobs` set to the new jobs, and the job posts moved to match. The map spec or the `.tmx` posts need updating.
+- **Etheora's map:** `guild` set to `caravaneers`, `npc_jobs` set to the new jobs, and the job posts moved to match.
 - **Tests:** rolling a Caravaneer roster, building each job, portraits picking the right outfits, and landing on Etheora.
-
-## Build order (each step is usable on its own)
-
-1. **Factions:** territory, the stance table, reputation changes, hail and scan text.
-2. **Sensors:** signature, contact levels, area ping and wedges, enemy pings, glare, patrol zones. Testable with a dummy drone actor before pirates exist.
-3. **Privateer behaviour on the clock:** patrol, hunt, engage, search, retreat, waving friends by. Faction sprites.
-4. **Combat:** weapon, targeting, scanning to reveal intents, shield as battery, hit model, wrecks and salvage.
-5. **World hooks:** raid events, bounties and news, distress beacons.
-6. **Caravaneer people:** the NPC set above. It only depends on step 1, so it can move earlier without blocking anything.
 
 ## Open questions
 
-- **Neutral standing:** do privateers hunt a hauler with zero standing everywhere? Default: yes, unless you're friendly with their sponsor.
-- **Keys:** default F to fire, Tab to cycle targets, R to scan a target, P to area-ping. S (shield) and Space (wait) are taken.
-- **Assembly patrols:** visible ships, or just a zone for now?
+- **Assembly patrols:** stay a zone, or become visible patrol ships?
+- **Market coverage:** Dominion and Cohort worlds have no markets, so their wrecks carry other goods and trading can't raise standing with them yet.

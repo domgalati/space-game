@@ -48,6 +48,15 @@ STATION_ART = [
     " [#][#][#]     |     [#][#][#] ",
 ]
 STATION_COLORS = {"#": DIM, "o": CITY_LIGHTS, "=": BRIGHT, "+": BRIGHT}
+WRECK_ART = [
+    "      .     *        '    ",
+    "   __/\\_     .  /|        ",
+    "  [#]  \\'--.   /=|  .    ",
+    "   '  *  |#|  '  |_\\      ",
+    "    .   /==/   *     [#]  ",
+    "  *   '--'  .    '   ' .  ",
+]
+WRECK_COLORS = {"#": DIM, "*": LAVA, "=": BRIGHT}
 
 
 def _seed_for(name):
@@ -210,22 +219,22 @@ def planet_cells(planet, char_aspect):
     return grid
 
 
-def station_cells():
-    seed = _seed_for("station")
-    top = (ART_ROWS - len(STATION_ART)) // 2
-    left = (ART_COLS - len(STATION_ART[0])) // 2
+def station_cells(art=STATION_ART, colors=STATION_COLORS, seed_name="station"):
+    seed = _seed_for(seed_name)
+    top = (ART_ROWS - len(art)) // 2
+    left = (ART_COLS - len(art[0])) // 2
     grid = []
     for row in range(ART_ROWS):
         line = []
         for col in range(ART_COLS):
             art_row, art_col = row - top, col - left
             char = " "
-            if 0 <= art_row < len(STATION_ART) and 0 <= art_col < len(STATION_ART[art_row]):
-                char = STATION_ART[art_row][art_col]
+            if 0 <= art_row < len(art) and 0 <= art_col < len(art[art_row]):
+                char = art[art_row][art_col]
             if char == " ":
                 line.append(_background_star(col, row, seed))
             else:
-                line.append((char, STATION_COLORS.get(char, MID)))
+                line.append((char, colors.get(char, MID)))
         grid.append(line)
     return grid
 
@@ -238,6 +247,8 @@ def render_scan_art(target, font):
     line_height = font.get_linesize()
     if isinstance(target, Planet):
         cells = planet_cells(target, line_height / char_width)
+    elif getattr(target, "obj_type", None) == "Wreck":
+        cells = station_cells(WRECK_ART, WRECK_COLORS, "wreck")
     else:
         cells = station_cells()
 

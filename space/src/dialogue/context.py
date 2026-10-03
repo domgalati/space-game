@@ -17,6 +17,7 @@ import random
 
 from entities.npcs.species import species_name
 from world.disposition import clamp_mood, disposition_word
+from world.factions import adjust_standing
 
 from . import topics
 from .errors import DialogueError
@@ -150,7 +151,7 @@ class GameContext:
     def _rep(self, faction, delta):
         faction = str(faction).lower()
         delta = int(delta)
-        self.player.reputation[faction] = self.player.reputation.get(faction, 0) + delta
+        delta = adjust_standing(self.player.reputation, faction, delta)
         self.changes.append(f"{faction.title()} reputation {delta:+d}.")
 
     def _mood(self, delta):

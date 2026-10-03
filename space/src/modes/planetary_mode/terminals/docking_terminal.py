@@ -15,7 +15,7 @@ def handle_command(command, mode):
         return trade.refuel(mode.player, mode.economy)
     if verb == "repair":
         return trade.repair(mode.player)
-    result = trade.handle(verb, argument, mode.player, mode.economy)
+    result = trade.handle(verb, argument, mode.player, mode.economy, mode.planet.planet_guild)
     if result is not None:
         return result
     return commands.get(verb, "Unknown command. Type 'help' for available commands.")

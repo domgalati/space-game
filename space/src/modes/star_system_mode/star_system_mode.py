@@ -1,6 +1,7 @@
 # This file handles the main loop when the player is traversing a star system
 
 import math
+import random
 
 import pygame
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, resolve_game_path
@@ -12,6 +13,17 @@ from .nav_charts import NavCharts
 from .scan_terminal import ScanTerminal
 from .star_systems import StarSystem
 from .shield_fx import draw_shield
+from .sensor_fx import OWN, draw_contacts, draw_sensor_overlay
+from .sensors import (
+    LOUD_AT, PING_RANGE, PING_SPEED, SIGNATURE_DARK, SIGNATURE_MAX, Sensors, compass, loudest_unfound,
+    range_label, signature,
+)
+from world.factions import faction_name, record_kill, waves_by
+from .combat import SCAN_RANGE, SHOT_MS, Shot, band, charged, fire
+from .combat_fx import INTENT_WORDS, draw_bracket, draw_intent, draw_shots, draw_target_panel, intent_label
+from .wrecks import Wreck, roll_salvage
+from .vessels import Drone
+from .privateers import CLASSES as PRIVATEER_CLASSES, Privateer
 from util.economy.news_feed import NewsFeed
 from world.world_state import WorldState
 from entities.player import DOCK_FUEL
@@ -27,6 +39,17 @@ BOOST_SPEED = 200  # hold shift: half a turn per tile, twice the burn
 RESERVE_SPEED = 50  # empty tank: two turns per tile
 WAIT_KEY = pygame.K_SPACE
 WAIT_TURNS = 1
+PING_KEY = pygame.K_p
+PING_TURNS = 1
+FIRE_KEY = pygame.K_f
+SCAN_KEY = pygame.K_r
+TARGET_KEY = pygame.K_TAB
+FIRE_TURNS = 1
+SCAN_TURNS = 1
+TARGET_COLOR = (255, 255, 255)
+RING_EASE = 12  # how quickly enemy rings glide to their new radius after a turn, per second
+TEST_DRONE_RANGE = (900, 3500)  # px from the ship where debug drones appear
+TEST_PRIVATEER_RANGE = (3500, 6000)  # px from the ship where debug privateers start patrolling
 TOW_FEE = 0.1  # share of credits the tug charges when the hull fails
 NOTICE_MS = 4000
 BOOST_BURN = 2.0
@@ -43,6 +66,7 @@ RESERVE_COLOR = (230, 80, 70)
 SHIELD_COLOR = (90, 170, 255)
 SHIELD_DOWN_COLOR = (110, 120, 140)
 HEAT_COLOR = (230, 80, 70)
+HUNTED_COLOR = (233, 159, 16)
 SHIELD_KEY = pygame.K_s
 SHIELD_FADE_MS = 160  # shell fades in or out over this long
 SHIELD_FLASH_MS = 140  # shell flashes this long after absorbing a hit
@@ -85,7 +109,15 @@ class StarSystemMode:
         self.boosting = False
         self.clock = TurnClock()
         self.clock.add(Ticker(self.upkeep_turn))
-        self.notice = None  # (text, shown until ms)
+        self.notice = None  # (text, shown until ms, colour)
+        self.sensors = Sensors(self.selected_system)
+        self.vessels = []
+        self.last_action = "wait"  # "move", "wait" or "ping"; moving is what makes you loud
+        self.ring_turn = 0.0  # the clock as enemy rings are drawn, easing toward the real one
+        self.target = None  # the vessel F fires at and R scans
+        self.shots = []
+        self.wrecks = []
+        self.rng = random.Random()
         self.shield_changed_at = -SHIELD_FADE_MS
         self.shield_flash_until = 0
 
@@ -112,8 +144,10 @@ class StarSystemMode:
         self.x_position, self.y_position = self.input_handler.handle_movement(self.x_position, self.y_position, self.grid_size)
         if (self.x_position, self.y_position) != before:
             ship.burn_fuel(multiplier=self.burn_multiplier())
+            self.last_action = "move"
             self.spend_turns(self.move_turns())
         elif self.input_handler.handle_wait(WAIT_KEY, self.cruise_cooldown):
+            self.last_action = "wait"
             self.spend_turns(WAIT_TURNS)
         new_direction = determine_direction(self.x_position, self.y_position, self.previous_x, self.previous_y)
         if new_direction:
@@ -127,6 +161,7 @@ class StarSystemMode:
     def spend_turns(self, turns):
         """The player acted; let the world catch up, then tow the ship home if the hull failed."""
         self.clock.advance(turns)
+        self.resolve_pings()
         if self.player.ship.hull <= 0:
             self.tow()
 
@@ -148,11 +183,266 @@ class StarSystemMode:
         x, y = self.selected_system.spawn_point()
         self.x_position, self.y_position = int(x) // TILE_SIZE, int(y) // TILE_SIZE
         self.previous_x, self.previous_y = self.x_position, self.y_position
+        self.target = None
         home = self.selected_system.objects[0].name if self.selected_system.objects else "the station"
         self.show_notice(f"HULL FAILURE - TOWED TO {home.upper()} - FEE ${fee}")
 
-    def show_notice(self, text):
-        self.notice = (text, pygame.time.get_ticks() + NOTICE_MS)
+    def show_notice(self, text, colour=RESERVE_COLOR):
+        self.notice = (text, pygame.time.get_ticks() + NOTICE_MS, colour)
+
+    def add_vessel(self, vessel):
+        self.vessels.append(vessel)
+        self.clock.add(vessel)
+
+    def spawn_test_drones(self, count, rng=None):
+        """Sensor test targets that wander near the ship and ping. A debug aid until privateers exist."""
+        rng = rng or random.Random(7)
+        x, y = self.ship_center()
+        for _ in range(count):
+            angle = rng.uniform(0, 2 * math.pi)
+            distance = rng.uniform(*TEST_DRONE_RANGE)
+            self.add_vessel(Drone((x + distance * math.cos(angle), y + distance * math.sin(angle)), self, rng))
+
+    def spawn_test_privateers(self, count, rng=None):
+        """Privateers of every class and raider faction patrolling near the ship. A debug aid
+        until raids and patrols spawn them for real; they hunt but can't shoot yet."""
+        from world.factions import RAIDER_SPONSORS
+
+        rng = rng or random.Random(11)
+        kinds = list(PRIVATEER_CLASSES)
+        x, y = self.ship_center()
+        for i in range(count):
+            for _ in range(20):
+                angle = rng.uniform(0, 2 * math.pi)
+                distance = rng.uniform(*TEST_PRIVATEER_RANGE)
+                point = (x + distance * math.cos(angle), y + distance * math.sin(angle))
+                if not self.sensors.blind(point) and not self.selected_system.in_patrol_zone(point):
+                    break
+            sponsor = RAIDER_SPONSORS[i % len(RAIDER_SPONSORS)]
+            self.add_vessel(Privateer(kinds[i % len(kinds)], sponsor, point, self, rng=rng))
+
+    def player_signature(self):
+        ship = self.player.ship
+        moved = self.last_action == "move"
+        cargo = ship.cargo
+        return signature(moved, ship.shield_up, moved and self.boosting, cargo.get_total_quantity() / cargo.capacity,
+                         fired=self.last_action == "fire")
+
+    # Fighting: targets, firing, scanning, kills and salvage.
+    def combat_targets(self):
+        """Armed ships you can sense, nearest first."""
+        me = self.ship_center()
+        armed = [v for v in self.vessels if hasattr(v, "ship") and self.sees(v)]
+        return sorted(armed, key=lambda v: math.dist(me, v.position))
+
+    def current_target(self):
+        """The target while you can still sense it, else the nearest armed contact (or None)."""
+        if self.target is None or self.target not in self.vessels or not self.sees(self.target):
+            self.target = next(iter(self.combat_targets()), None)
+        return self.target
+
+    def cycle_target(self):
+        targets = self.combat_targets()
+        if not targets:
+            self.target = None
+            self.show_notice("NO CONTACTS IN SIGHT", OWN)
+        elif self.target in targets:
+            self.target = targets[(targets.index(self.target) + 1) % len(targets)]
+        else:
+            self.target = targets[0]
+
+    def player_fire(self):
+        """Fire at the target: a turn, SHOT_COST shield charge, and very loud. Returns hit or miss."""
+        me = self.ship_center()
+        target = self.current_target()
+        if target is None:
+            return self.show_notice("NO TARGET IN SIGHT", OWN)
+        distance = math.dist(me, target.position)
+        if self.sensors.blind(me) or self.sensors.blind(target.position):
+            return self.show_notice("GLARE - NO LOCK", HEAT_COLOR)
+        if band(distance) is None:
+            return self.show_notice(f"OUT OF RANGE - {exact_range(distance)}", OWN)
+        if not charged(self.player.ship):
+            return self.show_notice("SHIELD CHARGE TOO LOW TO FIRE", RESERVE_COLOR)
+        hit, to_shield, to_hull = fire(self.player.ship, target.ship, me, target.position, self.rng)
+        self.shots.append(Shot(me, target.position, hit, OWN, pygame.time.get_ticks() + SHOT_MS))
+        target.player_fix = (me, self.clock.now)
+        if target.ship.hull <= 0:
+            self.destroy(target)
+        else:
+            self.show_notice(f"HIT - {int(to_shield + to_hull)} DAMAGE" if hit else "MISS", OWN)
+        self.last_action = "fire"
+        self.spend_turns(FIRE_TURNS)
+        return hit
+
+    def player_scan(self):
+        """Scan the target: a turn, and from then on its intent shows above it."""
+        me = self.ship_center()
+        target = self.current_target()
+        if target is None:
+            return self.show_notice("NO TARGET IN SIGHT", OWN)
+        if self.sensors.blind(me) or self.sensors.blind(target.position):
+            return self.show_notice("GLARE - SCANNERS BLIND", HEAT_COLOR)
+        if math.dist(me, target.position) > SCAN_RANGE:
+            return self.show_notice(f"TOO FAR TO SCAN - {exact_range(math.dist(me, target.position))}", OWN)
+        target.scanned = True
+        self.show_notice(f"SCANNED {faction_name(target.sponsor).upper()} {target.kind.upper()}", OWN)
+        self.last_action = "wait"
+        self.spend_turns(SCAN_TURNS)
+
+    def privateer_fire(self, privateer):
+        """A privateer's shot at the player, by the same rules as yours."""
+        me = self.ship_center()
+        hit, to_shield, to_hull = fire(privateer.ship, self.player.ship, privateer.position, me, self.rng,
+                                       privateer.power)
+        self.shots.append(Shot(privateer.position, me, hit, privateer.colour, pygame.time.get_ticks() + SHOT_MS))
+        if to_shield:
+            self.shield_flash_until = pygame.time.get_ticks() + SHIELD_FLASH_MS
+        if to_hull:
+            self.show_notice(f"HULL HIT - {math.ceil(to_hull)}", RESERVE_COLOR)
+
+    def destroy(self, privateer):
+        """A privateer breaks up: it leaves a wreck worth salvaging, and standing moves."""
+        self.vessels.remove(privateer)
+        self.clock.remove(privateer)
+        if self.target is privateer:
+            self.target = None
+        markets = self.world_state.markets_data()
+        goods = set()
+        for planet in self.selected_system.planets:
+            if planet.planet_guild == privateer.sponsor:
+                goods.update((markets.get(planet.name) or {}).get("goods") or {})
+        if not goods:  # the sponsor's worlds have no market yet: carry anything that sells in Sol
+            for market in markets.values():
+                goods.update((market or {}).get("goods") or {})
+        cargo, credits = roll_salvage(privateer.kind, goods, self.rng)
+        wreck = Wreck(privateer, cargo, credits, self.remove_wreck)
+        self.wrecks.append(wreck)
+        self.clock.add(wreck)
+        changes = record_kill(self.player, privateer.sponsor, privateer.kind)
+        self.show_notice(f"{faction_name(privateer.sponsor).upper()} {privateer.kind.upper()} DESTROYED - {changes}",
+                         OWN)
+
+    def remove_wreck(self, wreck):
+        if wreck in self.wrecks:
+            self.wrecks.remove(wreck)
+        self.clock.remove(wreck)
+
+    def salvage(self, wreck):
+        """Take what fits from a wreck. Returns lines for the ship computer."""
+        if wreck.empty():
+            return ["Nothing left worth taking."]
+        cargo = self.player.ship.cargo
+        lines = []
+        for good, quantity in list(wreck.cargo.items()):
+            room = cargo.capacity - cargo.get_total_quantity()
+            taken = min(quantity, room)
+            if taken:
+                cargo.add_item(good, taken)
+                lines.append(f"Took {taken} {good} aboard.")
+            if taken < quantity:
+                lines.append(f"No room for {quantity - taken} more {good}.")
+                wreck.cargo[good] = quantity - taken
+            else:
+                del wreck.cargo[good]
+        if wreck.credits:
+            self.player.currency += wreck.credits
+            lines.append(f"Recovered ${wreck.credits}.")
+            wreck.credits = 0
+        return lines
+
+    def sees(self, vessel):
+        """Whether the player can sense `vessel` right now."""
+        return self.sensors.sees(self.ship_center(), vessel.position, vessel.signature())
+
+    def seen_by(self, vessel):
+        """Whether `vessel` can sense the player right now."""
+        return self.sensors.sees(vessel.position, self.ship_center(), self.player_signature())
+
+    def area_ping(self):
+        """Ping every direction: unknown ships in range show as bearings, and all of them hear you."""
+        origin = self.ship_center()
+        if self.sensors.blind(origin):
+            return ["Glare: sensors are blind this deep in the sun."]
+        turn = self.clock.now
+        self.sensors.pulse(origin, pygame.time.get_ticks())
+        heard = [v for v in self.vessels if self.sensors.in_ping_range(origin, v.position)]
+        unknown = [v for v in heard if not self.sees(v) and self.sensors.catches(origin, v.position, v.signature())]
+        in_sight = sum(1 for vessel in heard if self.sees(vessel))
+        for vessel in heard:
+            vessel.player_fix = (origin, turn)
+        for vessel in unknown:
+            self.sensors.mark(origin, vessel.position, turn, hostile=False)
+        self.last_action = "ping"
+        self.spend_turns(PING_TURNS)
+        found = f"Area ping: {len(unknown)} unknown contact{'s' if len(unknown) != 1 else ''}"
+        if in_sight:
+            found += f", {in_sight} already in sight"
+        lines = [found + "."]
+        for vessel in sorted(unknown, key=lambda v: math.dist(origin, v.position)):
+            lines.append(f"  Contact {compass(origin, vessel.position)}, about {range_label(math.dist(origin, vessel.position))}")
+        lines.append("Every ship in range heard you." if heard else "Nothing answered.")
+        return lines
+
+    def vessel_ping(self, vessel):
+        """Another ship pings. Your sensors pick up the pulse as it leaves, pointing back at the
+        pinger; its wavefront then travels toward you and catches or misses you when it arrives."""
+        self.sensors.enemy_pulse(vessel.position, self.clock.now, vessel)
+        me = self.ship_center()
+        if self.sensors.in_ping_range(vessel.position, me) and not self.sees(vessel):
+            self.sensors.mark(me, vessel.position, self.clock.now, hostile=True)
+
+    def incoming_pings(self):
+        """Enemy rings still on their way to you, nearest arrival first, as (ring, distance)."""
+        me = self.ship_center()
+        pending = []
+        for ring in self.sensors.rings:
+            if not ring.hostile or ring.resolved:
+                continue
+            distance = math.dist(ring.origin, me)
+            if distance <= PING_RANGE:
+                pending.append((ring, distance))
+        return sorted(pending, key=lambda item: item[1] - item[0].radius(0, self.clock.now))
+
+    def resolve_pings(self):
+        """Wavefronts that have reached you catch you or miss you, by how quiet you are now."""
+        me = self.ship_center()
+        for ring, distance in self.incoming_pings():
+            if ring.radius(0, self.clock.now) < distance:
+                continue
+            ring.resolved = True
+            if not self.sensors.catches(ring.origin, me, self.player_signature()):
+                self.show_notice("PING MISSED YOU", OWN)
+                continue
+            self.caught_by(ring.pinger)
+
+    def caught_by(self, vessel):
+        me = self.ship_center()
+        vessel.player_fix = (me, self.clock.now)
+        sponsor = getattr(vessel, "sponsor", None)
+        who = faction_name(sponsor).upper() if sponsor else "A SHIP"
+        if sponsor and waves_by(self.player.reputation, sponsor):
+            self.show_notice(f"PINGED BY {who} - THEY KNOW YOU", OWN)
+        else:
+            self.show_notice(f"PINGED - {who} HAS YOUR POSITION", HUNTED_COLOR)
+
+    def ping_warning(self):
+        """What the nearest incoming ping means for you, for the screen, or None."""
+        pending = self.incoming_pings()
+        if not pending:
+            return None
+        ring, distance = pending[0]
+        turns = max(1, math.ceil((distance - ring.radius(0, self.clock.now)) / PING_SPEED))
+        where = f"INCOMING PING {range_label(distance)} {compass(self.ship_center(), ring.origin)}, {turns} TURN{'S' if turns > 1 else ''}"
+        limit = loudest_unfound(distance)
+        if limit is None:
+            return f"{where} - TOO CLOSE TO DODGE"
+        if self.sensors.blind(self.ship_center()):
+            return f"{where} - THE GLARE HIDES YOU"
+        return f"{where} - {dodge_advice(limit, self.player.ship.cargo)}"
+
+    def hunted(self):
+        return any(vessel.hunting() for vessel in self.vessels)
 
     def set_shield(self, up):
         self.player.ship.shield_up = up
@@ -209,6 +499,9 @@ class StarSystemMode:
         for obj in self.selected_system.objects:
             if self._in_approach(obj, rect):
                 return obj
+        for wreck in self.wrecks:
+            if self._in_approach(wreck, rect):
+                return wreck
         return None
     
     def open_scan_terminal(self, target):
@@ -231,11 +524,8 @@ class StarSystemMode:
 
     def ping(self, query):
         targets = self.ping_targets()
-        uncharted = [body for body in targets if not self.nav.is_charted(body)]
         if not query:
-            if not uncharted:
-                return ["All contacts in this system are charted."]
-            return ["Usage: ping <name>", "Uncharted: " + ", ".join(body.name for body in uncharted)]
+            return self.area_ping()
 
         matches = [body for body in targets if body.name.lower().startswith(query)]
         if not matches:
@@ -284,6 +574,14 @@ class StarSystemMode:
                 return
             if event.type == pygame.KEYDOWN and event.key == SHIELD_KEY:
                 self.set_shield(not self.player.ship.shield_up)
+            if event.type == pygame.KEYDOWN and event.key == PING_KEY:
+                self.show_notice(self.area_ping()[0].upper(), OWN)
+            if event.type == pygame.KEYDOWN and event.key == TARGET_KEY:
+                self.cycle_target()
+            if event.type == pygame.KEYDOWN and event.key == FIRE_KEY:
+                self.player_fire()
+            if event.type == pygame.KEYDOWN and event.key == SCAN_KEY:
+                self.player_scan()
 
         self.handle_continuous_updates()
 
@@ -311,11 +609,23 @@ class StarSystemMode:
         self.draw_beacons(screen)
         self.draw_candidate_arcs(screen)
         self.draw_nav_markers(screen)
+        now = pygame.time.get_ticks()
+        self.sensors.prune(self.clock.now, now)
+        dt = (now - getattr(self, "_last_draw_ms", now)) / 1000
+        self._last_draw_ms = now
+        self.ring_turn = min(self.clock.now, self.ring_turn + max(0.0, self.clock.now - self.ring_turn) * min(1.0, dt * RING_EASE))
+        draw_sensor_overlay(screen, self.camera, self.sensors, self.clock.now, now, self.nav_font, self.ring_turn)
+        for wreck in self.wrecks:
+            centre = (wreck.position[0] - self.camera.x, wreck.position[1] - self.camera.y)
+            if screen.get_rect().inflate(64, 64).collidepoint(centre):
+                wreck.draw(screen, centre, self.nav_font)
+        draw_contacts(screen, self.camera, [v for v in self.vessels if self.sees(v)],
+                      self.sensors.rings, now, self.nav_font, self.ring_turn)
+        self.draw_combat_marks(screen)
         ship_top_left = (
             self.x_position * TILE_SIZE - self.camera.x,
             self.y_position * TILE_SIZE - self.camera.y,
         )
-        now = pygame.time.get_ticks()
         spaceship_frame, blit_pos = self.animated_cargoship.blit_position(
             self.current_direction, ship_top_left, self.hull_tint(now)
         )
@@ -323,9 +633,15 @@ class StarSystemMode:
         sprite_center = (ship_top_left[0] + self.frame_dimensions[0] // 2,
                          ship_top_left[1] + self.frame_dimensions[1] // 2)
         draw_shield(screen, sprite_center, self.shield_strength(now), now, now < self.shield_flash_until)
+        self.shots = [shot for shot in self.shots if now <= shot.until_ms]
+        draw_shots(screen, self.camera, self.shots, now, self.nav_font)
         self.draw_hud(screen)
+        self.draw_target_readout(screen)
         if self.notice and now < self.notice[1]:
-            draw_prompt(screen, self.notice[0], RESERVE_COLOR, SCREEN_HEIGHT // 4)
+            draw_prompt(screen, self.notice[0], self.notice[2], SCREEN_HEIGHT // 4)
+        warning = self.ping_warning()
+        if warning:
+            draw_prompt(screen, warning, HUNTED_COLOR, SCREEN_HEIGHT // 4 - 44, small=True)
         
         if self.scan_terminal:
             self.scan_terminal.display(screen)
@@ -360,7 +676,16 @@ class StarSystemMode:
             (f"HULL   {bar(ship.hull, ship.max_hull)} {math.ceil(ship.hull)}", hull_color),
             (f"SHIELD {bar(ship.shield, ship.max_shield)} {int(ship.shield)} {state}",
              SHIELD_COLOR if ship.shield_up else SHIELD_DOWN_COLOR),
+            (f"SIGNAL {bar(self.player_signature(), SIGNATURE_MAX)} {int(self.player_signature())} "
+             f"{signature_word(self.player_signature())}", HUD_COLOR),
         ]
+        me = self.ship_center()
+        if self.sensors.blind(me):
+            lines.append(("GLARE - SENSORS BLIND", HEAT_COLOR))
+        if self.selected_system.in_patrol_zone(me):
+            lines.append(("ASSEMBLY PATROL", NAV_MARKER_COLOR))
+        if self.hunted():
+            lines.append(("HUNTED", HUNTED_COLOR))
         surfaces = [self.nav_font.render(text, True, color) for text, color in lines]
         # Planets and the sun can fill the screen, so the readout sits on a dark plate.
         width = max(surface.get_width() for surface in surfaces) + 12
@@ -372,6 +697,42 @@ class StarSystemMode:
         for surface in surfaces:
             screen.blit(surface, (12, y))
             y += surface.get_height() + 2
+
+    def draw_combat_marks(self, screen):
+        """Intent glyphs over scanned ships you can sense, and a bracket on the target."""
+        target = self.current_target()
+        for vessel in self.vessels:
+            if not hasattr(vessel, "ship") or not self.sees(vessel):
+                continue
+            centre = (vessel.position[0] - self.camera.x, vessel.position[1] - self.camera.y)
+            if not screen.get_rect().collidepoint(centre):
+                continue
+            if vessel is target:
+                draw_bracket(screen, centre, TARGET_COLOR)
+            if vessel.scanned:
+                draw_intent(screen, centre, vessel.intent, vessel.colour, self.nav_font)
+
+    def draw_target_readout(self, screen):
+        target = self.current_target()
+        if target is None:
+            return
+        distance = math.dist(self.ship_center(), target.position)
+        reach = band(distance)
+        shot = f"HIT {round(reach[0] * 100)}%  DMG {reach[1]}" if reach else "OUT OF RANGE"
+        if target.scanned:
+            ship = target.ship
+            lines = [
+                (f"TARGET {faction_name(target.sponsor).upper()} {target.kind.upper()}", target.colour),
+                (f"HULL   {bar(ship.hull, ship.max_hull)} {math.ceil(ship.hull)}", HUD_COLOR),
+                (f"SHIELD {bar(ship.shield, ship.max_shield)} {int(ship.shield)} {'UP' if ship.shield_up else 'DOWN'}",
+                 SHIELD_COLOR),
+                (f"INTENT {intent_label(target.intent)} {INTENT_WORDS.get(target.intent[0], '')}", target.colour),
+            ]
+        else:
+            lines = [("TARGET UNKNOWN CONTACT", target.colour), ("[R] SCAN TO READ IT (1 TURN)", HUD_COLOR)]
+        lines.append((f"RANGE {exact_range(distance)}  {shot}", HUD_COLOR))
+        lines.append(("[F] FIRE  [R] SCAN  [TAB] NEXT", HUD_COLOR))
+        draw_target_panel(screen, lines, self.nav_font)
 
     def draw_beacons(self, screen):
         """Charted starports and station bays. Uncharted pads stay dark until a ping locks."""
@@ -438,14 +799,40 @@ class StarSystemMode:
             screen.blit(label, label_rect.clamp(screen_rect))
 
 
+def signature_word(loudness):
+    if loudness <= SIGNATURE_DARK:
+        return "DARK"
+    return "QUIET" if loudness < LOUD_AT else "LOUD"
+
+
+def dodge_advice(limit, cargo):
+    """The least restrictive way to fly that stays under `limit`, given what's in the hold."""
+    fill = cargo.get_total_quantity() / cargo.capacity
+    options = (
+        ("SHIELD UP, NO BOOST", signature(True, True, False, fill)),
+        ("HOLD STILL, SHIELD UP", signature(False, True, False, fill)),
+        ("SHIELD DOWN, NO BOOST", signature(True, False, False, fill)),
+        ("HOLD STILL, SHIELD DOWN", signature(False, False, False, fill)),
+    )
+    for advice, loudness in options:
+        if loudness < limit:
+            return f"DODGE: {advice} (SIGNAL UNDER {int(limit)})"
+    return f"CAN'T DODGE WITH THIS CARGO (SIGNAL UNDER {int(limit)})"
+
+
+def exact_range(distance):
+    """Weapon and scan ranges to the metre; ping ranges stay rough (sensors.range_label)."""
+    return f"{int(distance)} m"
+
+
 def bar(value, maximum, width=BAR_WIDTH):
     filled = round(width * max(0, value) / maximum)
     return "[" + "#" * filled + "-" * (width - filled) + "]"
 
 
-def draw_prompt(screen, text, color, y=SCREEN_HEIGHT // 2):
+def draw_prompt(screen, text, color, y=SCREEN_HEIGHT // 2, small=False):
     """Centred notice on a dark plate, so it reads over a planet or the sun."""
-    surface = pygame.font.Font(None, 36).render(text, True, color)
+    surface = pygame.font.Font(None, 26 if small else 36).render(text, True, color)
     x = SCREEN_WIDTH // 2 - surface.get_width() // 2
     backing = pygame.Surface((surface.get_width() + 16, surface.get_height() + 8), pygame.SRCALPHA)
     backing.fill(HUD_BACKING)

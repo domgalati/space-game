@@ -15,6 +15,8 @@ class Player:
         self.currency = 0
         self.reputation = {'assembly': 0, 'caravaneers': 0, 'cohort': 0, 'dominion': 0}
         self.charted_planets = set()
+        self.trade_ledger = {}  # credits traded per faction, for standing earned by trade
+        self.kill_log = []  # privateers destroyed, for bounties
         self.ship = Ship()
 
 class Ship:

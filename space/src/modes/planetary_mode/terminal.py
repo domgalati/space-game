@@ -6,7 +6,7 @@ from .terminals import docking_terminal, market_terminal
 COMMANDS = {
     "docking": ["help", "info", "prices", "buy", "sell", "cargo", "news", "refuel", "repair", "depart", "map", "exit"],
     "market": ["help", "info", "prices", "buy", "sell", "cargo", "news", "exit"],
-    "scan": ["help", "scan", "dock", "hail", "ping", "shield", "news", "exit"],
+    "scan": ["help", "scan", "dock", "hail", "ping", "shield", "salvage", "news", "exit"],
 }
 QUANTITIES = ("all", "max")
 # Bezel art per terminal. Every variant keeps the original screen opening, so text layout is unchanged.
