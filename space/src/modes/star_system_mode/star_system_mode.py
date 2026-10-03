@@ -764,7 +764,8 @@ def dodge_advice(limit, cargo):
     )
     for advice, loudness in options:
         if loudness < limit:
-            return f"DODGE: {advice} (SIGNAL UNDER {int(limit)})"
+            #return f"DODGE: {advice} (SIGNAL UNDER {int(limit)})"
+            return f"KEEP SIGNAL UNDER {int(limit)}"
     return f"CAN'T DODGE WITH THIS CARGO (SIGNAL UNDER {int(limit)})"
 
 
