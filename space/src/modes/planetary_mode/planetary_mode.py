@@ -6,7 +6,8 @@ from .logger import Logger
 from .map_manager import MapManager
 from .ui_planetary import UI_Planetary
 from .interaction_manager import InteractionManager
-from .terminal import Terminal, bezel_path
+from ui.terminal import bezel_path
+from .terminal import TERMINALS
 from util.economy.economy import Economy
 from util.economy.news_feed import NewsFeed
 from dialogue.conversation import Conversation
@@ -255,7 +256,7 @@ class PlanetaryMode:
         terminal_image = pygame.image.load(bezel_path(terminal_type)).convert_alpha()
         self.interaction_layer.blit(terminal_image, (0, 0))
         self.interaction_active = True
-        self.terminal = Terminal(terminal_type=terminal_type, planetary_mode=self, planet_name=self.planet)
+        self.terminal = TERMINALS[terminal_type](self)
         self.terminal.activate()
 
     def start_conversation(self, npc):

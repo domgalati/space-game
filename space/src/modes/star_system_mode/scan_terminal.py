@@ -3,7 +3,7 @@ import os
 
 import pygame
 
-from modes.planetary_mode.terminal import Terminal, bezel_path
+from ui.terminal import Terminal, bezel_path
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, resolve_game_path
 from util.economy.news import render_news
 from world.disposition import disposition_word
@@ -12,7 +12,6 @@ from world.items import item_name
 
 from .scan_art import BRIGHT, DIM, MID, caption_for, render_scan_art
 
-HELP_TEXT = "Available commands:\n help\n scan\n dock\n hail\n ping (area: 1 turn, gives you away)\n ping <name>\n salvage (wrecks)\n shield on|off|status\n news\n exit"
 NO_TARGET = "No target in scan range."
 MAX_MARKET_LINES = 3
 
@@ -129,9 +128,14 @@ class ScanTerminal(Terminal):
     """Ship-computer terminal for star system mode; target is the body in scan range, if any."""
 
     columns = TEXT_WRAP
+    terminal_type = "scan"
+    HELP = (
+        "help", "scan", "dock", "hail", "ping (area: 1 turn, gives you away)", "ping <name>",
+        "salvage (wrecks)", "shield on|off|status", "news", "exit",
+    )
 
     def __init__(self, target, star_system_mode):
-        super().__init__(terminal_type="scan", planetary_mode=None, planet_name=target)
+        super().__init__()
         self.target = target
         self.star_system_mode = star_system_mode
         self.background = pygame.image.load(bezel_path("scan")).convert_alpha()
@@ -206,46 +210,43 @@ class ScanTerminal(Terminal):
     def show_matches(self, matches):
         self.say("  " + "  ".join(matches))
 
-    def execute_command(self, command):
-        command = command.strip().lower()
-        self.output_buffer.append(f"> {command}")
-        verb, _, argument = command.partition(" ")
+    def cmd_ping(self, argument):
+        return "\n".join(self.star_system_mode.ping(argument))
 
-        if verb == "help":
-            self.say(HELP_TEXT)
-        elif verb == "ping":
-            for line in self.star_system_mode.ping(argument.strip()):
-                self.say(line)
-        elif verb == "shield":
-            self.say(self.shield_command(argument.strip()))
-        elif verb == "news":
-            self.show(render_news(getattr(self.star_system_mode, "news_feed", None), self.markets()))
-        elif verb == "exit":
-            self.deactivate()
-        elif verb in ("scan", "hail", "dock", "salvage") and self.target is None:
-            self.say(NO_TARGET)
-        elif verb == "salvage":
-            if self.target.category != "wreck":
-                self.say("Nothing here to salvage.")
-            else:
-                for line in self.star_system_mode.salvage(self.target):
-                    self.say(line)
-        elif verb == "hail" and self.target.category == "wreck":
-            self.say(f"Static. Nobody aboard the {self.target.name} answers.")
-        elif verb == "scan":
-            self.art_time = 0.0
-            for line in scan_readout(self.target, self.markets(), self.star_system_mode.player.reputation, self.politics()):
-                self.say(line)
-            self.observe_market()
-        elif verb == "hail":
-            self.say(hail_response(self.target, self.star_system_mode.player.reputation, self.politics()))
-        elif verb == "dock":
-            if has_landing_map(self.target):
-                self.star_system_mode.request_landing(self.target)
-            else:
-                self.say(f"Docking denied: {self.target.name} has no docking facility.")
-        elif verb:
-            self.say("Unknown command. Type 'help' for available commands.")
+    def cmd_shield(self, argument):
+        return self.shield_command(argument)
+
+    def cmd_news(self, argument):
+        return render_news(getattr(self.star_system_mode, "news_feed", None), self.markets())
+
+    def cmd_scan(self, argument):
+        if self.target is None:
+            return NO_TARGET
+        self.art_time = 0.0
+        lines = scan_readout(self.target, self.markets(), self.star_system_mode.player.reputation, self.politics())
+        self.say("\n".join(lines))
+        self.observe_market()
+
+    def cmd_hail(self, argument):
+        if self.target is None:
+            return NO_TARGET
+        if self.target.category == "wreck":
+            return f"Static. Nobody aboard the {self.target.name} answers."
+        return hail_response(self.target, self.star_system_mode.player.reputation, self.politics())
+
+    def cmd_dock(self, argument):
+        if self.target is None:
+            return NO_TARGET
+        if not has_landing_map(self.target):
+            return f"Docking denied: {self.target.name} has no docking facility."
+        self.star_system_mode.request_landing(self.target)
+
+    def cmd_salvage(self, argument):
+        if self.target is None:
+            return NO_TARGET
+        if self.target.category != "wreck":
+            return "Nothing here to salvage."
+        return "\n".join(self.star_system_mode.salvage(self.target))
 
     def shield_command(self, argument):
         ship = self.star_system_mode.player.ship
