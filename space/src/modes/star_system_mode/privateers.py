@@ -19,7 +19,7 @@ import random
 from entities.player import Ship
 from util.config import TILE_SIZE, resolve_game_path
 from util.sprite_animation import TINT_LEVELS, AnimatedSprite
-from world.factions import waves_by
+from world.factions import FACTIONS, waves_by
 
 from .combat import WEAPON_RANGE, band, charged
 
@@ -31,7 +31,6 @@ CLASSES = {
     "raider": {"speed": 100, "hull": 70, "shield": 50, "power": 1.0},
     "gunship": {"speed": 75, "hull": 120, "shield": 80, "power": 1.5},
 }
-COLOURS = {"dominion": (179, 66, 78), "cohort": (91, 174, 112), "caravaneers": (204, 115, 63)}
 FUEL = 400
 BOOST_RESERVE = 100  # stop boosting below this much fuel
 CHASE_BOOST_PX = 600  # boost to close a gap wider than this
@@ -80,7 +79,7 @@ class Privateer(Vessel):
         self.waypoint = None
         self.turns = 0
         self.heading = "south"
-        self.colour = COLOURS[sponsor]
+        self.colour = FACTIONS[sponsor]["colour"]
         self.power = stats["power"]
         self.intent = (PATROL, None)  # (what it means to do next, hit chance if firing)
         self.scanned = False

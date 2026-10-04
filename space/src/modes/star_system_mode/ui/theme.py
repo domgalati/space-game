@@ -8,7 +8,7 @@ import pygame
 
 from util.config import resolve_game_path
 
-from ..privateers import COLOURS as FACTION_COLOURS
+from world.factions import FACTIONS as FACTION_INFO
 
 
 def _hex(code):
@@ -38,7 +38,7 @@ PATROL = QUD["G"]
 DIM = QUD["k"]
 FILL = (6, 16, 15, 228)  # Qud "night", translucent so planets show through a little
 BLACK = (0, 0, 0)
-FACTIONS = dict(FACTION_COLOURS)
+FACTIONS = {faction: info["colour"] for faction, info in FACTION_INFO.items() if "colour" in info}
 
 CELL_W, CELL_H = 8, 16  # TeleSys at its native 16 px
 FONT_PATH = "space/assets/fonts/TeleSys.ttf"

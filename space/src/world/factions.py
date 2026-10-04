@@ -15,11 +15,12 @@ TRADE_CAP = 40  # trade alone lifts standing this far, no further
 KILL_SPONSOR_STANDING = -5  # destroying a privateer, with its sponsor
 KILL_LAW_STANDING = 3  # and with the system's law
 
+# colour: how the faction's ships, shots and holdings are drawn; factions without one use the HUD's.
 FACTIONS = {
     "assembly": {"name": "Assembly", "voice": "Assembly Traffic Control"},
-    "dominion": {"name": "Dominion", "voice": "Dominion Port Authority"},
-    "cohort": {"name": "Cohort", "voice": "Cohort Commons Relay"},
-    "caravaneers": {"name": "Caravaneers", "voice": "Caravaneer Moot"},
+    "dominion": {"name": "Dominion", "voice": "Dominion Port Authority", "colour": (179, 66, 78)},
+    "cohort": {"name": "Cohort", "voice": "Cohort Commons Relay", "colour": (91, 174, 112)},
+    "caravaneers": {"name": "Caravaneers", "voice": "Caravaneer Moot", "colour": (204, 115, 63)},
 }
 
 def faction_name(faction):
