@@ -63,16 +63,16 @@ def test_dialogue_announces_the_talk_and_its_story_beats():
     ]
 
 
-def test_a_destroyed_privateer_is_announced():
+def test_a_destroyed_privateer_is_announced_as_a_kill():
     from modes.star_system_mode.star_system_mode import StarSystemMode
 
     world = WorldState()
     flight = StarSystemMode(Player(), "sol", world)
     flight.spawn_test_privateers(1)
-    heard = recorder(world.events, "privateer_destroyed")
+    heard = recorder(world.events, "killed")
     privateer = flight.vessels[0]
     flight.destroy(privateer)
-    assert heard[0].details == {"sponsor": privateer.sponsor, "kind": privateer.kind, "system": "sol"}
+    assert heard[0].details == {"faction": privateer.sponsor, "kind": privateer.kind, "system": "sol"}
 
 
 def test_a_run_survives_save_and_load(tmp_path):

@@ -7,7 +7,7 @@ ANY. A listener gets one Event and must not assume who else is listening.
 Announced so far (details in brackets):
     docked, departed            [body, system]
     bought, sold                [good, quantity, credits, place]
-    privateer_destroyed         [sponsor, kind, system]
+    killed                      [faction, kind, and where: system for now]
     salvaged                    [wreck, goods, credits]
     towed                       [fee, system]
     talked                      [npc]
