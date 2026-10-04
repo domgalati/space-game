@@ -24,7 +24,7 @@ space-trader = "main:main"
 
 [tool.setuptools]
 package-dir = { "" = "space/src" }
-py-modules = ["main"]
+py-modules = ["main", "game"]
 
 [tool.setuptools.packages.find]
 where = ["space/src"]

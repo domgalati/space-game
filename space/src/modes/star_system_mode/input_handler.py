@@ -1,54 +1,30 @@
+import math
+
 import pygame
-import time
+
+from util.keys import held_direction
+
 
 class InputHandler:
-    def __init__(self, star_system, star_system_mode):
-        self.last_movement_time = 0
-        self.movement_cooldown = 0.2  # 200 milliseconds
-        self.star_system = star_system
-        self.star_system_mode = star_system_mode
+    """Paces held keys in flight: one step or wait per cooldown, timed on the mode's clock."""
 
-    def handle_movement(self, ship_x_position, ship_y_position, grid_size):
-        current_time = time.time()
-        keys = pygame.key.get_pressed()
+    def __init__(self):
+        self.last_movement_time = -math.inf
+        self.movement_cooldown = 0.2  # seconds
 
-        # Track whether any movement key is pressed
-        movement_key_pressed = keys[pygame.K_KP4] or keys[pygame.K_KP6] or keys[pygame.K_KP8] or keys[pygame.K_KP2] or \
-                               keys[pygame.K_KP1] or keys[pygame.K_KP3] or keys[pygame.K_KP7] or keys[pygame.K_KP9] or \
-                               keys[pygame.K_LEFT] or keys[pygame.K_RIGHT] or keys[pygame.K_UP] or keys[pygame.K_DOWN]
+    def handle_movement(self, ship_x_position, ship_y_position, grid_size, now):
+        """The ship's tile after any held movement key; `now` is the mode's clock in seconds."""
+        dx, dy = held_direction(pygame.key.get_pressed())
+        if not (dx or dy) or now - self.last_movement_time <= self.movement_cooldown:
+            return ship_x_position, ship_y_position
+        self.last_movement_time = now
+        return (
+            min(grid_size[0] - 1, max(0, ship_x_position + dx)),
+            min(grid_size[1] - 1, max(0, ship_y_position + dy)),
+        )
 
-        if current_time - self.last_movement_time > self.movement_cooldown and movement_key_pressed:
-            # Handle non-diagonal movement
-            if keys[pygame.K_KP4] or keys[pygame.K_LEFT]:
-                ship_x_position = max(0, ship_x_position - 1)
-            elif keys[pygame.K_KP6] or keys[pygame.K_RIGHT]:
-                ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
-            if keys[pygame.K_KP8] or keys[pygame.K_UP]:
-                ship_y_position = max(0, ship_y_position - 1)
-            elif keys[pygame.K_KP2] or keys[pygame.K_DOWN]:
-                ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
-
-            # Handle diagonal movement
-            if keys[pygame.K_KP1]:
-                ship_x_position = max(0, ship_x_position - 1)
-                ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
-            elif keys[pygame.K_KP3]:
-                ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
-                ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
-            elif keys[pygame.K_KP7]:
-                ship_x_position = max(0, ship_x_position - 1)
-                ship_y_position = max(0, ship_y_position - 1)
-            elif keys[pygame.K_KP9]:
-                ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
-                ship_y_position = max(0, ship_y_position - 1)
-
-            # Update the timer
-            self.last_movement_time = current_time
-        return ship_x_position, ship_y_position
-
-    def handle_wait(self, key, cooldown):
+    def handle_wait(self, key, cooldown, now):
         """True when `key` should pass a turn in place; holding it repeats at cruise pace."""
-        now = time.time()
         if pygame.key.get_pressed()[key] and now - self.last_movement_time > cooldown:
             self.last_movement_time = now
             return True

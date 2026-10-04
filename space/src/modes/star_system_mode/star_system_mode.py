@@ -30,6 +30,7 @@ from .privateers import CLASSES as PRIVATEER_CLASSES, Privateer
 from util.economy.news_feed import NewsFeed
 from world.world_state import WorldState
 from entities.player import DOCK_FUEL
+from modes.transitions import Land
 
 CANDIDATE_ARC_COLOR = (255, 191, 0)
 NAV_MARKER_COLOR = (120, 220, 140)
@@ -71,7 +72,7 @@ class StarSystemMode:
         self.world_state = world_state or WorldState()
         self.news_feed = NewsFeed(self.world_state)
         self.selected_system = StarSystem(resolve_game_path(f"space/star_systems/{starsystem}.json"))
-        self.input_handler = InputHandler(self.selected_system, self)  # Instantiate InputHandler
+        self.input_handler = InputHandler()
         self.cruise_cooldown = self.input_handler.movement_cooldown
         self.grid_size = (self.selected_system.MAP_WIDTH // TILE_SIZE, self.selected_system.MAP_HEIGHT // TILE_SIZE)
         self.white_stars, self.purple_stars, self.blue_stars = initialize_stars(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -94,10 +95,9 @@ class StarSystemMode:
         self.parallax_offset_x, self.parallax_offset_y = 0, 0
         self.parallax_velocity_x, self.parallax_velocity_y = 0, 0
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
-        self.landing_requested = False
-        self.selected_planet = None
         self.scan_terminal = None
-        self.last_tick = pygame.time.get_ticks()
+        self.elapsed = 0.0  # seconds this mode has been updated; paces held keys
+        self.pending = None  # transition for update() to hand back, e.g. Land after docking
         self.nav = NavCharts((self.map_center_x, self.map_center_y), player.charted_planets)
         self.nav_font = pygame.font.Font(resolve_game_path("space/assets/fonts/OfficeCodePro-Light.ttf"), 14)
         self.boosting = False
@@ -159,12 +159,12 @@ class StarSystemMode:
             slowdown = 1
         self.input_handler.movement_cooldown = self.cruise_cooldown * slowdown
         before = (self.x_position, self.y_position)
-        self.x_position, self.y_position = self.input_handler.handle_movement(self.x_position, self.y_position, self.grid_size)
+        self.x_position, self.y_position = self.input_handler.handle_movement(self.x_position, self.y_position, self.grid_size, self.elapsed)
         if (self.x_position, self.y_position) != before:
             ship.burn_fuel(multiplier=self.burn_multiplier())
             self.last_action = "move"
             self.spend_turns(self.move_turns())
-        elif self.input_handler.handle_wait(WAIT_KEY, self.cruise_cooldown):
+        elif self.input_handler.handle_wait(WAIT_KEY, self.cruise_cooldown, self.elapsed):
             self.last_action = "wait"
             self.spend_turns(WAIT_TURNS)
         new_direction = determine_direction(self.x_position, self.y_position, self.previous_x, self.previous_y)
@@ -551,15 +551,13 @@ class StarSystemMode:
         ship = self.player.ship
         ship.burn_fuel(amount=DOCK_FUEL)
         ship.shield = ship.max_shield  # station power tops the shield up while docked
-        self.selected_planet = planet
-        self.landing_requested = True
+        self.pending = Land(planet)
         self.close_scan_terminal()
 
     def undock(self, body):
         """Back in flight after a stay at `body`, which is charted now that you've been there."""
         self.nav.chart(body.id)
         self.player.location.body = None
-        self.landing_requested = False
 
     def ping_targets(self):
         return [*self.selected_system.planets, *self.selected_system.objects]
@@ -583,18 +581,16 @@ class StarSystemMode:
             return self.nav.ping(body, origin)
         return self.nav.ping_fixed(body, origin, body.world_center())
 
-    def get_selected_planet(self):
-        return self.selected_planet
-    
-    def get_player(self):
-        # Assuming self.player is an attribute holding the player's state
-        return self.player
+    def update(self, events, dt):
+        """One frame, `dt` seconds long. Returns a transition (modes.transitions) or None."""
+        self.elapsed += dt
+        # Enemy rings glide toward the turn clock rather than jumping a turn at a time.
+        self.ring_turn = min(self.clock.now, self.ring_turn + max(0.0, self.clock.now - self.ring_turn) * min(1.0, dt * RING_EASE))
+        self.handle_events(events, dt)
+        transition, self.pending = self.pending, None
+        return transition
 
-    def update(self, events):
-        now = pygame.time.get_ticks()
-        dt = (now - self.last_tick) / 1000.0
-        self.last_tick = now
-
+    def handle_events(self, events, dt):
         if self.scan_terminal:
             for event in events:
                 if not self.scan_terminal:
@@ -658,9 +654,6 @@ class StarSystemMode:
         self.draw_candidate_arcs(screen)
         self.draw_nav_markers(screen)
         self.sensors.prune(self.clock.now, now)
-        dt = (now - getattr(self, "_last_draw_ms", now)) / 1000
-        self._last_draw_ms = now
-        self.ring_turn = min(self.clock.now, self.ring_turn + max(0.0, self.clock.now - self.ring_turn) * min(1.0, dt * RING_EASE))
         draw_sensor_overlay(screen, self.camera, self.sensors, self.clock.now, now, self.nav_font, self.ring_turn)
         for wreck in self.wrecks:
             centre = (wreck.position[0] - self.camera.x, wreck.position[1] - self.camera.y)

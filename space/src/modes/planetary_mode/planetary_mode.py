@@ -1,5 +1,7 @@
 import pygame
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, resolve_game_path
+from util.keys import held_direction
+from modes.transitions import Depart
 from .logger import Logger
 from .map_manager import MapManager
 from .ui_planetary import UI_Planetary
@@ -14,14 +16,14 @@ from .npc_manager import NPCManager
 from .dialogue_panel import DialoguePanel
 
 CAMERA_DEADZONE = 0.3  # share of the view the player can roam before the camera follows
+MOVE_REPEAT = 0.12  # seconds between steps while a direction key is held
 
 class PlanetaryMode:
-    def __init__(self, selected_planet, player, screen, world_state=None):
+    def __init__(self, selected_planet, player, world_state=None):
         self.planet = selected_planet
         self.player = player
         player.location.body = selected_planet.id
         self.world_state = world_state or WorldState()
-        self.screen = screen
         self.player_sprite = pygame.image.load(
             resolve_game_path("space/assets/img/objects/player.png")
         ).convert_alpha()
@@ -62,10 +64,8 @@ class PlanetaryMode:
         self.interaction_manager.set_conversation_callback(self.start_conversation)
         self.terminal = None
         self.conversation_panel = None
-        self.switch_to_star_system_mode = False  # Initialize the attribute here
-
-        self.clock = pygame.time.Clock()
-        self.move_repeat_ms = 120  # delay between steps while a direction key is held
+        self.pending = None  # transition for update() to hand back, e.g. Depart from the docking terminal
+        self.elapsed = 0.0  # seconds this mode has been updated; paces held keys
         self.next_move_time = 0
         self._blocked_move_logged = False
 
@@ -127,30 +127,6 @@ class PlanetaryMode:
         else:
             self.camera.y = max(0, min(self.camera.y, map_h - self.camera.height))
 
-    def _movement_delta_from_keys(self, keys):
-        """Return (dx, dy) in pixels from currently held movement keys (8-directional)."""
-        # Numpad diagonals take priority so KP7/9/1/3 stay distinct from arrow chords.
-        if keys[pygame.K_KP7]:
-            return -TILE_SIZE, -TILE_SIZE
-        if keys[pygame.K_KP9]:
-            return TILE_SIZE, -TILE_SIZE
-        if keys[pygame.K_KP1]:
-            return -TILE_SIZE, TILE_SIZE
-        if keys[pygame.K_KP3]:
-            return TILE_SIZE, TILE_SIZE
-
-        dx = 0
-        dy = 0
-        if keys[pygame.K_LEFT] or keys[pygame.K_KP4]:
-            dx -= TILE_SIZE
-        if keys[pygame.K_RIGHT] or keys[pygame.K_KP6]:
-            dx += TILE_SIZE
-        if keys[pygame.K_UP] or keys[pygame.K_KP8]:
-            dy -= TILE_SIZE
-        if keys[pygame.K_DOWN] or keys[pygame.K_KP2]:
-            dy += TILE_SIZE
-        return dx, dy
-
     def _try_move(self, dx, dy):
         new_position = [self.player_position[0] + dx, self.player_position[1] + dy]
         tile_x, tile_y = new_position[0] // TILE_SIZE, new_position[1] // TILE_SIZE
@@ -195,7 +171,7 @@ class PlanetaryMode:
             if self.conversation_panel.closed:
                 self.end_conversation()
             # A movement key held through the conversation shouldn't step the moment it closes.
-            self.next_move_time = pygame.time.get_ticks() + self.move_repeat_ms
+            self.next_move_time = self.elapsed + MOVE_REPEAT
             return
 
         for event in events:
@@ -207,20 +183,21 @@ class PlanetaryMode:
                 if self.conversation_panel or (self.terminal and self.terminal.active):
                     return
 
-        keys = pygame.key.get_pressed()
-        dx, dy = self._movement_delta_from_keys(keys)
+        dx, dy = held_direction(pygame.key.get_pressed())
+        dx, dy = dx * TILE_SIZE, dy * TILE_SIZE
         if dx == 0 and dy == 0:
             self.next_move_time = 0  # allow an immediate step on the next press
             self._blocked_move_logged = False
             return
 
-        now = pygame.time.get_ticks()
-        if now >= self.next_move_time:
+        if self.elapsed >= self.next_move_time:
             self._try_move(dx, dy)
-            self.next_move_time = now + self.move_repeat_ms
+            self.next_move_time = self.elapsed + MOVE_REPEAT
 
-    def update(self, events):
-        dt = self.clock.tick(60) / 1000.0  # Convert milliseconds to seconds
+    def update(self, events, dt):
+        """One frame, `dt` seconds long. Returns a transition (modes.transitions) or None."""
+        self.elapsed += dt
+        self.map_manager.update_animations(dt * 1000)  # Tiled frame durations are in ms
         if self.terminal and self.terminal.active:
             self.terminal.update(dt)
         if self.conversation_panel:
@@ -228,6 +205,8 @@ class PlanetaryMode:
         self.handle_input(events)
         self.update_camera()
         self.ui_planetary.update_player_stats(self.player)
+        transition, self.pending = self.pending, None
+        return transition
 
     def draw_player(self):
         self.player_layer.fill((0, 0, 0, 0))
@@ -261,7 +240,7 @@ class PlanetaryMode:
             self.terminal.display(screen)
 
     def return_to_star_system_mode(self):
-        self.switch_to_star_system_mode = True
+        self.pending = Depart(self.planet)
 
     def activate_terminal(self, terminal_type="docking"):
         self.interaction_layer.fill((0, 0, 0, 0))
@@ -287,4 +266,3 @@ class PlanetaryMode:
     def deactivate_terminal(self):
         self.terminal = None
         self.interaction_active = False
-        self.draw(self.screen)
