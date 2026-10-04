@@ -31,13 +31,13 @@ SHIMMER_MS = 110
 
 def corridor_rank(body):
     """Dock beats salvage beats scan, when corridors overlap."""
-    if getattr(body, "obj_type", None) == "Wreck":
+    if body.category == "wreck":
         return 1 if not body.empty() else 2
     return 0 if has_landing_map(body) else 2
 
 
 def corridor_action(body):
-    if getattr(body, "obj_type", None) == "Wreck":
+    if body.category == "wreck":
         verb = "SALVAGE" if not body.empty() else "SCAN"
         return Action("E", verb, body.name.upper(), FACTIONS.get(body.sponsor, LABEL), "corridor")
     verb = "DOCK" if has_landing_map(body) else "SCAN"

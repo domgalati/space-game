@@ -6,7 +6,6 @@ import zlib
 
 import pygame
 
-from entities.planet import Planet
 
 ART_COLS = 38
 ART_ROWS = 13
@@ -245,9 +244,9 @@ def render_scan_art(target, font):
         return None
     char_width = font.size("M")[0]
     line_height = font.get_linesize()
-    if isinstance(target, Planet):
+    if target.category == "planet":
         cells = planet_cells(target, line_height / char_width)
-    elif getattr(target, "obj_type", None) == "Wreck":
+    elif target.category == "wreck":
         cells = station_cells(WRECK_ART, WRECK_COLORS, "wreck")
     else:
         cells = station_cells()
@@ -266,6 +265,6 @@ def render_scan_art(target, font):
 
 
 def caption_for(target):
-    if isinstance(target, Planet):
+    if target.category == "planet":
         return f"{target.planet_type.upper()} // {target.planet_guild.upper()}"
     return target.obj_type.upper()

@@ -11,6 +11,7 @@ DRONE_PING_EVERY = 4  # turns between a test drone's area pings
 
 class Vessel:
     speed = SPEED
+    armed = False  # armed ships can be targeted, fired at and scanned for intent
 
     def __init__(self, position):
         self.position = (float(position[0]), float(position[1]))

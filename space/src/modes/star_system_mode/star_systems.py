@@ -8,7 +8,7 @@ from entities.object import SpaceObject
 from util.config import resolve_game_path
 from util.images import load_image
 from world.atlas import body_id
-from world.factions import LAW
+from world.factions import Politics
 
 # Logical system is large enough for multi-thousand-pixel orbit gaps.
 # Bodies are drawn straight to the screen, so this does not allocate a bitmap.
@@ -18,6 +18,7 @@ MIN_ORBIT_RADIUS = 2200
 MIN_ORBIT_GAP = 3200
 MAX_ORBIT_GAP = 4200
 ORBIT_COLOR = (21, 83, 82)
+# Star defaults, for a system file whose "star" leaves them out. Sol's are these.
 SUN_IMAGE = "space/assets/img/planets/Sun.png"
 SUN_RADIUS = 1700  # the glyph disk in Sun.png; its corona dots reach a little past it
 STATION_ANGLE = 0.4  # radians from the sun; the art is lit from the upper left, so the sun sits there
@@ -25,7 +26,7 @@ STATION_GAP = 450  # open space between the sun's disk and the station image
 SPAWN_BELOW_BAY = 280  # a new run starts just outside the bay corridor, bay in view
 HEAT_START = 0.6  # fraction of SUN_RADIUS where solar heat begins; the outer sun is safe
 HEAT_MAX = 8  # damage per turn at the very core
-PATROL_RADIUS = 2500  # privateers break off this close to Assembly worlds and stations
+PATROL_RADIUS = 2500  # privateers break off this close to the law's worlds and stations
 
 class StarSystem:
     def __init__(self, json_path):
@@ -36,7 +37,6 @@ class StarSystem:
         # Calculate center of the map as class attributes
         self.map_center_x = self.MAP_WIDTH // 2
         self.map_center_y = self.MAP_HEIGHT // 2
-        self.sun_image = load_image(resolve_game_path(SUN_IMAGE))
         self.planets = []
         self.objects = []
         self.orbits = []
@@ -48,10 +48,17 @@ class StarSystem:
             data = json.load(file)
             self.id = data['id']
             self.name = data.get('name', self.id)
-            seed = data['seed']
+            star = data.get('star', {})
+            self.sun_image = load_image(resolve_game_path(star.get('image', SUN_IMAGE)))
+            self.star_radius = star.get('radius', SUN_RADIUS)
+            self.heat_start = star.get('heat_start', HEAT_START)
+            self.heat_max = star.get('heat_max', HEAT_MAX)
+            self.politics = Politics.from_data(data)
+            # The layout's own generator: the same seed always gives the same system, and
+            # loading one never disturbs anything else drawing from `random`.
+            self.rng = random.Random(data['seed'])
             planet_data = data['planets']
             object_data = data.get('objects', [])
-            random.seed(seed)
 
             self.generate_planets(planet_data)
             self.generate_objects(object_data)
@@ -60,8 +67,8 @@ class StarSystem:
         last_orbit_radius = MIN_ORBIT_RADIUS
 
         for data in planet_data:
-            orbit_radius = last_orbit_radius + random.randint(MIN_ORBIT_GAP, MAX_ORBIT_GAP)
-            angle = random.uniform(0, 2 * math.pi)
+            orbit_radius = last_orbit_radius + self.rng.randint(MIN_ORBIT_GAP, MAX_ORBIT_GAP)
+            angle = self.rng.uniform(0, 2 * math.pi)
             
             start_pos = data.get('start_pos', (0, 0))
             planet = Planet(
@@ -89,7 +96,7 @@ class StarSystem:
     def _mid_system_point(self, size):
         """Top-left of a station image `size` px square, STATION_GAP clear of the sun."""
         half = size / 2
-        distance = SUN_RADIUS + STATION_GAP + half
+        distance = self.star_radius + STATION_GAP + half
         cx = self.map_center_x + distance * math.cos(STATION_ANGLE)
         cy = self.map_center_y + distance * math.sin(STATION_ANGLE)
         return (int(cx - half), int(cy - half))
@@ -112,6 +119,7 @@ class StarSystem:
                 data.get('guild'),
                 data.get('access'),
                 map_path=self._map_path(data),
+                category=data.get('category', 'station'),
             )
             self.objects.append(obj)
 
@@ -120,19 +128,21 @@ class StarSystem:
         for obj in self.objects:
             for x, y in obj.access_points():
                 return (x, y + SPAWN_BELOW_BAY)
-        return (self.map_center_x + SUN_RADIUS + STATION_GAP, self.map_center_y)
+        return (self.map_center_x + self.star_radius + STATION_GAP, self.map_center_y)
 
     def heat_at(self, point):
-        """Damage per turn from the sun: none past HEAT_START, rising steeply to HEAT_MAX at the core."""
-        depth = math.dist(point, (self.map_center_x, self.map_center_y)) / SUN_RADIUS
-        if depth >= HEAT_START:
+        """Damage per turn from the star: none past heat_start, rising steeply to heat_max at the core."""
+        depth = math.dist(point, (self.map_center_x, self.map_center_y)) / self.star_radius
+        if depth >= self.heat_start:
             return 0.0
-        return HEAT_MAX * ((HEAT_START - depth) / HEAT_START) ** 2
+        return self.heat_max * ((self.heat_start - depth) / self.heat_start) ** 2
 
     def patrol_zones(self):
-        """Centres of the Assembly's patrol zones: its worlds and stations."""
-        centres = [planet.position for planet in self.planets if planet.planet_guild == LAW]
-        return centres + [obj.world_center() for obj in self.objects if obj.planet_guild == LAW]
+        """Centres of the law's patrol zones: its worlds and stations. None in a lawless system."""
+        law = self.politics.law
+        if law is None:
+            return []
+        return [body.world_center() for body in [*self.planets, *self.objects] if body.planet_guild == law]
 
     def in_patrol_zone(self, point):
         return any(math.dist(point, centre) <= PATROL_RADIUS for centre in self.patrol_zones())

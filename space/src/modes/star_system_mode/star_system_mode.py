@@ -236,9 +236,10 @@ class StarSystemMode:
 
     def spawn_test_privateers(self, count, rng=None):
         """Privateers of every class and raider faction patrolling near the ship. A debug aid
-        until raids and patrols spawn them for real; they hunt but can't shoot yet."""
-        from world.factions import RAIDER_SPONSORS
-
+        until raids and patrols spawn them for real. None in a system where nobody raids."""
+        sponsors = self.selected_system.politics.raiders
+        if not sponsors:
+            return
         rng = rng or random.Random(11)
         kinds = list(PRIVATEER_CLASSES)
         x, y = self.ship_center()
@@ -249,7 +250,7 @@ class StarSystemMode:
                 point = (x + distance * math.cos(angle), y + distance * math.sin(angle))
                 if not self.sensors.blind(point) and not self.selected_system.in_patrol_zone(point):
                     break
-            sponsor = RAIDER_SPONSORS[i % len(RAIDER_SPONSORS)]
+            sponsor = sponsors[i % len(sponsors)]
             self.add_vessel(Privateer(kinds[i % len(kinds)], sponsor, point, self, rng=rng))
 
     def player_signature(self):
@@ -263,7 +264,7 @@ class StarSystemMode:
     def combat_targets(self):
         """Armed ships you can sense, nearest first."""
         me = self.ship_center()
-        armed = [v for v in self.vessels if hasattr(v, "ship") and self.sees(v)]
+        armed = [v for v in self.vessels if v.armed and self.sees(v)]
         return sorted(armed, key=lambda v: math.dist(me, v.position))
 
     def current_target(self):
@@ -354,7 +355,7 @@ class StarSystemMode:
         wreck = Wreck(privateer, cargo, credits, self.remove_wreck)
         self.wrecks.append(wreck)
         self.clock.add(wreck)
-        changes = record_kill(self.player, privateer.sponsor, privateer.kind)
+        changes = record_kill(self.player, privateer.sponsor, privateer.kind, self.selected_system.politics.law)
         self.notify(f"{faction_name(privateer.sponsor).upper()} {privateer.kind.upper()} DESTROYED", shake=True)
         self.notify(f"STANDING {changes}", NOTE)
 
@@ -577,7 +578,7 @@ class StarSystemMode:
             return [f"{body.name} is already charted."]
 
         origin = self.ship_center()
-        if hasattr(body, "orbit_radius"):
+        if body.category == "planet":
             return self.nav.ping(body, origin)
         return self.nav.ping_fixed(body, origin, body.world_center())
 
@@ -696,7 +697,7 @@ class StarSystemMode:
         """Intent glyphs over scanned ships you can sense, and a bracket on the target."""
         target = self.current_target()
         for vessel in self.vessels:
-            if not hasattr(vessel, "ship") or not self.sees(vessel):
+            if not vessel.armed or not self.sees(vessel):
                 continue
             centre = (vessel.position[0] - self.camera.x, vessel.position[1] - self.camera.y)
             if not screen.get_rect().collidepoint(centre):
@@ -750,10 +751,7 @@ class StarSystemMode:
         for body in markers:
             if not self.nav.is_charted(body):
                 continue
-            if hasattr(body, "world_center"):
-                wx, wy = body.world_center()
-            else:
-                wx, wy = body.position
+            wx, wy = body.world_center()
             sx = wx - self.camera.x
             sy = wy - self.camera.y
             if screen_rect.collidepoint(sx, sy):

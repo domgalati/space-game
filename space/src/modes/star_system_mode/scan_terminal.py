@@ -3,12 +3,11 @@ import os
 
 import pygame
 
-from entities.planet import Planet
 from modes.planetary_mode.terminal import Terminal, bezel_path
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, resolve_game_path
 from util.economy.news import render_news
 from world.disposition import disposition_word
-from world.factions import FACTIONS, faction_name, flies_assembly_colours, licenses_raiders, waves_by
+from world.factions import FACTIONS, Politics, faction_name, waves_by
 
 from .scan_art import BRIGHT, DIM, MID, caption_for, render_scan_art
 
@@ -41,7 +40,7 @@ def market_lines(target, markets):
     return lines
 
 
-def faction_lines(faction, reputation):
+def faction_lines(faction, reputation, politics):
     """Who holds a body, how they see you, and whether they license raiders."""
     if not faction:
         return []
@@ -49,8 +48,8 @@ def faction_lines(faction, reputation):
     if reputation is not None:
         standing = reputation.get(faction, 0)
         lines.append(f"Your standing: {disposition_word(standing)} ({standing:+d})")
-    if licenses_raiders(faction):
-        lines.append("Licenses privateers against Assembly shipping.")
+    if politics.licenses_raiders(faction):
+        lines.append(f"Licenses privateers against {faction_name(politics.law)} shipping.")
     return lines
 
 
@@ -66,22 +65,23 @@ def wreck_readout(wreck):
     return lines
 
 
-def scan_readout(target, markets=None, reputation=None):
+def scan_readout(target, markets=None, reputation=None, politics=None):
     if target is None:
         return ["SHIP COMPUTER", NO_TARGET, "Type 'help' for commands."]
-    if getattr(target, "obj_type", None) == "Wreck":
+    if target.category == "wreck":
         return wreck_readout(target)
     markets = markets or {}
+    politics = politics or Politics()
     lines = [f"SCAN RESULT: {target.name}"]
-    if isinstance(target, Planet):
+    if target.category == "planet":
         lines.append(f"Class: Planet ({target.planet_type})")
-        lines.extend(faction_lines(target.planet_guild, reputation))
+        lines.extend(faction_lines(target.planet_guild, reputation, politics))
         landing = "CLEARED" if has_landing_map(target) else "NO DOCKING FACILITY"
         lines.append(f"Landing: {landing}")
         lines.extend(market_lines(target, markets))
     else:
         lines.append(f"Class: {target.obj_type}")
-        lines.extend(faction_lines(target.planet_guild, reputation))
+        lines.extend(faction_lines(target.planet_guild, reputation, politics))
         lines.append("Landing: BAYS OPEN" if has_landing_map(target) else "Landing: DOCKING BAYS CLOSED")
         lines.extend(market_lines(target, markets))
     lines.append("Type 'help' for commands.")
@@ -96,10 +96,11 @@ GREETINGS = {
 }
 
 
-def hail_response(target, reputation=None):
+def hail_response(target, reputation=None, politics=None):
     reputation = reputation or {}
+    politics = politics or Politics()
     faction = target.planet_guild
-    if not isinstance(target, Planet):
+    if target.category != "planet":
         if has_landing_map(target):
             return (f'{target.name} Dockmaster: "Welcome in, hauler. Bays are open and customs '
                     f'is light today. Send \'dock\' when ready."')
@@ -108,11 +109,11 @@ def hail_response(target, reputation=None):
     greeting = GREETINGS.get(faction, "Vessel acknowledged.")
     berth = "Send 'dock' when ready." if has_landing_map(target) else "We've no berth for independents."
     words = f"{greeting} {berth}"
-    if licenses_raiders(faction):
+    if politics.licenses_raiders(faction):
         if waves_by(reputation, faction):
             words += " Our privateers have your registry. They'll let you pass."
-        elif flies_assembly_colours(reputation):
-            words += " You fly Assembly colours. Our privateers have noticed."
+        elif politics.flies_law_colours(reputation):
+            words += f" You fly {faction_name(politics.law)} colours. Our privateers have noticed."
     return f'{target.name} {voice}: "{words}"'
 
 
@@ -148,6 +149,10 @@ class ScanTerminal(Terminal):
         for line in text.split("\n"):
             self.output_buffer.extend(self.wrap_text(line, TEXT_WRAP))
 
+    def politics(self):
+        system = getattr(self.star_system_mode, "selected_system", None)
+        return system.politics if system is not None else Politics()
+
     def markets(self):
         world = getattr(self.star_system_mode, "world_state", None)
         return world.markets_data() if world is not None else {}
@@ -164,11 +169,11 @@ class ScanTerminal(Terminal):
 
     def activate(self):
         super().activate()
-        for line in scan_readout(self.target, self.markets(), self.star_system_mode.player.reputation):
+        for line in scan_readout(self.target, self.markets(), self.star_system_mode.player.reputation, self.politics()):
             self.say(line)
         self.observe_market()
         nav = self.star_system_mode.nav
-        is_wreck = getattr(self.target, "obj_type", None) == "Wreck"  # debris isn't charted
+        is_wreck = getattr(self.target, "category", None) == "wreck"  # debris isn't charted
         if self.target is not None and not is_wreck and getattr(self.target, "name", None) \
                 and not nav.is_charted(self.target):
             nav.chart(self.target.id)
@@ -219,20 +224,20 @@ class ScanTerminal(Terminal):
         elif verb in ("scan", "hail", "dock", "salvage") and self.target is None:
             self.say(NO_TARGET)
         elif verb == "salvage":
-            if getattr(self.target, "obj_type", None) != "Wreck":
+            if self.target.category != "wreck":
                 self.say("Nothing here to salvage.")
             else:
                 for line in self.star_system_mode.salvage(self.target):
                     self.say(line)
-        elif verb == "hail" and getattr(self.target, "obj_type", None) == "Wreck":
+        elif verb == "hail" and self.target.category == "wreck":
             self.say(f"Static. Nobody aboard the {self.target.name} answers.")
         elif verb == "scan":
             self.art_time = 0.0
-            for line in scan_readout(self.target, self.markets(), self.star_system_mode.player.reputation):
+            for line in scan_readout(self.target, self.markets(), self.star_system_mode.player.reputation, self.politics()):
                 self.say(line)
             self.observe_market()
         elif verb == "hail":
-            self.say(hail_response(self.target, self.star_system_mode.player.reputation))
+            self.say(hail_response(self.target, self.star_system_mode.player.reputation, self.politics()))
         elif verb == "dock":
             if has_landing_map(self.target):
                 self.star_system_mode.request_landing(self.target)

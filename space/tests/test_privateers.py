@@ -87,8 +87,9 @@ def test_a_heard_ping_sends_them_hunting_then_searching_then_home(mode):
     assert ship.state == PATROL and ship.player_fix is None
 
 
-def test_assembly_friends_are_searched_for_longer():
-    assert search_turns({"assembly": 50}) > search_turns({}) == SEARCH_TURNS
+def test_friends_of_the_law_are_searched_for_longer():
+    assert search_turns({"assembly": 50}, "assembly") > search_turns({}, "assembly") == SEARCH_TURNS
+    assert search_turns({"assembly": 50}, None) == SEARCH_TURNS  # no law, no one to be friends with
 
 
 def test_friends_of_the_sponsor_are_waved_by(mode):
