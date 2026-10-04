@@ -1,8 +1,9 @@
 import pygame
 import pytest
 
-from modes.planetary_mode.terminal import Pager, Terminal
+from modes.planetary_mode.terminal import DockingTerminal
 from modes.star_system_mode.scan_terminal import ScanTerminal
+from ui.terminal import Pager, Terminal
 
 
 class _Economy:
@@ -40,7 +41,7 @@ def type_text(terminal, text):
 
 
 def docking_terminal(names):
-    terminal = Terminal("docking", type("Mode", (), {"economy": _Economy(names)})(), "here")
+    terminal = DockingTerminal(type("Mode", (), {"economy": _Economy(names)})())
     terminal.active = True
     terminal.execute_command = lambda command: None
     return terminal
@@ -48,7 +49,7 @@ def docking_terminal(names):
 
 def scan_terminal():
     terminal = ScanTerminal.__new__(ScanTerminal)
-    Terminal.__init__(terminal, "scan", None, None)
+    Terminal.__init__(terminal)
     terminal.active = True
     terminal.star_system_mode = type("Mode", (), {})()
     terminal.star_system_mode.selected_system = type("System", (), {})()
@@ -144,7 +145,7 @@ def test_ping_completes_planet_names():
 
 
 def printing_terminal(count):
-    terminal = Terminal("market", None, "here")
+    terminal = Terminal()
     terminal.active = True
 
     def run(command):
@@ -246,7 +247,7 @@ def test_transient_output_is_always_paged_and_never_kept():
 def test_news_intro_scans_then_opens_the_pager():
     from rich.text import Text
 
-    from modes.planetary_mode.terminal import INTRO_HOLD_SECONDS, ROW_REVEAL_SECONDS
+    from ui.terminal import INTRO_HOLD_SECONDS, ROW_REVEAL_SECONDS
     from util.terminal_text import Transient
 
     terminal = printing_terminal(0)
@@ -290,7 +291,7 @@ def test_scan_escape_closes_the_pager_before_the_terminal():
 
 
 def test_each_terminal_has_its_own_bezel_with_the_original_screen_size():
-    from modes.planetary_mode.terminal import BEZELS, DEFAULT_BEZEL, bezel_path
+    from ui.terminal import BEZELS, DEFAULT_BEZEL, bezel_path
     from util.config import resolve_game_path
 
     size = pygame.image.load(resolve_game_path(DEFAULT_BEZEL)).get_size()

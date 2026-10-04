@@ -13,7 +13,7 @@ FUEL_UNITS_PER_CELL = 25
 DEFAULT_FUEL_PRICE = 8  # per unit, where the market doesn't stock Fuel Cells
 REPAIR_PRICE = 8  # per hull point at a docking terminal
 
-TRADE_HELP = " prices\n buy <qty> <good>\n sell <qty> <good>\n cargo\n news"
+TRADE_USAGE = ("prices", "buy <qty> <good>", "sell <qty> <good>", "cargo", "news")  # help lines for terminals
 
 
 def price(info):
