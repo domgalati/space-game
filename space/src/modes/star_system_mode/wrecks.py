@@ -23,6 +23,7 @@ def roll_salvage(kind, sponsor_goods, rng):
 class Wreck:
     speed = SPEED
     obj_type = "Wreck"
+    category = "wreck"
     planet_guild = None
 
     def __init__(self, privateer, cargo, credits, on_gone):

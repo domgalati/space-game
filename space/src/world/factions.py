@@ -1,8 +1,10 @@
-"""Sol's factions: who holds what, who licenses raiders against whom, and the player's standing.
+"""Factions, the player's standing with them, and each system's politics.
 
-Everyone is against the Assembly. The Dominion, Cohort and Caravaneers license privateers
-against Assembly-friendly shipping; the Assembly is the law, runs patrols and pays bounties.
-Planet ownership lives in the star system file (each body's "guild").
+Factions are the same everywhere. Who keeps the law and who licenses raiders differs by
+system, so each star system file says so ("law", "raiders") and gets a Politics. In Sol the
+Assembly is the law, runs patrols and pays bounties; the Dominion, Cohort and Caravaneers
+license privateers against Assembly-friendly shipping. Planet ownership lives in the star
+system file too (each body's "guild").
 """
 import math
 
@@ -11,7 +13,7 @@ WAVE_BY = 30  # standing with a privateer's sponsor at which its raiders let you
 TRADE_STEP = 1000  # credits traded at a faction's world per point of standing
 TRADE_CAP = 40  # trade alone lifts standing this far, no further
 KILL_SPONSOR_STANDING = -5  # destroying a privateer, with its sponsor
-KILL_LAW_STANDING = 3  # and with the Assembly
+KILL_LAW_STANDING = 3  # and with the system's law
 
 FACTIONS = {
     "assembly": {"name": "Assembly", "voice": "Assembly Traffic Control"},
@@ -19,16 +21,9 @@ FACTIONS = {
     "cohort": {"name": "Cohort", "voice": "Cohort Commons Relay"},
     "caravaneers": {"name": "Caravaneers", "voice": "Caravaneer Moot"},
 }
-LAW = "assembly"
-RAIDER_SPONSORS = ("dominion", "cohort", "caravaneers")
-
 
 def faction_name(faction):
     return FACTIONS.get(faction, {}).get("name", (faction or "Independent").title())
-
-
-def licenses_raiders(faction):
-    return faction in RAIDER_SPONSORS
 
 
 def waves_by(reputation, sponsor):
@@ -36,9 +31,24 @@ def waves_by(reputation, sponsor):
     return reputation.get(sponsor, 0) >= WAVE_BY
 
 
-def flies_assembly_colours(reputation):
-    """Friendly enough with the Assembly that raiders take an interest."""
-    return reputation.get(LAW, 0) >= WAVE_BY
+class Politics:
+    """Who keeps the law in a system, and which factions license privateers against its shipping."""
+
+    def __init__(self, law=None, raiders=()):
+        self.law = law  # faction id, or None for a lawless system
+        self.raiders = tuple(raiders)
+
+    @classmethod
+    def from_data(cls, data):
+        """From a star system file's "law" and "raiders"."""
+        return cls(data.get("law"), data.get("raiders", ()))
+
+    def licenses_raiders(self, faction):
+        return faction in self.raiders
+
+    def flies_law_colours(self, reputation):
+        """Friendly enough with the law that raiders take an interest."""
+        return self.law is not None and reputation.get(self.law, 0) >= WAVE_BY
 
 
 def adjust_standing(reputation, faction, delta):
@@ -48,12 +58,16 @@ def adjust_standing(reputation, faction, delta):
     return reputation[faction] - before
 
 
-def record_kill(player, sponsor, kind):
-    """A privateer destroyed: logged for bounties, and standing moves. Returns a short summary."""
+def record_kill(player, sponsor, kind, law=None):
+    """A privateer destroyed: logged for bounties, and standing moves with its sponsor and with
+    `law`, the system's law faction (if any). Returns a short summary."""
     player.kill_log.append({"sponsor": sponsor, "kind": kind})
     lost = adjust_standing(player.reputation, sponsor, KILL_SPONSOR_STANDING)
-    gained = adjust_standing(player.reputation, LAW, KILL_LAW_STANDING)
-    return f"{faction_name(sponsor).upper()} {lost:+d}, {faction_name(LAW).upper()} {gained:+d}"
+    summary = f"{faction_name(sponsor).upper()} {lost:+d}"
+    if law:
+        gained = adjust_standing(player.reputation, law, KILL_LAW_STANDING)
+        summary += f", {faction_name(law).upper()} {gained:+d}"
+    return summary
 
 
 def credit_trade(player, faction, credits):

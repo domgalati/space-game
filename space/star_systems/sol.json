@@ -2,6 +2,9 @@
     "id": "sol",
     "name": "Sol",
     "seed": 12345,
+    "star": {"image": "space/assets/img/planets/Sun.png", "radius": 1700, "heat_start": 0.6, "heat_max": 8},
+    "law": "assembly",
+    "raiders": ["dominion", "cohort", "caravaneers"],
     "planets": [
         {"id": "terramonta", "name": "Terramonta", "type": "Industrial", "guild": "assembly", "image_path": "space/assets/img/planets/Lava.png", "map": "space/assets/maps/Terramonta.tmx", "start_pos": [1248, 144]},
         {"id": "etheora", "name": "Etheora", "type": "Urban", "guild": "caravaneers", "image_path": "space/assets/img/planets/Baren.png", "map": "space/assets/maps/Etheora.tmx"},

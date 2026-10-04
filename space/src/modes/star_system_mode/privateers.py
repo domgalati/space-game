@@ -19,7 +19,7 @@ import random
 from entities.player import Ship
 from util.config import TILE_SIZE, resolve_game_path
 from util.sprite_animation import TINT_LEVELS, AnimatedSprite
-from world.factions import LAW, waves_by
+from world.factions import waves_by
 
 from .combat import WEAPON_RANGE, band, charged
 
@@ -54,12 +54,15 @@ _DIRECTIONS = {
 PATROL, HUNT, SEARCH, ENGAGE, RETREAT = "patrol", "hunt", "search", "engage", "retreat"
 
 
-def search_turns(reputation):
-    """The friendlier you are with the Assembly, the longer raiders keep looking for you."""
-    return SEARCH_TURNS + max(0, reputation.get(LAW, 0)) // SEARCH_PER_STANDING
+def search_turns(reputation, law):
+    """The friendlier you are with the system's law, the longer raiders keep looking for you."""
+    standing = reputation.get(law, 0) if law else 0
+    return SEARCH_TURNS + max(0, standing) // SEARCH_PER_STANDING
 
 
 class Privateer(Vessel):
+    armed = True
+
     def __init__(self, kind, sponsor, position, mode, home=None, rng=random):
         stats = CLASSES[kind]
         self.ship = Ship()  # before Vessel.__init__, which sets shield_up through the property
@@ -169,7 +172,7 @@ class Privateer(Vessel):
 
     def _search(self):
         fix, seen_at = self.player_fix
-        if self.mode.clock.now - seen_at > search_turns(self.mode.player.reputation):
+        if self.mode.clock.now - seen_at > search_turns(self.mode.player.reputation, self.mode.selected_system.politics.law):
             self.forget()
             return
         if math.dist(self.position, fix) > SEARCH_WANDER + ARRIVED:

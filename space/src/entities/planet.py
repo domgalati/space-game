@@ -17,6 +17,7 @@ class Planet:
     def __init__(self, body_id, name, planet_type, planet_guild, image_path, orbit_radius, angle, center_x, center_y,
                  start_pos=(0, 0), map_path=None):
         self.id = body_id  # "<system>/<body>"; see world.atlas
+        self.category = "planet"  # what kind of body: "planet", "station" or "wreck"
         self.name = name
         self.map_path = map_path  # landing map, or None
         self.planet_type = planet_type
@@ -38,6 +39,9 @@ class Planet:
         rect_x = self.position[0] - self.image.get_width() // 2
         rect_y = self.position[1] - self.image.get_height() // 2
         return pygame.Rect(rect_x, rect_y, self.image.get_width(), self.image.get_height())
+
+    def world_center(self):
+        return self.position
 
     def contains(self, point):
         """True over the disk itself, not the empty corners of its image."""
