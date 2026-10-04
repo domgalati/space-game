@@ -13,6 +13,7 @@ from rich.text import Text
 
 from util.economy.news_feed import FRESH_TICKS
 from util.terminal_text import Transient, color
+from world.atlas import place_name
 
 MASTHEAD = "THE NEXUS WIRE"
 EDITIONS = ("LATE EDITION", "MORNING EDITION", "DOCKSIDE EDITION", "FINAL EDITION", "SOL MARKETS")
@@ -120,7 +121,7 @@ def wire_check(feed, places):
             status = Text("live", style=color("up"))
         else:
             status = Text(f"checked {age_text(age)}", style=color("body"))
-        row = Text(f" {place:<14}", style=color("bright"))
+        row = Text(f" {place_name(place):<14}", style=color("bright"))
         row.append(" ... ", style=color("dim"))
         row.append_text(status)
         lines.append(row)
@@ -151,7 +152,7 @@ def _movers(feed):
     table.add_column("VS BASE", justify="right", no_wrap=True)
     table.add_column("", width=MOVER_BAR_CELLS, no_wrap=True)
     for good, place, price, percent in rows[:MOVER_COUNT]:
-        table.add_row(good, place, Text(f"${price}", style=color("bright")),
+        table.add_row(good, place_name(place), Text(f"${price}", style=color("bright")),
                       Text(f"{percent:+d}%", style=_tone(percent)), bar(percent, MOVER_BAR_CELLS))
     return Group(_heading("MARKET MOVERS"), table)
 
@@ -165,7 +166,7 @@ def _verb(percent, rng):
 
 
 def _card(feed, story, rng):
-    place, event = story["place"], story["event"]
+    place, event = place_name(story["place"]), story["event"]
     moves = [(move["good"], move["price"], move["change"], _percent(move["change"])) for move in story["moves"]]
 
     lead = Text(rng.choice(LEADS).format(place=place, event=event), style=color("body"))

@@ -7,6 +7,7 @@ from entities.planet import Planet
 from entities.object import SpaceObject
 from util.config import resolve_game_path
 from util.images import load_image
+from world.atlas import body_id
 from world.factions import LAW
 
 # Logical system is large enough for multi-thousand-pixel orbit gaps.
@@ -28,6 +29,8 @@ PATROL_RADIUS = 2500  # privateers break off this close to Assembly worlds and s
 
 class StarSystem:
     def __init__(self, json_path):
+        self.id = None
+        self.name = None
         self.MAP_WIDTH = MAP_WIDTH
         self.MAP_HEIGHT = MAP_HEIGHT
         # Calculate center of the map as class attributes
@@ -43,6 +46,8 @@ class StarSystem:
     def load_system(self, json_path):
         with open(resolve_game_path(json_path), 'r') as file:
             data = json.load(file)
+            self.id = data['id']
+            self.name = data.get('name', self.id)
             seed = data['seed']
             planet_data = data['planets']
             object_data = data.get('objects', [])
@@ -60,6 +65,7 @@ class StarSystem:
             
             start_pos = data.get('start_pos', (0, 0))
             planet = Planet(
+                body_id(self.id, data['id']),
                 data['name'],
                 data['type'],
                 data['guild'],
@@ -69,10 +75,16 @@ class StarSystem:
                 self.map_center_x,
                 self.map_center_y,
                 start_pos,
+                map_path=self._map_path(data),
             )
             self.planets.append(planet)
             self.orbits.append(orbit_radius)
             last_orbit_radius = orbit_radius
+
+    @staticmethod
+    def _map_path(data):
+        """The landing map a body names, or None if it has none."""
+        return resolve_game_path(data['map']) if data.get('map') else None
 
     def _mid_system_point(self, size):
         """Top-left of a station image `size` px square, STATION_GAP clear of the sun."""
@@ -91,6 +103,7 @@ class StarSystem:
             else:
                 x, y = data["x"], data["y"]
             obj = SpaceObject(
+                body_id(self.id, data['id']),
                 data['name'],
                 data['type'],
                 image_path,
@@ -98,6 +111,7 @@ class StarSystem:
                 y,
                 data.get('guild'),
                 data.get('access'),
+                map_path=self._map_path(data),
             )
             self.objects.append(obj)
 

@@ -107,7 +107,7 @@ def test_goods_opinion_falls_back_without_economy():
 def test_goods_opinion_reads_economy():
     ctx, _, _, _ = make_context()
     ctx.economy = SimpleNamespace(
-        planet_name="Terramonta",
+        place="Terramonta",
         data={"Terramonta": {"goods": {"Steel": {"basePrice": 100, "currentPrice": 150}}}},
     )
     from dialogue import topics

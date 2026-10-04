@@ -1,4 +1,4 @@
-Terramonta:
+sol/terramonta:
   goods:
     Raw Minerals:
       basePrice: 100
@@ -132,7 +132,7 @@ Terramonta:
       Construction Alloys:
         priceChange: "+45%"
 
-Nexum Astra:
+sol/nexum-astra:
   goods:
     Fuel Cells:
       basePrice: 150
@@ -205,7 +205,7 @@ Nexum Astra:
       Rations:
         priceChange: "-25%"
 
-Etheora:
+sol/etheora:
   goods:
     Advanced Electronics:
       basePrice: 100

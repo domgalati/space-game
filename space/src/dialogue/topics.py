@@ -2,6 +2,7 @@
 import random
 
 from util.economy.economy import load_market_data
+from world.atlas import place_name
 
 # Job -> goods this person notices (must exist in planet economy YAML).
 JOB_GOODS_BIAS = {
@@ -12,9 +13,9 @@ JOB_GOODS_BIAS = {
     "Politician": ("Luxury Goods", "Advanced Electronics"),
 }
 
-# Planet -> job -> goods, for planets whose economy lacks the default goods above.
+# Place id -> job -> goods, for places whose economy lacks the default goods above.
 PLANET_JOB_GOODS_BIAS = {
-    "Etheora": {
+    "sol/etheora": {
         "Miner": ("Virtual Reality Gear", "Nanotechnology"),
         "Foreman": ("Robotics Components", "Software Suites"),
         "Dockworker": ("Robotics Components", "Renewable Energy Tech"),
@@ -53,7 +54,7 @@ def goods_opinion(npc, economy, rng=random):
     """A spoken line about a good this NPC's job cares about, or None if nothing applies."""
     if not economy:
         return None
-    planet = economy.planet_name
+    planet = economy.place
     goods = goods_for(npc, planet)
     if not goods:
         return None
@@ -85,7 +86,7 @@ def goods_opinion(npc, economy, rng=random):
 
 
 def market_rumor(here, rng=random, markets=None):
-    """A spoken line about prices somewhere other than ``here``."""
+    """A spoken line about prices somewhere other than ``here`` (a place id)."""
     book = markets if markets is not None else load_market_data()
     markets = [
         (place, good, info)
@@ -96,6 +97,7 @@ def market_rumor(here, rng=random, markets=None):
     if not markets:
         return "Quiet week. Nobody's talking."
     place, good, info = rng.choice(markets)
+    place = place_name(place)
     ratio = info["currentPrice"] / info["basePrice"] if info.get("basePrice") else 1
     if ratio >= 1.15:
         return f"Word is {good} is fetching a premium on {place}."

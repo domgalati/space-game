@@ -26,11 +26,12 @@ SWEEP_DURATION_SECONDS = 1.6
 
 
 def has_landing_map(target):
-    return os.path.exists(resolve_game_path(f"space/assets/maps/{target.name}.tmx"))
+    path = getattr(target, "map_path", None)
+    return bool(path) and os.path.exists(path)
 
 
 def market_lines(target, markets):
-    goods = (markets.get(target.name) or {}).get("goods", {})
+    goods = (markets.get(target.id) or {}).get("goods", {})
     if not goods:
         return ["Market: no data"]
     ranked = sorted(goods.items(), key=lambda item: item[1]["currentPrice"], reverse=True)
@@ -156,9 +157,9 @@ class ScanTerminal(Terminal):
         feed = getattr(self.star_system_mode, "news_feed", None)
         if self.target is None or feed is None:
             return
-        goods = (self.markets().get(self.target.name) or {}).get("goods") or {}
+        goods = (self.markets().get(self.target.id) or {}).get("goods") or {}
         if goods:
-            feed.observe(self.target.name, goods)
+            feed.observe(self.target.id, goods)
             self.say("Market data synced to the news wire.")
 
     def activate(self):
@@ -170,7 +171,7 @@ class ScanTerminal(Terminal):
         is_wreck = getattr(self.target, "obj_type", None) == "Wreck"  # debris isn't charted
         if self.target is not None and not is_wreck and getattr(self.target, "name", None) \
                 and not nav.is_charted(self.target):
-            nav.chart(self.target.name)
+            nav.chart(self.target.id)
             self.say(f"Nav chart updated: {self.target.name}.")
 
     def deactivate(self):

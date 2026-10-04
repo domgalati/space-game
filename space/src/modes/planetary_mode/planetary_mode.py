@@ -19,6 +19,7 @@ class PlanetaryMode:
     def __init__(self, selected_planet, player, screen, world_state=None):
         self.planet = selected_planet
         self.player = player
+        player.location.body = selected_planet.id
         self.world_state = world_state or WorldState()
         self.screen = screen
         self.player_sprite = pygame.image.load(
@@ -42,18 +43,17 @@ class PlanetaryMode:
         )
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height)
         self.map_surface = pygame.Surface((SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height))
-        map_filename = resolve_game_path(f"space/assets/maps/{self.planet.name}.tmx")       
-        self.map_manager = MapManager(map_filename)
+        self.map_manager = MapManager(self.planet.map_path)
         self.log_messages = []
         self.player_position = self._player_start()
         self._center_camera()
         self.map_manager.initialize_animation_data()
         self.news_feed = NewsFeed(self.world_state)
-        self.economy = Economy(selected_planet.name, self.world_state.markets_data(), feed=self.news_feed)
+        self.economy = Economy(selected_planet.id, self.world_state.markets_data(), feed=self.news_feed)
         self.economy.set_log_callback(self.logger.add_log_message)
         self.news_feed.advance()
         self.economy.market_news()
-        self.news_feed.observe(selected_planet.name, self.economy.goods())
+        self.news_feed.observe(selected_planet.id, self.economy.goods())
         self.npc_manager = NPCManager(self.map_manager, selected_planet, NPCRoster(self.world_state))
         self.interaction_manager = InteractionManager(
             self.map_manager, self.npc_manager, self.logger, economy=self.economy

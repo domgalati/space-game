@@ -14,8 +14,11 @@ DOCK_XY = (-0.62 / _DOCK_LEN * 0.84, -0.48 / _DOCK_LEN * 0.84)
 
 
 class Planet:
-    def __init__(self, name, planet_type, planet_guild, image_path, orbit_radius, angle, center_x, center_y,start_pos=(0, 0)):
+    def __init__(self, body_id, name, planet_type, planet_guild, image_path, orbit_radius, angle, center_x, center_y,
+                 start_pos=(0, 0), map_path=None):
+        self.id = body_id  # "<system>/<body>"; see world.atlas
         self.name = name
+        self.map_path = map_path  # landing map, or None
         self.planet_type = planet_type
         self.planet_guild = planet_guild
         self.image = load_image(image_path)

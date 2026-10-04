@@ -6,8 +6,10 @@ from util.images import load_image
 APPROACH_RADIUS = 160
 
 class SpaceObject:
-    def __init__(self, name, obj_type, image_path, x, y, guild=None, access=None):
+    def __init__(self, body_id, name, obj_type, image_path, x, y, guild=None, access=None, map_path=None):
+        self.id = body_id  # "<system>/<body>"; see world.atlas
         self.name = name
+        self.map_path = map_path  # landing map, or None
         self.obj_type = obj_type
         self.planet_guild = guild
         self.image = load_image(image_path)

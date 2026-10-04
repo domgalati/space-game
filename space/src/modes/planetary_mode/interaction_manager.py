@@ -119,7 +119,7 @@ class InteractionManager:
             if self.activate_terminal_callback:
                 self.activate_terminal_callback(TERMINAL_TYPES[objectname])
         elif objectname == "Bar Counter":
-            here = self.economy.planet_name if self.economy else None
+            here = self.economy.place if self.economy else None
             self.logger.add_log_message("The bartender slides a drink over and leans in.")
             book = self.economy.data if self.economy else None
             self.logger.add_log_message(f'"{topics.market_rumor(here, markets=book)}"')
