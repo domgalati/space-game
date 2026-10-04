@@ -1,336 +1,336 @@
 sol/terramonta:
   goods:
-    Raw Minerals:
+    raw-minerals:
       basePrice: 100
       currentPrice: 100
-    Steel:
+    steel:
       basePrice: 200
       currentPrice: 200
-    Mining Equipment:
+    mining-equipment:
       basePrice: 300
       currentPrice: 300
-    Thermal Suits:
+    thermal-suits:
       basePrice: 500
       currentPrice: 500
-    Industrial Machinery:
+    industrial-machinery:
       basePrice: 1200
       currentPrice: 1200
-    Energy Cells:
+    energy-cells:
       basePrice: 200
       currentPrice: 200
-    Geothermal Devices:
+    geothermal-devices:
       basePrice: 500
       currentPrice: 500
-    Durable Tools:
+    durable-tools:
       basePrice: 100
       currentPrice: 100
-    Cheap Tools:
+    cheap-tools:
       basePrice: 75
       currentPrice: 75
-    Rare Gems:
+    rare-gems:
       basePrice: 5000
       currentPrice: 5000
-    Construction Alloys:
+    construction-alloys:
       basePrice: 500
       currentPrice: 500
-    Advanced Electronics:
+    advanced-electronics:
       basePrice: 160
       currentPrice: 160
-    Robotics Components:
+    robotics-components:
       basePrice: 170
       currentPrice: 170
-    Rations:
+    rations:
       basePrice: 95
       currentPrice: 95
-    Medical Supplies:
+    medical-supplies:
       basePrice: 320
       currentPrice: 320
   events:
     Mining Accident:
-      Raw Minerals:
+      raw-minerals:
         priceChange: "+20%"
-      Steel:
+      steel:
         priceChange: "-10%"
     Major Vein Discovery:
-      Raw Minerals:
+      raw-minerals:
         priceChange: "-20%"     
-      Steel:
+      steel:
         priceChange: "-20%"         
     Labor Strike:
-      Raw Minerals:
+      raw-minerals:
         priceChange: "+30%"
-      Steel:
+      steel:
         priceChange: "+30%"
     Machinery Breakdown:
-      Mining Equipment:
+      mining-equipment:
         priceChange: "+50%"
-      Industrial Machinery:
+      industrial-machinery:
         priceChange: "+50%"
     Trade Union Rally:
-      Thermal Suits:
+      thermal-suits:
         priceChange: "+20%"
-      Energy Cells:
+      energy-cells:
         priceChange: "+20%"
-      Geothermal Devices:
+      geothermal-devices:
         priceChange: "+20%"
-      Durable Tools:
+      durable-tools:
         priceChange: "+20%"  
     Ore Depletion:
-      Steel:
+      steel:
         priceChange: "+80%"
-      Raw Minerals:
+      raw-minerals:
         priceChange: "+80%"
-      Construction Alloys:
+      construction-alloys:
         priceChange: "+20%"
-      Rare Gems:
+      rare-gems:
         priceChange: "+80%"
     Breakthrough in Refining Technique:
-      Steel:
+      steel:
         priceChange: "-60%"
-      Construction Alloys:
+      construction-alloys:
         priceChange: "-60%"
     Mining Subsidy Contract Signing:
-      Raw Minerals:
+      raw-minerals:
         priceChange: "-45%"
-      Steel:
+      steel:
         priceChange: "-45%"
-      Mining Equipment:
+      mining-equipment:
         priceChange: "-45%"
-      Thermal Suits:
+      thermal-suits:
         priceChange: "-45%"
-      Industrial Machinery:
+      industrial-machinery:
         priceChange: "-45%"
-      Energy Cells:
+      energy-cells:
         priceChange: "-45%"
-      Geothermal Devices:
+      geothermal-devices:
         priceChange: "-45%"
-      Durable Tools:
+      durable-tools:
         priceChange: "-45%"
-      Rare Gems:
+      rare-gems:
         priceChange: "-45%"
-      Construction Alloys:
+      construction-alloys:
         priceChange: "-45%"
     Mining Subsidy Contract Expiration:
-      Raw Minerals:
+      raw-minerals:
         priceChange: "+45%"
-      Steel:
+      steel:
         priceChange: "+45%"
-      Mining Equipment:
+      mining-equipment:
         priceChange: "+45%"
-      Thermal Suits:
+      thermal-suits:
         priceChange: "+45%"
-      Industrial Machinery:
+      industrial-machinery:
         priceChange: "+45%"
-      Energy Cells:
+      energy-cells:
         priceChange: "+45%"
-      Geothermal Devices:
+      geothermal-devices:
         priceChange: "+45%"
-      Durable Tools:
+      durable-tools:
         priceChange: "+45%"
-      Rare Gems:
+      rare-gems:
         priceChange: "+45%"
-      Construction Alloys:
+      construction-alloys:
         priceChange: "+45%"
 
 sol/nexum-astra:
   goods:
-    Fuel Cells:
+    fuel-cells:
       basePrice: 150
       currentPrice: 150
-    Rations:
+    rations:
       basePrice: 60
       currentPrice: 60
-    Ship Parts:
+    ship-parts:
       basePrice: 400
       currentPrice: 400
-    Medical Supplies:
+    medical-supplies:
       basePrice: 250
       currentPrice: 250
-    Luxury Goods:
+    luxury-goods:
       basePrice: 900
       currentPrice: 900
-    Raw Minerals:
+    raw-minerals:
       basePrice: 120
       currentPrice: 120
-    Steel:
+    steel:
       basePrice: 230
       currentPrice: 230
-    Advanced Electronics:
+    advanced-electronics:
       basePrice: 140
       currentPrice: 140
-    Energy Cells:
+    energy-cells:
       basePrice: 210
       currentPrice: 210
-    AI Processors:
+    ai-processors:
       basePrice: 165
       currentPrice: 165
-    Robotics Components:
+    robotics-components:
       basePrice: 150
       currentPrice: 150
   events:
     Customs Crackdown:
-      Luxury Goods:
+      luxury-goods:
         priceChange: "+40%"
-      Medical Supplies:
+      medical-supplies:
         priceChange: "+10%"
     Trade Convoy Arrival:
-      Rations:
+      rations:
         priceChange: "-20%"
-      Raw Minerals:
+      raw-minerals:
         priceChange: "-15%"
-      Steel:
+      steel:
         priceChange: "-15%"
     Dockworkers Strike:
-      Ship Parts:
+      ship-parts:
         priceChange: "+35%"
-      Fuel Cells:
+      fuel-cells:
         priceChange: "+25%"
     Assembly Tariff Hike:
-      Advanced Electronics:
+      advanced-electronics:
         priceChange: "+20%"
-      Luxury Goods:
+      luxury-goods:
         priceChange: "+20%"
-      Energy Cells:
+      energy-cells:
         priceChange: "+15%"
     Pirate Raids Reported:
-      Fuel Cells:
+      fuel-cells:
         priceChange: "+30%"
-      Ship Parts:
+      ship-parts:
         priceChange: "+20%"
-      Medical Supplies:
+      medical-supplies:
         priceChange: "+25%"
     Relief Shipment:
-      Medical Supplies:
+      medical-supplies:
         priceChange: "-30%"
-      Rations:
+      rations:
         priceChange: "-25%"
 
 sol/etheora:
   goods:
-    Advanced Electronics:
+    advanced-electronics:
       basePrice: 100
       currentPrice: 100
-    Software Suites:
+    software-suites:
       basePrice: 100
       currentPrice: 100
-    Robotics Components:
+    robotics-components:
       basePrice: 100
       currentPrice: 100
-    Virtual Reality Gear:
+    virtual-reality-gear:
       basePrice: 100
       currentPrice: 100
-    Nanotechnology:
+    nanotechnology:
       basePrice: 100
       currentPrice: 100
-    Biotech Products:
+    biotech-products:
       basePrice: 100
       currentPrice: 100
-    AI Processors:
+    ai-processors:
       basePrice: 100
       currentPrice: 100
-    Renewable Energy Tech:
+    renewable-energy-tech:
       basePrice: 100
       currentPrice: 100
-    Experimental Gadgets:
+    experimental-gadgets:
       basePrice: 100
       currentPrice: 100
-    Steel:
+    steel:
       basePrice: 270
       currentPrice: 270
-    Construction Alloys:
+    construction-alloys:
       basePrice: 650
       currentPrice: 650
-    Rations:
+    rations:
       basePrice: 90
       currentPrice: 90
-    Luxury Goods:
+    luxury-goods:
       basePrice: 1150
       currentPrice: 1150
   events:
     AI Breakthrough:
-      AI Processors:
+      ai-processors:
         priceChange: "-20%"
-      Software Suites:
+      software-suites:
         priceChange: "-20%"
-      Advanced Electronics:
+      advanced-electronics:
         priceChange: "-20%"
     Software Vulnerability Discovery:
-      Software Suites:
+      software-suites:
         priceChange: "-25%"
-      Advanced Electronics:
+      advanced-electronics:
         priceChange: "-25%"
     Software Vulnerability Patch:
-      Software Suites:
+      software-suites:
         priceChange: "+20%"
-      Advanced Electronics:
+      advanced-electronics:
         priceChange: "+20%"
     Patent War Escalation:
-      Robotics Components:
+      robotics-components:
         priceChange: "+15%"
-      Nanotechnology:
+      nanotechnology:
         priceChange: "+10%"
-      AI Processors:
+      ai-processors:
         priceChange: "+10%"
     Tech Industry Scandal:
-      Advanced Electronics:
+      advanced-electronics:
         priceChange: "-15%"
-      Virtual Reality Gear:
+      virtual-reality-gear:
         priceChange: "-10%"
-      Biotech Products:
+      biotech-products:
         priceChange: "-10%"
     Major Cybersecurity Attack:
-      Software Suites:
+      software-suites:
         priceChange: "-20%"
-      AI Processors:
+      ai-processors:
         priceChange: "-15%"
-      Renewable Energy Tech:
+      renewable-energy-tech:
         priceChange: "-10%"
     Science Grant Awards:
-      Nanotechnology:
+      nanotechnology:
         priceChange: "+20%"
-      Biotech Products:
+      biotech-products:
         priceChange: "+15%"
-      Experimental Gadgets:
+      experimental-gadgets:
         priceChange: "+15%"
     Nanotech Advancement:
-      Nanotechnology:
+      nanotechnology:
         priceChange: "+25%"
-      Robotics Components:
+      robotics-components:
         priceChange: "+10%"
-      Renewable Energy Tech:
+      renewable-energy-tech:
         priceChange: "+10%"
     Biotech Breakthrough:
-      Biotech Products:
+      biotech-products:
         priceChange: "+30%"
-      Nanotechnology:
+      nanotechnology:
         priceChange: "+15%"
-      AI Processors:
+      ai-processors:
         priceChange: "+10%"
     Global Energy Shift:
-      Renewable Energy Tech:
+      renewable-energy-tech:
         priceChange: "+20%"
-      Experimental Gadgets:
+      experimental-gadgets:
         priceChange: "+10%"
-      Software Suites:
+      software-suites:
         priceChange: "-10%"
     Virtual Reality Revolution:
-      Virtual Reality Gear:
+      virtual-reality-gear:
         priceChange: "+25%"
-      Software Suites:
+      software-suites:
         priceChange: "+15%"
-      Advanced Electronics:
+      advanced-electronics:
         priceChange: "+15%"
     Robotics Industry Boom:
-      Robotics Components:
+      robotics-components:
         priceChange: "+20%"
-      Advanced Electronics:
+      advanced-electronics:
         priceChange: "+10%"
-      AI Processors:
+      ai-processors:
         priceChange: "+10%"
     AI Ethics Reform:
-      AI Processors:
+      ai-processors:
         priceChange: "-15%"
-      Robotics Components:
+      robotics-components:
         priceChange: "-10%"
-      Software Suites:
+      software-suites:
         priceChange: "-10%"

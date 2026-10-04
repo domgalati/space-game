@@ -9,7 +9,7 @@ WRECK_TURNS = 40
 APPROACH_RADIUS = 64  # fly this close and press E to scan it and salvage
 # Salvage by class: (fewest goods, most goods, fewest credits, most credits).
 SALVAGE = {"cutter": (2, 4, 40, 80), "raider": (3, 6, 80, 150), "gunship": (5, 10, 150, 300)}
-FALLBACK_GOOD = "Ship Parts"
+FALLBACK_GOOD = "ship-parts"
 DEBRIS = ((-22, -14, "*"), (20, -18, "'"), (-16, 20, "."), (24, 16, ":"), (2, -28, "."))
 
 

@@ -16,6 +16,7 @@ from .shield_fx import draw_shield
 from .sensor_fx import OWN, draw_contacts, draw_sensor_overlay
 from .sensors import PING_RANGE, PING_SPEED, Sensors, compass, loudest_unfound, range_label, signature
 from world.factions import faction_name, record_kill, waves_by
+from world.items import item_name
 from .combat import SCAN_RANGE, SHOT_MS, Shot, band, charged, fire
 from .combat_fx import draw_bracket, draw_intent, draw_shots
 from .ui.action_strip import ActionStrip, corridor_rank
@@ -381,9 +382,9 @@ class StarSystemMode:
             if taken:
                 cargo.add_item(good, taken)
                 took[good] = taken
-                lines.append(f"Took {taken} {good} aboard.")
+                lines.append(f"Took {taken} {item_name(good)} aboard.")
             if taken < quantity:
-                lines.append(f"No room for {quantity - taken} more {good}.")
+                lines.append(f"No room for {quantity - taken} more {item_name(good)}.")
                 wreck.cargo[good] = quantity - taken
             else:
                 del wreck.cargo[good]

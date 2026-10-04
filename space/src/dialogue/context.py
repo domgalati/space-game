@@ -3,6 +3,9 @@
 Variables named $this_* belong to the NPC being spoken to; every other $variable is a
 global story flag. ``visited()`` counts are per NPC as well. Unset variables read as false.
 
+Items can be named by id or by name: has_item("raw-minerals") and has_item("Raw Minerals")
+are the same check (see world.items).
+
 Functions (use in {braces} or conditions):
     visited("Node") visited_count("Node") dice(sides) random() random_range(low, high)
     has_item("Item", n) item_count("Item") currency() rep("faction") mood() disposition()
@@ -19,6 +22,7 @@ import random
 from entities.npcs.species import species_name
 from world.disposition import clamp_mood, disposition_word
 from world.factions import adjust_standing
+from world.items import find_item, item_name
 
 from . import topics
 from .errors import DialogueError
@@ -47,7 +51,7 @@ class GameContext:
             "random": lambda: self.rng.random(),
             "random_range": lambda low, high: self.rng.randint(int(low), int(high)),
             "has_item": self._has_item,
-            "item_count": lambda item: self._inventory().items.get(item, 0),
+            "item_count": lambda item: self._inventory().items.get(find_item(item), 0),
             "currency": lambda: self.player.currency,
             "rep": lambda faction: self.player.reputation.get(str(faction).lower(), 0),
             "mood": lambda: self.npc_state["mood"],
@@ -118,7 +122,7 @@ class GameContext:
     # Functions
 
     def _has_item(self, item, quantity=1):
-        return self._inventory().items.get(item, 0) >= _count(quantity)
+        return self._inventory().items.get(find_item(item), 0) >= _count(quantity)
 
     def _has_hobby(self, hobby):
         wanted = str(hobby).lower()
@@ -127,19 +131,19 @@ class GameContext:
     # Commands
 
     def _give(self, item, quantity=1):
-        quantity = _count(quantity)
+        item, quantity = find_item(item), _count(quantity)
         if self._inventory().add_item(item, quantity):
-            self.changes.append(f"Received {quantity} {item}.")
+            self.changes.append(f"Received {quantity} {item_name(item)}.")
         else:
-            self.changes.append(f"No room for {quantity} {item}; you left it behind.")
+            self.changes.append(f"No room for {quantity} {item_name(item)}; you left it behind.")
 
     def _take(self, item, quantity=1):
-        quantity = _count(quantity)
+        item, quantity = find_item(item), _count(quantity)
         held = self._inventory().items.get(item, 0)
         taken = min(held, quantity)
         if taken:
             self._inventory().remove_item(item, taken)
-            self.changes.append(f"Handed over {taken} {item}.")
+            self.changes.append(f"Handed over {taken} {item_name(item)}.")
 
     def _pay(self, amount):
         amount = _count(amount)

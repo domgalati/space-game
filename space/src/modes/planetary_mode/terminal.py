@@ -1,6 +1,7 @@
 import pygame
 from util.config import resolve_game_path
 from util.terminal_text import PALETTE, Transient, to_lines
+from world.items import item_name
 from .terminals import docking_terminal, market_terminal
 
 COMMANDS = {
@@ -257,7 +258,7 @@ class Terminal:
         economy = getattr(self.planetary_mode, "economy", None)
         if economy is None:
             return []
-        return list(economy.goods())
+        return [item_name(good) for good in economy.goods()]
 
     def show_matches(self, matches):
         self.output_buffer.extend(self.wrap_text("  " + "  ".join(matches), self.columns))
