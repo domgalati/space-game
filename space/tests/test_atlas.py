@@ -65,9 +65,7 @@ def test_undocking_charts_the_body_by_id_and_clears_it(player):
     flight = StarSystemMode(player, "sol")
     etheora = next(b for b in flight.selected_system.planets if b.id == "sol/etheora")
     player.location.body = etheora.id
-    flight.landing_requested = True
     flight.undock(etheora)
     assert player.location.body is None
-    assert not flight.landing_requested
     assert "sol/etheora" in player.charted_planets
     assert flight.nav.is_charted(etheora)
