@@ -123,6 +123,13 @@ class StarSystem:
             )
             self.objects.append(obj)
 
+    def body(self, body_id):
+        """The planet or station with this id. Raises KeyError for one this system doesn't have."""
+        for body in [*self.planets, *self.objects]:
+            if body.id == body_id:
+                return body
+        raise KeyError(f"{body_id} is not in {self.id}")
+
     def spawn_point(self):
         """Where a new run starts: in the approach lane under the first station bay."""
         for obj in self.objects:

@@ -138,11 +138,11 @@ def test_market_news_settles_and_fires_events():
     assert econ.data["Etheora"]["goods"]["Steel"]["currentPrice"] == 405
 
 
-def test_market_news_records_fired_events_in_the_feed(tmp_path):
+def test_market_news_records_fired_events_in_the_feed():
     from util.economy.news_feed import NewsFeed
     from world.world_state import WorldState
 
-    feed = NewsFeed(WorldState(str(tmp_path / "w.yaml")))
+    feed = NewsFeed(WorldState())
     econ = economy(Steel=200)
     econ.feed = feed
     econ.market_news(rng=random.Random(1))
@@ -151,11 +151,10 @@ def test_market_news_records_fired_events_in_the_feed(tmp_path):
     assert story["moves"] == [{"good": "Steel", "price": 405, "change": "+50%"}]
 
 
-def test_load_market_data_keeps_new_base_goods_over_stale_snapshot(tmp_path):
+def test_saved_prices_lay_over_the_base_goods(tmp_path):
     base = tmp_path / "base.yaml"
-    snapshot = tmp_path / "snapshot.yaml"
     base.write_text(yaml.safe_dump({"Terramonta": {"goods": market(Steel=200, Rations=95)}}))
-    snapshot.write_text(yaml.safe_dump({"Terramonta": {"goods": {"Steel": {"basePrice": 200, "currentPrice": 260.4}}}}))
-    data = load_market_data(str(base), str(snapshot))
+    saved = {"Terramonta": {"Steel": 260.4, "Unobtainium": 9000}, "Gone": {"Steel": 1}}
+    data = load_market_data(str(base), saved)
     assert data["Terramonta"]["goods"]["Steel"]["currentPrice"] == 260.4
     assert data["Terramonta"]["goods"]["Rations"]["currentPrice"] == 95

@@ -1,5 +1,7 @@
 from entities.npcs.npc_generator import build_npc, roll_npc_record
+from entities.player import Player
 from world.roster import NPCRoster
+from world.save import load_game, save_game
 from world.world_state import WorldState
 
 
@@ -22,8 +24,8 @@ def test_record_shape_and_hobbies_unique():
 
 
 def test_roster_is_stable_across_save_and_load(tmp_path):
-    path = tmp_path / "world_state.yaml"
-    world = WorldState(str(path))
+    path = str(tmp_path / "save.yaml")
+    world = WorldState()
     first = NPCRoster(world).for_location("Terramonta", {"Miner": 3, "Foreman": 2}, "assembly")
     assert [r["id"] for r in first] == [
         "Terramonta/Miner-01", "Terramonta/Miner-02", "Terramonta/Miner-03",
@@ -31,17 +33,17 @@ def test_roster_is_stable_across_save_and_load(tmp_path):
     ]
     world.npc_state("Terramonta/Miner-01", default_mood=10)["vars"]["this_met"] = True
     world.globals["quest_stage"] = 2
-    world.save()
+    save_game(Player(), world, path)
 
-    loaded = WorldState.load(str(path))
+    loaded = load_game(path)[1]
     again = NPCRoster(loaded).for_location("Terramonta", {"Miner": 3, "Foreman": 2}, "assembly")
     assert again == first
     assert loaded.npc_state("Terramonta/Miner-01") == {"mood": 10, "vars": {"this_met": True}, "visited": {}}
     assert loaded.globals == {"quest_stage": 2}
 
 
-def test_headcount_changes_keep_residents_on_file(tmp_path):
-    world = WorldState(str(tmp_path / "w.yaml"))
+def test_headcount_changes_keep_residents_on_file():
+    world = WorldState()
     roster = NPCRoster(world)
     three = roster.for_location("Etheora", {"Miner": 3}, "assembly")
     one = roster.for_location("Etheora", {"Miner": 1}, "assembly")

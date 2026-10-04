@@ -1,4 +1,6 @@
+from entities.player import Player
 from util.economy.news_feed import FRESH_TICKS, MAX_STORIES, NewsFeed
+from world.save import load_game, save_game
 from world.world_state import WorldState
 
 
@@ -10,12 +12,12 @@ def boom():
     return [{"good": "Steel", "price": 405, "change": "+50%"}]
 
 
-def fresh_feed(tmp_path):
-    return NewsFeed(WorldState(str(tmp_path / "w.yaml")))
+def fresh_feed():
+    return NewsFeed(WorldState())
 
 
-def test_story_stays_hidden_until_its_market_is_checked_after_it_fired(tmp_path):
-    feed = fresh_feed(tmp_path)
+def test_story_stays_hidden_until_its_market_is_checked_after_it_fired():
+    feed = fresh_feed()
     feed.advance()
     feed.observe("Etheora", goods(Steel=(270, 270)))
     feed.record("Etheora", "Boom", boom())
@@ -25,8 +27,8 @@ def test_story_stays_hidden_until_its_market_is_checked_after_it_fired(tmp_path)
     assert [story["event"] for story in feed.known_stories()] == ["Boom"]
 
 
-def test_stale_markets_hide_their_stories(tmp_path):
-    feed = fresh_feed(tmp_path)
+def test_stale_markets_hide_their_stories():
+    feed = fresh_feed()
     feed.advance()
     feed.record("Etheora", "Boom", boom())
     feed.observe("Etheora", goods(Steel=(270, 405)))
@@ -37,8 +39,8 @@ def test_stale_markets_hide_their_stories(tmp_path):
     assert feed.stories == []
 
 
-def test_known_stories_are_newest_first_and_capped(tmp_path):
-    feed = fresh_feed(tmp_path)
+def test_known_stories_are_newest_first_and_capped():
+    feed = fresh_feed()
     for index in range(MAX_STORIES + 5):
         feed.record("Etheora", f"Event {index}", boom())
     feed.observe("Etheora", goods(Steel=(270, 405)))
@@ -47,8 +49,8 @@ def test_known_stories_are_newest_first_and_capped(tmp_path):
     assert known[0]["event"] == f"Event {MAX_STORIES + 4}"
 
 
-def test_observe_snapshots_prices_and_skips_empty_markets(tmp_path):
-    feed = fresh_feed(tmp_path)
+def test_observe_snapshots_prices_and_skips_empty_markets():
+    feed = fresh_feed()
     feed.advance()
     feed.observe("Etheora", goods(Steel=(270, 300.4)))
     feed.observe("Moon", {})
@@ -59,14 +61,14 @@ def test_observe_snapshots_prices_and_skips_empty_markets(tmp_path):
 
 
 def test_feed_survives_a_save_and_reload(tmp_path):
-    path = tmp_path / "w.yaml"
-    world = WorldState(str(path))
+    path = str(tmp_path / "save.yaml")
+    world = WorldState()
     feed = NewsFeed(world)
     feed.advance()
     feed.record("Etheora", "Boom", boom())
     feed.observe("Etheora", goods(Steel=(270, 405)))
-    world.save()
+    save_game(Player(), world, path)
 
-    reloaded = NewsFeed(WorldState.load(str(path)))
+    reloaded = NewsFeed(load_game(path)[1])
     assert reloaded.tick == 1
     assert [story["event"] for story in reloaded.known_stories()] == ["Boom"]

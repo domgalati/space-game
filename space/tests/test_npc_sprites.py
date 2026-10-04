@@ -8,8 +8,10 @@ import pytest
 from entities.npcs.npc import NPC
 from entities.npcs.npc_generator import DEFAULT_SPRITE, build_npc, roll_npc_record
 from entities.npcs.sprites import map_sprite
+from entities.player import Player
 from util.config import resolve_game_path
 from world.characters import character_record, load_character
+from world.save import load_game, save_game
 from world.roster import NPCRoster
 from world.world_state import WorldState
 
@@ -78,11 +80,11 @@ def test_unregistered_guild_keeps_its_class_art(monkeypatch):
 
 
 def test_saved_residents_get_new_art_without_rerolling(tmp_path):
-    world = WorldState(str(tmp_path / "world.yaml"))
+    world = WorldState()
     records = NPCRoster(world).for_location("Terramonta", {"Foreman": 6}, "assembly")
     before = deepcopy(records)
-    world.save()
-    loaded = WorldState.load(world.path)
+    save_game(Player(), world, str(tmp_path / "save.yaml"))
+    loaded = load_game(str(tmp_path / "save.yaml"))[1]
     residents = NPCRoster(loaded).for_location("Terramonta", {"Foreman": 6}, "assembly")
     for record in residents:
         assert "sprite" not in record

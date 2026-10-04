@@ -206,6 +206,7 @@ class StarSystemMode:
         self.target = None
         home = self.selected_system.objects[0].name if self.selected_system.objects else "the station"
         self.notify(f"HULL FAILURE - TOWED TO {home.upper()} - FEE ${fee}", DANGER)
+        self.world_state.events.emit("towed", fee=fee, system=self.selected_system.id)
 
     def notify(self, text, severity=INFO, key=None, shake=None):
         """Log an event, and raise an alert for anything above a NOTE. Warnings glow the screen
@@ -356,6 +357,8 @@ class StarSystemMode:
         self.wrecks.append(wreck)
         self.clock.add(wreck)
         changes = record_kill(self.player, privateer.sponsor, privateer.kind, self.selected_system.politics.law)
+        self.world_state.events.emit("privateer_destroyed", sponsor=privateer.sponsor, kind=privateer.kind,
+                                     system=self.selected_system.id)
         self.notify(f"{faction_name(privateer.sponsor).upper()} {privateer.kind.upper()} DESTROYED", shake=True)
         self.notify(f"STANDING {changes}", NOTE)
 
@@ -371,21 +374,24 @@ class StarSystemMode:
             return ["Nothing left worth taking."]
         cargo = self.player.ship.cargo
         lines = []
+        took = {}
         for good, quantity in list(wreck.cargo.items()):
             room = cargo.capacity - cargo.get_total_quantity()
             taken = min(quantity, room)
             if taken:
                 cargo.add_item(good, taken)
+                took[good] = taken
                 lines.append(f"Took {taken} {good} aboard.")
             if taken < quantity:
                 lines.append(f"No room for {quantity - taken} more {good}.")
                 wreck.cargo[good] = quantity - taken
             else:
                 del wreck.cargo[good]
-        if wreck.credits:
-            self.player.currency += wreck.credits
-            lines.append(f"Recovered ${wreck.credits}.")
-            wreck.credits = 0
+        credits, wreck.credits = wreck.credits, 0
+        if credits:
+            self.player.currency += credits
+            lines.append(f"Recovered ${credits}.")
+        self.world_state.events.emit("salvaged", wreck=wreck.name, goods=took, credits=credits)
         for line in lines:
             self.notify(line.rstrip(".").upper(), NOTE)
         self.notify(f"SALVAGED {wreck.name.upper()}")
@@ -554,6 +560,10 @@ class StarSystemMode:
         ship.shield = ship.max_shield  # station power tops the shield up while docked
         self.pending = Land(planet)
         self.close_scan_terminal()
+
+    def notice(self, text):
+        """A message for the player from outside this mode, such as "Game saved"."""
+        self.notify(text.upper(), NOTE)
 
     def undock(self, body):
         """Back in flight after a stay at `body`, which is charted now that you've been there."""

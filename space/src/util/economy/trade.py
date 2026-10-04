@@ -79,6 +79,7 @@ def buy(player, economy, argument):
         return f"You can't afford {good} at ${price(info)}."
     player.currency -= cost
     cargo.add_item(good, bought)
+    economy.emit("bought", good=good, quantity=bought, credits=cost)
     note = "" if quantity in ("all", "max") or bought == wanted else f" (wanted {wanted})"
     return f"Bought {bought} {good} for ${cost}{note}. Credits: ${player.currency}."
 
@@ -107,6 +108,7 @@ def sell(player, economy, argument):
         _nudge(info, 1 - PRICE_IMPACT)
     cargo.remove_item(good, count)
     player.currency += earned
+    economy.emit("sold", good=good, quantity=count, credits=earned)
     return f"Sold {count} {good} for ${earned}. Credits: ${player.currency}."
 
 
