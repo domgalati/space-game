@@ -80,7 +80,7 @@ def test_atmosphere_is_the_disk_not_the_image(sol):
 
 
 def _planet(radius=1072):
-    return SimpleNamespace(name="Far", position=(50000, 40000), orbit_radius=9000, radius=radius)
+    return SimpleNamespace(id="test/far", name="Far", position=(50000, 40000), orbit_radius=9000, radius=radius)
 
 
 def test_strong_signal_counts_from_the_rim():
@@ -93,7 +93,7 @@ def test_strong_signal_counts_from_the_rim():
 
 
 def test_station_strong_signal_needs_the_bay():
-    station = SimpleNamespace(name="Dock", access_points=lambda: [(1000, 1000)])
+    station = SimpleNamespace(id="test/dock", name="Dock", access_points=lambda: [(1000, 1000)])
     nav = NavCharts((0, 0), set())
     assert any("Bay is in range" in line for line in nav.ping_fixed(station, (1000, 1400), (900, 900)))
     far = nav.ping_fixed(station, (1000 + STRONG_SIGNAL_PX + 100, 1000), (900, 900))

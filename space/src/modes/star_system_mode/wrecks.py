@@ -26,6 +26,7 @@ class Wreck:
     planet_guild = None
 
     def __init__(self, privateer, cargo, credits, on_gone):
+        self.id = None  # debris: never charted, no market
         self.name = f"{faction_name(privateer.sponsor)} {privateer.kind} wreck"
         self.kind = privateer.kind
         self.sponsor = privateer.sponsor

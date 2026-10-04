@@ -25,19 +25,19 @@ def _heading(bearing):
 
 
 class NavCharts:
-    """Tracks which planets are charted and narrows uncharted ones via bearing pings."""
+    """Tracks which bodies are charted, by id, and narrows uncharted planets via bearing pings."""
 
     def __init__(self, sun_position, charted):
         self.sun_position = sun_position
         self.charted = charted
         self.candidates = {}
 
-    def is_charted(self, planet):
-        return planet.name in self.charted
+    def is_charted(self, body):
+        return body.id in self.charted
 
-    def chart(self, planet_name):
-        self.charted.add(planet_name)
-        self.candidates.pop(planet_name, None)
+    def chart(self, body_id):
+        self.charted.add(body_id)
+        self.candidates.pop(body_id, None)
 
     def orbit_point(self, planet, index):
         theta = 2 * math.pi * index / ORBIT_SAMPLES
@@ -56,7 +56,7 @@ class NavCharts:
         lines = [f"{planet.name}: bearing {heading:03.0f} ({compass}), spread {half_width:.0f} deg"]
 
         if distance - planet.radius <= STRONG_SIGNAL_PX:
-            self.chart(planet.name)
+            self.chart(planet.id)
             lines.append(f"Strong signal. {planet.name} charted, nav marker added.")
             return lines
 
@@ -64,15 +64,15 @@ class NavCharts:
             i for i in range(ORBIT_SAMPLES)
             if _angle_diff(_bearing(origin, self.orbit_point(planet, i)), reported) <= half_width
         }
-        previous = self.candidates.get(planet.name)
+        previous = self.candidates.get(planet.id)
         candidates = hits if previous is None else (previous & hits) or hits
-        self.candidates[planet.name] = candidates
+        self.candidates[planet.id] = candidates
 
         arc_px = len(candidates) * 2 * math.pi * planet.orbit_radius / ORBIT_SAMPLES
         runs = self.candidate_runs(planet)
         # Once the remaining arc is no longer than the disk, flying to it finds the planet.
         if len(runs) == 1 and arc_px <= 2 * planet.radius:
-            self.chart(planet.name)
+            self.chart(planet.id)
             lines.append(f"Signal locked. {planet.name} charted, nav marker added.")
         elif len(runs) > 1:
             lines.append(f"Signal crosses the orbit in {len(runs)} places. Ping from another angle.")
@@ -88,7 +88,7 @@ class NavCharts:
         half_width = min(max(distance / PIXELS_PER_DEGREE, MIN_HALF_WIDTH_DEG), MAX_HALF_WIDTH_DEG)
         reported = true_bearing + random.uniform(-half_width / 2, half_width / 2)
         heading, compass = _heading(reported)
-        self.chart(body.name)
+        self.chart(body.id)
         lines = [
             f"{body.name}: bearing {heading:03.0f} ({compass}), spread {half_width:.0f} deg",
             f"Fixed contact. {body.name} charted, nav marker added.",
@@ -99,7 +99,7 @@ class NavCharts:
 
     def candidate_runs(self, planet):
         """Contiguous runs of candidate orbit sample indices (wrapping around 360)."""
-        candidates = self.candidates.get(planet.name)
+        candidates = self.candidates.get(planet.id)
         if not candidates:
             return []
         if len(candidates) == ORBIT_SAMPLES:

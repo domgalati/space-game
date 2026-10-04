@@ -2,6 +2,8 @@
 
 Load/save helpers remain for tests and a future save-slot system. The game currently
 starts a fresh ``WorldState()`` every run and does not write to disk.
+
+Places are keyed by body id ("sol/terramonta", see world.atlas), never by display name.
 """
 import os
 
@@ -10,7 +12,7 @@ import yaml
 from util.config import resolve_game_path
 
 SAVE_PATH = "space/saves/world_state.yaml"
-VERSION = 1
+VERSION = 2  # 2: rosters and news keyed by body id instead of planet name
 
 
 class WorldState:

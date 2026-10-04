@@ -1,15 +1,17 @@
 {
+    "id": "sol",
+    "name": "Sol",
     "seed": 12345,
     "planets": [
-        {"name": "Terramonta", "type": "Industrial", "guild": "assembly", "image_path": "space/assets/img/planets/Lava.png", "start_pos": [1248, 144]},
-        {"name": "Etheora", "type": "Urban", "guild": "caravaneers", "image_path": "space/assets/img/planets/Baren.png"},
-        {"name": "Arboresia", "type": "Suburban", "guild": "cohort", "image_path": "space/assets/img/planets/Terran.png"},
-        {"name": "Ageria", "type": "Terran", "guild": "cohort", "image_path": "space/assets/img/planets/Terran.png"},
-        {"name": "Cosmopolara", "type": "Urban", "guild": "caravaneers", "image_path": "space/assets/img/planets/Terran.png"},
-        {"name": "Ferrica", "type": "Industrial", "guild": "dominion", "image_path": "space/assets/img/planets/Ice.png"},
-        {"name": "Governus Centralis", "type": "Urban", "guild": "assembly", "image_path": "space/assets/img/planets/Baren.png"}
+        {"id": "terramonta", "name": "Terramonta", "type": "Industrial", "guild": "assembly", "image_path": "space/assets/img/planets/Lava.png", "map": "space/assets/maps/Terramonta.tmx", "start_pos": [1248, 144]},
+        {"id": "etheora", "name": "Etheora", "type": "Urban", "guild": "caravaneers", "image_path": "space/assets/img/planets/Baren.png", "map": "space/assets/maps/Etheora.tmx"},
+        {"id": "arboresia", "name": "Arboresia", "type": "Suburban", "guild": "cohort", "image_path": "space/assets/img/planets/Terran.png"},
+        {"id": "ageria", "name": "Ageria", "type": "Terran", "guild": "cohort", "image_path": "space/assets/img/planets/Terran.png"},
+        {"id": "cosmopolara", "name": "Cosmopolara", "type": "Urban", "guild": "caravaneers", "image_path": "space/assets/img/planets/Terran.png"},
+        {"id": "ferrica", "name": "Ferrica", "type": "Industrial", "guild": "dominion", "image_path": "space/assets/img/planets/Ice.png"},
+        {"id": "governus-centralis", "name": "Governus Centralis", "type": "Urban", "guild": "assembly", "image_path": "space/assets/img/planets/Baren.png"}
     ],
     "objects": [
-        {"name": "Nexum Astra", "type": "SpaceStation", "guild": "assembly", "image_path": "space/assets/img/objects/space_station2.png", "anchor": "mid", "access": [[1152, 1920]], "x": 12420, "y": 8280}
+        {"id": "nexum-astra", "name": "Nexum Astra", "type": "SpaceStation", "guild": "assembly", "image_path": "space/assets/img/objects/space_station2.png", "map": "space/assets/maps/Nexum Astra.tmx", "anchor": "mid", "access": [[1152, 1920]], "x": 12420, "y": 8280}
     ]
 }

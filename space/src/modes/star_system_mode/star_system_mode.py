@@ -67,6 +67,7 @@ CRITICAL_HULL = 0.2  # below this the damage tint flickers
 
 class StarSystemMode:
     def __init__(self, player, starsystem, world_state=None):
+        self.player = player
         self.world_state = world_state or WorldState()
         self.news_feed = NewsFeed(self.world_state)
         self.selected_system = StarSystem(resolve_game_path(f"space/star_systems/{starsystem}.json"))
@@ -84,15 +85,16 @@ class StarSystemMode:
             animation_cooldown_ms=90,
         )
         self.current_direction = "southeast"
-        spawn_x, spawn_y = self.selected_system.spawn_point()
-        self.x_position = int(spawn_x) // TILE_SIZE
-        self.y_position = int(spawn_y) // TILE_SIZE
+        location = player.location
+        if location.system != self.selected_system.id or location.tile is None:
+            spawn_x, spawn_y = self.selected_system.spawn_point()
+            location.system = self.selected_system.id
+            location.tile = (int(spawn_x) // TILE_SIZE, int(spawn_y) // TILE_SIZE)
         self.previous_x, self.previous_y = self.x_position, self.y_position
         self.parallax_offset_x, self.parallax_offset_y = 0, 0
         self.parallax_velocity_x, self.parallax_velocity_y = 0, 0
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
         self.landing_requested = False
-        self.player = player
         self.selected_planet = None
         self.scan_terminal = None
         self.last_tick = pygame.time.get_ticks()
@@ -119,6 +121,23 @@ class StarSystemMode:
         self.events = EventLog()
         self.vignette = Vignette()
         self.shake = Shake()
+
+    # The ship's tile lives on the player's location, so it survives leaving this mode.
+    @property
+    def x_position(self):
+        return self.player.location.tile[0]
+
+    @x_position.setter
+    def x_position(self, value):
+        self.player.location.tile = (value, self.player.location.tile[1])
+
+    @property
+    def y_position(self):
+        return self.player.location.tile[1]
+
+    @y_position.setter
+    def y_position(self, value):
+        self.player.location.tile = (self.player.location.tile[0], value)
 
     def ship_rect(self):
         return pygame.Rect(self.x_position * TILE_SIZE, self.y_position * TILE_SIZE, TILE_SIZE, TILE_SIZE)
@@ -327,7 +346,7 @@ class StarSystemMode:
         goods = set()
         for planet in self.selected_system.planets:
             if planet.planet_guild == privateer.sponsor:
-                goods.update((markets.get(planet.name) or {}).get("goods") or {})
+                goods.update((markets.get(planet.id) or {}).get("goods") or {})
         if not goods:  # the sponsor's worlds have no market yet: carry anything that sells in Sol
             for market in markets.values():
                 goods.update((market or {}).get("goods") or {})
@@ -535,6 +554,12 @@ class StarSystemMode:
         self.selected_planet = planet
         self.landing_requested = True
         self.close_scan_terminal()
+
+    def undock(self, body):
+        """Back in flight after a stay at `body`, which is charted now that you've been there."""
+        self.nav.chart(body.id)
+        self.player.location.body = None
+        self.landing_requested = False
 
     def ping_targets(self):
         return [*self.selected_system.planets, *self.selected_system.objects]

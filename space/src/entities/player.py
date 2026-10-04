@@ -14,10 +14,20 @@ class Player:
         self.stats = {'strength': 10, 'intelligence': 10}
         self.currency = 0
         self.reputation = {'assembly': 0, 'caravaneers': 0, 'cohort': 0, 'dominion': 0}
-        self.charted_planets = set()
+        self.charted_planets = set()  # body ids (world.atlas) the nav computer has a fix on
         self.trade_ledger = {}  # credits traded per faction, for standing earned by trade
         self.kill_log = []  # privateers destroyed, for bounties
         self.ship = Ship()
+        self.location = Location()
+
+class Location:
+    """Where the player is: a star system, the body they are docked at (None in flight),
+    and the ship's tile in that system, kept while docked so departure resumes there."""
+
+    def __init__(self, system=None, body=None, tile=None):
+        self.system = system  # system id, e.g. "sol"
+        self.body = body  # body id, e.g. "sol/terramonta", or None
+        self.tile = tile  # (x, y) in the system's tile grid, or None before the first flight
 
 class Ship:
     def __init__(self):

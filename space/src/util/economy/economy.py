@@ -5,6 +5,7 @@ import yaml
 
 from util.config import resolve_game_path
 from util.economy.news import event_price
+from world.atlas import place_name
 
 BASE_DATA = "space/src/util/economy/economy.yaml"
 GENERATED_DATA = "space/src/util/economy/economy_generated.yaml"
@@ -38,8 +39,8 @@ def load_market_data(base_path=None, snapshot_path=None):
 
 
 class Economy:
-    def __init__(self, planet_name, economy_data, feed=None):
-        self.planet_name = planet_name
+    def __init__(self, place, economy_data, feed=None):
+        self.place = place  # body id this market belongs to; see world.atlas
         self.data = economy_data
         self.feed = feed
         self.log_callback = None
@@ -49,10 +50,10 @@ class Economy:
 
     def goods(self):
         """This location's goods, or {} when it has no market."""
-        return (self.data.get(self.planet_name) or {}).get("goods") or {}
+        return (self.data.get(self.place) or {}).get("goods") or {}
 
     def apply_price_change(self, item, price_change, place=None):
-        info = self.data[place or self.planet_name]['goods'][item]
+        info = self.data[place or self.place]['goods'][item]
         info['currentPrice'] = event_price(info['basePrice'], price_change)
 
     def market_news(self, rng=random):
@@ -78,7 +79,7 @@ class Economy:
                     })
             if self.feed is not None:
                 self.feed.record(place, event, moves)
-            headlines.append(f"News from {place}: {event}.")
+            headlines.append(f"News from {place_name(place)}: {event}.")
         if self.log_callback:
             for headline in headlines:
                 self.log_callback(headline)

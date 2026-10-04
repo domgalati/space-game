@@ -72,9 +72,10 @@ def test_selling_at_a_faction_world_raises_standing_with_it():
     assert "standing" not in unaffiliated
 
 
-def body(name, faction):
+def body(name, faction, map_path=None):
     target = Planet.__new__(Planet)
-    target.name, target.planet_guild, target.planet_type = name, faction, "Industrial"
+    target.id, target.name, target.map_path = f"sol/{name.lower()}", name, map_path
+    target.planet_guild, target.planet_type = faction, "Industrial"
     return target
 
 
@@ -84,7 +85,7 @@ def test_hails_speak_for_the_faction_and_hint_at_its_privateers():
     assert "no berth" in hail_response(ferrica)
     assert "let you pass" in hail_response(ferrica, {"dominion": WAVE_BY})
     assert "Assembly colours" in hail_response(ferrica, {"assembly": WAVE_BY})
-    terramonta = body("Terramonta", "assembly")
+    terramonta = body("Terramonta", "assembly", resolve_game_path("space/assets/maps/Terramonta.tmx"))
     assert "privateers" not in hail_response(terramonta, {"assembly": 90})
     assert "Send 'dock'" in hail_response(terramonta)
 
@@ -94,7 +95,7 @@ def test_scans_show_faction_standing_and_raider_licenses():
     assert "Faction: Dominion" in lines
     assert "Your standing: Friendly (+25)" in lines
     assert "Licenses privateers against Assembly shipping." in lines
-    station = SimpleNamespace(name="Nexum Astra", obj_type="SpaceStation", planet_guild="assembly")
+    station = SimpleNamespace(id="sol/nexum-astra", name="Nexum Astra", obj_type="SpaceStation", planet_guild="assembly")
     lines = scan_readout(station, {}, {})
     assert "Faction: Assembly" in lines
     assert not any("privateers" in line for line in lines)

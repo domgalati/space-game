@@ -36,7 +36,7 @@ class GameContext:
         self.player = player
         self.world_state = world_state
         self.economy = economy
-        self.location = location or (economy.planet_name if economy else None)
+        self.location = location or (economy.place if economy else None)  # shown to the player
         self.rng = rng or random.Random()
         self.changes = []  # human-readable notes for the exit summary
         self._functions = {
@@ -63,7 +63,9 @@ class GameContext:
             "job_line": lambda: topics.job_line(npc, self.rng),
             "goods_opinion": lambda: topics.goods_opinion(npc, economy, self.rng) or "Can't complain. Can't afford to.",
             "rumor": lambda: topics.market_rumor(
-                self.location, self.rng, self.economy.data if self.economy else None
+                self.economy.place if self.economy else self.location,
+                self.rng,
+                self.economy.data if self.economy else None,
             ),
         }
         self._commands = {

@@ -44,7 +44,7 @@ class NPCManager:
             return
 
         guild_name = self.map_properties.get("guild") or self.planet.planet_guild
-        records = self.roster.for_location(self.planet.name, self.get_npc_counts(), guild_name)
+        records = self.roster.for_location(self.planet.id, self.get_npc_counts(), guild_name)
         for record in records:
             npc = build_npc(record)
             posts = self.post_tiles.get(npc.job_title)
