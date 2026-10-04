@@ -15,7 +15,9 @@ from .star_systems import StarSystem
 from .shield_fx import draw_shield
 from .sensor_fx import OWN, draw_contacts, draw_sensor_overlay
 from .sensors import PING_RANGE, PING_SPEED, Sensors, compass, loudest_unfound, range_label, signature
-from world.factions import faction_name, record_kill, waves_by
+from world.combat import kill, loot_goods
+from world.factions import faction_name, waves_by
+from world.items import item_name
 from .combat import SCAN_RANGE, SHOT_MS, Shot, band, charged, fire
 from .combat_fx import draw_bracket, draw_intent, draw_shots
 from .ui.action_strip import ActionStrip, corridor_rank
@@ -344,21 +346,14 @@ class StarSystemMode:
         self.clock.remove(privateer)
         if self.target is privateer:
             self.target = None
-        markets = self.world_state.markets_data()
-        goods = set()
-        for planet in self.selected_system.planets:
-            if planet.planet_guild == privateer.sponsor:
-                goods.update((markets.get(planet.id) or {}).get("goods") or {})
-        if not goods:  # the sponsor's worlds have no market yet: carry anything that sells in Sol
-            for market in markets.values():
-                goods.update((market or {}).get("goods") or {})
+        system = self.selected_system
+        goods = loot_goods(self.world_state.markets_data(), [*system.planets, *system.objects], privateer.sponsor)
         cargo, credits = roll_salvage(privateer.kind, goods, self.rng)
         wreck = Wreck(privateer, cargo, credits, self.remove_wreck)
         self.wrecks.append(wreck)
         self.clock.add(wreck)
-        changes = record_kill(self.player, privateer.sponsor, privateer.kind, self.selected_system.politics.law)
-        self.world_state.events.emit("privateer_destroyed", sponsor=privateer.sponsor, kind=privateer.kind,
-                                     system=self.selected_system.id)
+        changes = kill(self.player, self.world_state, privateer.sponsor, privateer.kind,
+                       law=system.politics.law, system=system.id)
         self.notify(f"{faction_name(privateer.sponsor).upper()} {privateer.kind.upper()} DESTROYED", shake=True)
         self.notify(f"STANDING {changes}", NOTE)
 
@@ -381,9 +376,9 @@ class StarSystemMode:
             if taken:
                 cargo.add_item(good, taken)
                 took[good] = taken
-                lines.append(f"Took {taken} {good} aboard.")
+                lines.append(f"Took {taken} {item_name(good)} aboard.")
             if taken < quantity:
-                lines.append(f"No room for {quantity - taken} more {good}.")
+                lines.append(f"No room for {quantity - taken} more {item_name(good)}.")
                 wreck.cargo[good] = quantity - taken
             else:
                 del wreck.cargo[good]

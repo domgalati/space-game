@@ -16,7 +16,7 @@ def make_npc():
     npc.firstname = "Sue"
     npc.lastname = "Reyes"
     npc.job_title = "Miner"
-    npc.guild = "assembly"
+    npc.faction = "assembly"
     npc.hobbies = ["Chess", "Stargazing", "Baking"]
     npc.species = "vessari"
     return npc
@@ -52,7 +52,7 @@ def test_inventory_currency_and_reputation_commands():
         ctx,
         '<<give "Rations" 3>>\n<<take "Rations" 1>>\n<<pay 20>>\n<<charge 100>>\n<<rep Assembly 5>>',
     )
-    assert player.inventory.items == {"Rations": 2}
+    assert player.inventory.items == {"rations": 2}  # scripts may name items; inventories hold ids
     assert player.currency == 0
     assert player.reputation["assembly"] == 5
     assert ctx.changes == [
@@ -75,7 +75,7 @@ def test_mood_is_clamped_and_not_a_summary_change():
 
 def test_functions():
     ctx, npc_state, _, player = make_context()
-    player.inventory.add_item("Steel", 4)
+    player.inventory.add_item("steel", 4)
     npc_state["mood"] = 25
     events = run(
         ctx,
@@ -108,7 +108,7 @@ def test_goods_opinion_reads_economy():
     ctx, _, _, _ = make_context()
     ctx.economy = SimpleNamespace(
         place="Terramonta",
-        data={"Terramonta": {"goods": {"Steel": {"basePrice": 100, "currentPrice": 150}}}},
+        data={"Terramonta": {"goods": {"steel": {"basePrice": 100, "currentPrice": 150}}}},
     )
     from dialogue import topics
 

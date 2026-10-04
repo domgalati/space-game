@@ -8,6 +8,7 @@ from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, resolve_game_path
 from util.economy.news import render_news
 from world.disposition import disposition_word
 from world.factions import FACTIONS, Politics, faction_name, waves_by
+from world.items import item_name
 
 from .scan_art import BRIGHT, DIM, MID, caption_for, render_scan_art
 
@@ -36,7 +37,7 @@ def market_lines(target, markets):
     ranked = sorted(goods.items(), key=lambda item: item[1]["currentPrice"], reverse=True)
     lines = ["Market (highest prices):"]
     for good, info in ranked[:MAX_MARKET_LINES]:
-        lines.append(f"  {good}: ${info['currentPrice']:.0f}")
+        lines.append(f"  {item_name(good)}: ${info['currentPrice']:.0f}")
     return lines
 
 
@@ -58,7 +59,7 @@ def wreck_readout(wreck):
     if wreck.empty():
         lines.append("Salvage: stripped")
     else:
-        goods = ", ".join(f"{quantity} {good}" for good, quantity in wreck.cargo.items())
+        goods = ", ".join(f"{quantity} {item_name(good)}" for good, quantity in wreck.cargo.items())
         lines.append(f"Salvage: {goods}" + (f", ${wreck.credits}" if wreck.credits else ""))
         lines.append("Type 'salvage' to take it aboard.")
     lines.append(f"Breaking up in {wreck.turns_left} turns.")

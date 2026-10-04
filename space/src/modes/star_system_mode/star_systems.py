@@ -70,7 +70,7 @@ class StarSystem:
             orbit_radius = last_orbit_radius + self.rng.randint(MIN_ORBIT_GAP, MAX_ORBIT_GAP)
             angle = self.rng.uniform(0, 2 * math.pi)
             
-            start_pos = data.get('start_pos', (0, 0))
+            start_tile = data.get('start_tile', (0, 0))
             planet = Planet(
                 body_id(self.id, data['id']),
                 data['name'],
@@ -81,7 +81,7 @@ class StarSystem:
                 angle,
                 self.map_center_x,
                 self.map_center_y,
-                start_pos,
+                start_tile,
                 map_path=self._map_path(data),
             )
             self.planets.append(planet)

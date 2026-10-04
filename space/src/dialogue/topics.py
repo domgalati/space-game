@@ -3,22 +3,23 @@ import random
 
 from util.economy.economy import load_market_data
 from world.atlas import place_name
+from world.items import item_name
 
-# Job -> goods this person notices (must exist in planet economy YAML).
+# Job -> item ids this person notices (must exist in planet economy YAML).
 JOB_GOODS_BIAS = {
-    "Miner": ("Raw Minerals", "Steel"),
-    "Foreman": ("Mining Equipment", "Durable Tools"),
-    "Dockworker": ("Fuel Cells", "Ship Parts", "Rations"),
-    "Security": ("Medical Supplies", "Luxury Goods"),
-    "Politician": ("Luxury Goods", "Advanced Electronics"),
+    "Miner": ("raw-minerals", "steel"),
+    "Foreman": ("mining-equipment", "durable-tools"),
+    "Dockworker": ("fuel-cells", "ship-parts", "rations"),
+    "Security": ("medical-supplies", "luxury-goods"),
+    "Politician": ("luxury-goods", "advanced-electronics"),
 }
 
 # Place id -> job -> goods, for places whose economy lacks the default goods above.
 PLANET_JOB_GOODS_BIAS = {
     "sol/etheora": {
-        "Miner": ("Virtual Reality Gear", "Nanotechnology"),
-        "Foreman": ("Robotics Components", "Software Suites"),
-        "Dockworker": ("Robotics Components", "Renewable Energy Tech"),
+        "Miner": ("virtual-reality-gear", "nanotechnology"),
+        "Foreman": ("robotics-components", "software-suites"),
+        "Dockworker": ("robotics-components", "renewable-energy-tech"),
     },
 }
 
@@ -62,8 +63,9 @@ def goods_opinion(npc, economy, rng=random):
     available = [g for g in goods if g in catalog]
     if not available:
         return None
-    item = rng.choice(available)
-    entry = catalog[item]
+    good = rng.choice(available)
+    entry = catalog[good]
+    item = item_name(good)
     base = entry.get("basePrice")
     current = entry.get("currentPrice", base)
     if not base or current is None:
@@ -97,7 +99,7 @@ def market_rumor(here, rng=random, markets=None):
     if not markets:
         return "Quiet week. Nobody's talking."
     place, good, info = rng.choice(markets)
-    place = place_name(place)
+    place, good = place_name(place), item_name(good)
     ratio = info["currentPrice"] / info["basePrice"] if info.get("basePrice") else 1
     if ratio >= 1.15:
         return f"Word is {good} is fetching a premium on {place}."

@@ -63,16 +63,16 @@ def test_dialogue_announces_the_talk_and_its_story_beats():
     ]
 
 
-def test_a_destroyed_privateer_is_announced():
+def test_a_destroyed_privateer_is_announced_as_a_kill():
     from modes.star_system_mode.star_system_mode import StarSystemMode
 
     world = WorldState()
     flight = StarSystemMode(Player(), "sol", world)
     flight.spawn_test_privateers(1)
-    heard = recorder(world.events, "privateer_destroyed")
+    heard = recorder(world.events, "killed")
     privateer = flight.vessels[0]
     flight.destroy(privateer)
-    assert heard[0].details == {"sponsor": privateer.sponsor, "kind": privateer.kind, "system": "sol"}
+    assert heard[0].details == {"faction": privateer.sponsor, "kind": privateer.kind, "system": "sol"}
 
 
 def test_a_run_survives_save_and_load(tmp_path):
@@ -88,7 +88,7 @@ def test_a_run_survives_save_and_load(tmp_path):
     player.location.system, player.location.tile = "sol", (1800, 1750)
     world.globals["quest_stage"] = 2
     world.npc_state("sol/terramonta/Miner-01", 10)["vars"]["this_met"] = True
-    world.markets_data()["sol/terramonta"]["goods"]["Steel"]["currentPrice"] = 321.5
+    world.markets_data()["sol/terramonta"]["goods"]["steel"]["currentPrice"] = 321.5
 
     path = save_game(player, world, str(tmp_path / "save.yaml"))
     loaded_player, loaded_world = load_game(path)
@@ -97,7 +97,7 @@ def test_a_run_survives_save_and_load(tmp_path):
     assert loaded_player.location.tile == (1800, 1750)
     assert loaded_world.globals == {"quest_stage": 2}
     assert loaded_world.npc_state("sol/terramonta/Miner-01")["vars"] == {"this_met": True}
-    assert loaded_world.markets_data()["sol/terramonta"]["goods"]["Steel"]["currentPrice"] == 321.5
+    assert loaded_world.markets_data()["sol/terramonta"]["goods"]["steel"]["currentPrice"] == 321.5
 
 
 def test_a_new_players_fields_survive_an_older_save_that_lacks_them():

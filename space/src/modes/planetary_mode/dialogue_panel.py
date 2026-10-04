@@ -262,7 +262,7 @@ class DialoguePanel:
         npc = self.conversation.npc
         surface.blit(self.name_font.render(self.conversation.name.upper(), False, colors["name"]), (x, y))
         y += self.name_font.get_linesize() + 2
-        guild = (npc.guild or "independent").title()
+        guild = (npc.faction or "independent").title()
         job = npc.job_title or "Resident"
         surface.blit(self.small_font.render(f"{job}  |  {guild}", False, colors["dim"]), (x, y))
         y += self.small_font.get_linesize() + 2

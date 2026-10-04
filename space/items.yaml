@@ -1,0 +1,85 @@
+# Every item in the game, by id. Inventories, markets, saves and scripts store ids;
+# players only ever see names. Changing a name is safe; changing an id orphans saved items.
+#
+# category: cargo (trade goods, carried in a ship's hold), quest (story items),
+#           gear (worn or held; give it a slot, plus damage/armor once ground combat exists)
+
+ai-processors:
+  name: AI Processors
+  category: cargo
+advanced-electronics:
+  name: Advanced Electronics
+  category: cargo
+biotech-products:
+  name: Biotech Products
+  category: cargo
+cheap-tools:
+  name: Cheap Tools
+  category: cargo
+construction-alloys:
+  name: Construction Alloys
+  category: cargo
+durable-tools:
+  name: Durable Tools
+  category: cargo
+energy-cells:
+  name: Energy Cells
+  category: cargo
+experimental-gadgets:
+  name: Experimental Gadgets
+  category: cargo
+fuel-cells:
+  name: Fuel Cells
+  category: cargo
+geothermal-devices:
+  name: Geothermal Devices
+  category: cargo
+industrial-machinery:
+  name: Industrial Machinery
+  category: cargo
+luxury-goods:
+  name: Luxury Goods
+  category: cargo
+medical-supplies:
+  name: Medical Supplies
+  category: cargo
+mining-equipment:
+  name: Mining Equipment
+  category: cargo
+nanotechnology:
+  name: Nanotechnology
+  category: cargo
+rare-gems:
+  name: Rare Gems
+  category: cargo
+rations:
+  name: Rations
+  category: cargo
+raw-minerals:
+  name: Raw Minerals
+  category: cargo
+renewable-energy-tech:
+  name: Renewable Energy Tech
+  category: cargo
+robotics-components:
+  name: Robotics Components
+  category: cargo
+ship-parts:
+  name: Ship Parts
+  category: cargo
+software-suites:
+  name: Software Suites
+  category: cargo
+steel:
+  name: Steel
+  category: cargo
+thermal-suits:
+  name: Thermal Suits
+  category: cargo
+virtual-reality-gear:
+  name: Virtual Reality Gear
+  category: cargo
+
+mining-permit:
+  name: Mining Permit
+  category: quest

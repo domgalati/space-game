@@ -3,11 +3,12 @@ import math
 
 from util.economy.news import render_news
 from world.factions import credit_trade, faction_name
+from world.items import item_name
 
 PRICE_IMPACT = 0.005  # each unit bought raises the price this much; each unit sold lowers it
 PRICE_CEILING = 2.0  # times base price
 PRICE_FLOOR = 0.3
-FUEL_CELL = "Fuel Cells"
+FUEL_CELL = "fuel-cells"
 FUEL_UNITS_PER_CELL = 25
 DEFAULT_FUEL_PRICE = 8  # per unit, where the market doesn't stock Fuel Cells
 REPAIR_PRICE = 8  # per hull point at a docking terminal
@@ -27,19 +28,20 @@ def _nudge(info, factor):
 
 
 def find_good(goods, query):
-    """Return (name, None) for a unique case-insensitive match, or (None, error)."""
+    """Return (item id, None) for a unique case-insensitive match on a good's name, or (None, error)."""
     query = query.strip().lower()
     if not query:
         return None, "Which good?"
-    exact = [g for g in goods if g.lower() == query]
+    names = {g: item_name(g).lower() for g in goods}
+    exact = [g for g in goods if names[g] == query or g == query]
     if exact:
         return exact[0], None
-    matches = [g for g in goods if g.lower().startswith(query)]
-    matches = matches or [g for g in goods if query in g.lower()]
+    matches = [g for g in goods if names[g].startswith(query)]
+    matches = matches or [g for g in goods if query in names[g]]
     if not matches:
         return None, f"Nobody here trades in '{query}'."
     if len(matches) > 1:
-        return None, "Which one? " + ", ".join(matches)
+        return None, "Which one? " + ", ".join(item_name(g) for g in matches)
     return matches[0], None
 
 
@@ -76,12 +78,12 @@ def buy(player, economy, argument):
     if not bought:
         if room <= 0:
             return "Cargo hold is full."
-        return f"You can't afford {good} at ${price(info)}."
+        return f"You can't afford {item_name(good)} at ${price(info)}."
     player.currency -= cost
     cargo.add_item(good, bought)
     economy.emit("bought", good=good, quantity=bought, credits=cost)
     note = "" if quantity in ("all", "max") or bought == wanted else f" (wanted {wanted})"
-    return f"Bought {bought} {good} for ${cost}{note}. Credits: ${player.currency}."
+    return f"Bought {bought} {item_name(good)} for ${cost}{note}. Credits: ${player.currency}."
 
 
 def sell(player, economy, argument):
@@ -93,10 +95,10 @@ def sell(player, economy, argument):
     good, error = find_good(goods, query)
     if error:
         held, _ = find_good(cargo.items, query)
-        return f"Nobody here buys {held}." if held else error
+        return f"Nobody here buys {item_name(held)}." if held else error
     held = cargo.items.get(good, 0)
     if not held:
-        return f"You have no {good} aboard."
+        return f"You have no {item_name(good)} aboard."
     count = held if quantity in ("all", "max") else min(quantity, held)
     if count <= 0:
         return "Sell how many?"
@@ -109,7 +111,7 @@ def sell(player, economy, argument):
     cargo.remove_item(good, count)
     player.currency += earned
     economy.emit("sold", good=good, quantity=count, credits=earned)
-    return f"Sold {count} {good} for ${earned}. Credits: ${player.currency}."
+    return f"Sold {count} {item_name(good)} for ${earned}. Credits: ${player.currency}."
 
 
 def fuel_price(economy):
@@ -157,7 +159,7 @@ def price_board(player, economy):
     lines = [f"{'GOOD':<24}{'PRICE':>7}{'HOLD':>6}"]
     for good, info in goods.items():
         lines.append(
-            f"{good:<24}{price(info):>7}{cargo.items.get(good, 0):>6}"
+            f"{item_name(good):<24}{price(info):>7}{cargo.items.get(good, 0):>6}"
         )
     lines.append(f"Fuel ${fuel_price(economy)}/unit at the docking terminal. Credits: ${player.currency}.")
     return "\n".join(lines)
@@ -170,9 +172,9 @@ def cargo_report(player, economy):
         return header + "\nThe hold is empty."
     goods = economy.goods()
     lines = [header]
-    for good, count in sorted(cargo.items.items()):
+    for good, count in sorted(cargo.items.items(), key=lambda entry: item_name(entry[0])):
         offer = f"here ${price(goods[good])}" if good in goods else "no buyer here"
-        lines.append(f" {good}: {count} ({offer})")
+        lines.append(f" {item_name(good)}: {count} ({offer})")
     return "\n".join(lines)
 
 

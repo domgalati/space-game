@@ -49,17 +49,17 @@ def test_hesk_quest_flow():
 
     lines, deal = choose(conversation, menu, "Need a hand with anything?")
     lines, menu = choose(conversation, deal, "Deal.")
-    assert player.inventory.items == {"Mining Permit": 1}
+    assert player.inventory.items == {"mining-permit": 1}
     assert player.reputation["assembly"] == 2
     assert "Need a hand with anything?" not in menu.choices
 
     lines, menu = choose(conversation, menu, "About that ore order.")
     assert lines == ["I count 0 Raw Minerals. I asked for 5."]
 
-    player.inventory.add_item("Raw Minerals", 6)
+    player.inventory.add_item("raw-minerals", 6)
     lines, menu = choose(conversation, menu, "About that ore order.")
     assert player.currency == 650
-    assert player.inventory.items["Raw Minerals"] == 1
+    assert player.inventory.items["raw-minerals"] == 1
     assert world.globals["terramonta_ore_delivered"] is True
     assert "About that ore order." not in menu.choices
     assert conversation.disposition == "Friendly"

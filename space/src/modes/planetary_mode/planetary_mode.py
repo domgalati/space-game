@@ -47,7 +47,7 @@ class PlanetaryMode:
         self.map_surface = pygame.Surface((SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height))
         self.map_manager = MapManager(self.planet.map_path)
         self.log_messages = []
-        self.player_position = self._player_start()
+        self.player_tile = self._player_start()  # (x, y) in map tiles, like NPC positions
         self._center_camera()
         self.map_manager.initialize_animation_data()
         self.news_feed = NewsFeed(self.world_state)
@@ -78,22 +78,28 @@ class PlanetaryMode:
 
 
     def _player_start(self):
-        """Generated maps mark a "Player Start" spawn; hand-made ones use the planet's start_pos."""
+        """Generated maps mark a "Player Start" spawn; hand-made ones use the body's start_tile."""
+        data = self.map_manager.tmx_data
         try:
-            spawns = self.map_manager.tmx_data.get_layer_by_name("Spawns")
+            spawns = data.get_layer_by_name("Spawns")
         except ValueError:
-            return list(self.planet.start_pos)
+            return tuple(self.planet.start_tile)
         for obj in spawns:
             if obj.name == "Player Start":
-                return [int(obj.x), int(obj.y)]
-        return list(self.planet.start_pos)
+                return int(obj.x) // data.tilewidth, int(obj.y) // data.tileheight
+        return tuple(self.planet.start_tile)
 
     def is_tile_walkable(self, row, col):
         """True where the "walkable" layer has a tile. The layer is stored rows first."""
         return self.map_manager.tmx_data.get_layer_by_name("walkable").data[row][col] != 0
 
+    def _player_pixels(self):
+        """Top-left of the player's tile on the map, in pixels."""
+        return self.player_tile[0] * TILE_SIZE, self.player_tile[1] * TILE_SIZE
+
     def _player_center(self):
-        return self.player_position[0] + TILE_SIZE // 2, self.player_position[1] + TILE_SIZE // 2
+        x, y = self._player_pixels()
+        return x + TILE_SIZE // 2, y + TILE_SIZE // 2
 
     def _center_camera(self):
         self.camera.center = self._player_center()
@@ -130,13 +136,12 @@ class PlanetaryMode:
             self.camera.y = max(0, min(self.camera.y, map_h - self.camera.height))
 
     def _try_move(self, dx, dy):
-        new_position = [self.player_position[0] + dx, self.player_position[1] + dy]
-        tile_x, tile_y = new_position[0] // TILE_SIZE, new_position[1] // TILE_SIZE
+        """Step one tile by (dx, dy). Returns whether the way was open."""
+        tile_x, tile_y = self.player_tile[0] + dx, self.player_tile[1] + dy
         if self.is_tile_walkable(tile_y, tile_x):
-            self.player_position = new_position
+            self.player_tile = player_tile = (tile_x, tile_y)
             self._blocked_move_logged = False
             self.update_camera()
-            player_tile = (tile_x, tile_y)
             # Advance NPC turns first; adjacent NPCs freeze so E stays valid.
             self.npc_manager.update(
                 self.camera.x,
@@ -145,9 +150,7 @@ class PlanetaryMode:
                 self.camera.height,
                 player_tile=player_tile,
             )
-            self.interaction_manager.check_for_adjacent_interactables(
-                self.player_position, TILE_SIZE
-            )
+            self.interaction_manager.check_for_adjacent_interactables(self.player_tile)
             return True
 
         if not self._blocked_move_logged:
@@ -181,12 +184,11 @@ class PlanetaryMode:
                 self.logger.log_scroll_position -= event.y * 20
                 self.logger.log_scroll_position = max(0, min(self.logger.log_scroll_position, self.logger.max_log_scroll))
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
-                self.interaction_manager.interact(self.player_position, TILE_SIZE)
+                self.interaction_manager.interact(self.player_tile)
                 if self.conversation_panel or (self.terminal and self.terminal.active):
                     return
 
         dx, dy = held_direction(pygame.key.get_pressed())
-        dx, dy = dx * TILE_SIZE, dy * TILE_SIZE
         if dx == 0 and dy == 0:
             self.next_move_time = 0  # allow an immediate step on the next press
             self._blocked_move_logged = False
@@ -212,8 +214,8 @@ class PlanetaryMode:
 
     def draw_player(self):
         self.player_layer.fill((0, 0, 0, 0))
-        player_x = self.player_position[0] - self.camera.x
-        player_y = self.player_position[1] - self.camera.y
+        x, y = self._player_pixels()
+        player_x, player_y = x - self.camera.x, y - self.camera.y
         self.player_layer.blit(self.player_sprite, (player_x, player_y))
 
     def draw(self, screen):

@@ -20,7 +20,7 @@ Use the AskQuestion tool when it is available. Skip a question the user already 
 
 Ask, in this order:
 
-1. **Identity.** Which body? The `name` must match `space/star_systems/*.json` exactly, including spaces. That name is how scan and dock find `space/assets/maps/<name>.tmx`.
+1. **Identity.** Which body? Find its entry in `space/star_systems/*.json`: its `id` (e.g. `nexum-astra`; the game knows it as `<system>/<id>`, e.g. `sol/nexum-astra`) and its `name`. Scan and dock find the map through the entry's `map` path, not the name.
 2. **Lore.** What is this place (trade hub, free port, seat of government, mining colony, farm town) and which guild runs it?
 3. **Layout.** `station` (ring corridor, rooms on the rim, stars outside) or `surface` (walled compounds on open ground, joined by paths). For a surface, the `palette`: `badlands` or `urban`. Size: small 60x40, medium 100x70, or large 180x120.
 4. **Rooms.** Which of `market`, `docking_bay`, `cantina`, `command`, and how many. On a station, one room may be `at: hub` (the market, unless they say otherwise).
@@ -69,10 +69,10 @@ Fix the spec and regenerate if it fails. Do not hand-edit the `.tmx` to silence 
 Match the wiring answer. Details and file pointers are in [reference.md](reference.md).
 
 - **Map only.** Spec and `.tmx` only.
-- **Dockable.** The map file is enough for scan and dock, because landing is "a `<name>.tmx` exists." A station object in the star-system JSON needs a `guild` or the scan readout omits it. Do not change which body the game boots into unless the user asks.
-- **Full.** Also add an `economy.yaml` entry, `JOB_GOODS_BIAS` lines for any new job, and new NPC classes. Do not invent goods the user did not agree to.
+- **Dockable.** Write the map, then set the body's `"map": "space/assets/maps/<name>.tmx"` in the star-system JSON; landing is "the body names a map that exists." A station object needs a `guild` or the scan readout omits it. Do not change which body the game boots into unless the user asks.
+- **Full.** Also add an `economy.yaml` entry keyed by the body's full id (`sol/nexum-astra:`), `JOB_GOODS_BIAS` lines for any new job, and new NPC classes. Goods are item ids from `space/items.yaml` (`raw-minerals`, not `Raw Minerals`); a new good needs an entry there first. Do not invent goods the user did not agree to.
 
-Never commit `space/src/util/economy/economy_generated.yaml`. It is rewritten every play session. Commit only when the user asks.
+Commit only when the user asks.
 
 ## Limits
 
