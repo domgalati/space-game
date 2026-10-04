@@ -1,0 +1,1845 @@
+./space/
+├── __init__.py
+├── assets
+│   ├── Downloaded Packs
+│   │   ├── MAS Roguelike (v.1.01)
+│   │   │   ├── 2FrameAnimTilesetSpriteSheet.png
+│   │   │   ├── CharactersSpriteSheet.png
+│   │   │   ├── EnemySpriteSheet.png
+│   │   │   ├── RoguelikeAllSpriteSheet.png
+│   │   │   ├── RoguelikeAllSpriteSheet3x-tilesize24.png
+│   │   │   ├── SpecialThanks!.txt
+│   │   │   ├── TilesetSpriteSheet.png
+│   │   │   ├── WeaponsAndItemSpriteSheet.png
+│   │   │   └── license.txt
+│   │   ├── MAS Space Roguelike (v.1.0)
+│   │   │   ├── 2FrameAnimTilesetSpriteSheet.png
+│   │   │   ├── 2FrameAnimTilesetSpriteSheetx3-tilesize24.png
+│   │   │   ├── CharactersSpriteSheet.png
+│   │   │   ├── CharactersSpriteSheet3x-tilesize-24.png
+│   │   │   ├── ItemSpriteSheet.png
+│   │   │   ├── SpaceRoguelikeSpriteSheet.png
+│   │   │   ├── SpaceRoguelikeSpriteSheet3x-tilesize-24.png
+│   │   │   ├── SpecialThanks!.txt
+│   │   │   ├── Sprite-0001.aseprite
+│   │   │   ├── TilesetSpriteSheet.png
+│   │   │   ├── TilesetSpriteSheet3x-tilesize-24.png
+│   │   │   ├── TilesetSpriteSheet4x.png
+│   │   │   ├── TilesetSpriteSheet8x.png
+│   │   │   ├── computor.png
+│   │   │   ├── license.txt
+│   │   │   ├── mine_machine_sheet.png
+│   │   │   └── miner.aseprite
+│   │   └── RAS Overworld (v.1.0)
+│   │       ├── 2FrameAnimTilesetSpriteSheet.png
+│   │       ├── CharactersSpriteSheet.png
+│   │       ├── EnemySpriteSheet.png
+│   │       ├── RoguelikeAllSpriteSheet.png
+│   │       ├── RoguelikeOverSpriteSheet3x-tilesize-24.png
+│   │       ├── SpecialThanks!.txt
+│   │       ├── TilesetSpriteSheet.png
+│   │       ├── WeaponsAndItemSpriteSheet.png
+│   │       └── license.txt
+│   ├── Tilesheet Files
+│   │   ├── 2FrameAnimTilesetSpriteSheetx3-tilesize24.tsx
+│   │   ├── RoguelikeAllSpriteSheet3x-tilesize-24.tsx
+│   │   ├── RoguelikeAllSpriteSheet3x-tilesize24.tsx
+│   │   ├── RoguelikeOverSpriteSheet3x-tilesize-24.tsx
+│   │   ├── SpaceRoguelikeSpriteSheet3x-tilesize-24.tsx
+│   │   ├── TilesetSpriteSheet.tsx
+│   │   ├── TilesetSpriteSheet3x-tilesize-24.tsx
+│   │   ├── TilesetSpriteSheet4x.tsx
+│   │   ├── TilesetSpriteSheet8x.tsx
+│   │   ├── computor.tsx
+│   │   └── mine_machine_sheet.tsx
+│   ├── fonts
+│   │   ├── Lustra_Variable.ttf
+│   │   ├── Modern Pixel Round.otf
+│   │   ├── Modern Pixel.otf
+│   │   ├── OfficeCodePro-Light.ttf
+│   │   ├── TeleSys.ttf
+│   │   ├── pathways.ttf
+│   │   ├── rogue.otf
+│   │   └── terminal-grotesque_open.otf
+│   ├── img
+│   │   ├── cargo-sym-shipsheet.png
+│   │   ├── cargo6frame.png
+│   │   ├── cargoshipsheet.png
+│   │   ├── objects
+│   │   │   ├── cloud.png
+│   │   │   ├── foreman.png
+│   │   │   ├── miner.png
+│   │   │   ├── player.png
+│   │   │   ├── space_station.png
+│   │   │   ├── space_station2.png
+│   │   │   ├── terminal_screen.aseprite
+│   │   │   └── terminal_screen.png
+│   │   ├── planet.png
+│   │   ├── planets
+│   │   │   ├── Baren.png
+│   │   │   ├── Black_hole.png
+│   │   │   ├── Ice.png
+│   │   │   ├── Lava.png
+│   │   │   └── Terran.png
+│   │   ├── shipsheet.png
+│   │   └── tilesets
+│   │       ├── bad space station floor.png
+│   │       └── planets.png
+│   └── maps
+│       ├── Terramonta
+│       ├── Terramonta.tmx
+│       └── Terramonta_old.tmx
+├── src
+│   ├── __init__.py
+│   ├── entities
+│   │   ├── __init__.py
+│   │   ├── items
+│   │   ├── npcs
+│   │   │   ├── __init__.py
+│   │   │   ├── assembly_npc.py
+│   │   │   ├── goals
+│   │   │   │   ├── base_goal.py
+│   │   │   │   └── wander_goal.py
+│   │   │   └── npc.py
+│   │   ├── object.py
+│   │   ├── planet.py
+│   │   └── player.py
+│   ├── main.py
+│   ├── modes
+│   │   ├── __init__.py
+│   │   ├── planetary_mode
+│   │   │   ├── interaction_manager.py
+│   │   │   ├── logger.py
+│   │   │   ├── map_manager.py
+│   │   │   ├── npc_generator.py
+│   │   │   ├── npc_manager.py
+│   │   │   ├── planetary_mode.py
+│   │   │   ├── terminal.py
+│   │   │   ├── terminals
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── docking_terminal.py
+│   │   │   │   └── refinery_terminal.py
+│   │   │   └── ui_planetary.py
+│   │   └── star_system_mode
+│   │       ├── input_handler.py
+│   │       ├── menu.py
+│   │       ├── nightsky.py
+│   │       ├── star_system_mode.py
+│   │       └── star_systems.py
+│   └── util
+│       ├── config.py
+│       ├── economy
+│       │   ├── __init__.py
+│       │   ├── economy.py
+│       │   ├── economy.yaml
+│       │   ├── economy_generated.yaml
+│       │   └── goods and events.txt
+│       └── sprite_animation.py
+└── star_systems
+    └── sol.json
+
+25 directories, 113 files
+File: space/src/entities/npcs/assembly_npc.py
+import pygame
+from .npc import NPC
+
+first_names = [
+    "Jimmy", "John", "Paddy", "Rob", "Jeff", "Mikey", "Mike",
+    "William", "Eldis", "David", "Will", "Richard", "Sue", "Jose", "Jake",
+    "Thomas", "Sarah", "Charlie", "Karen", "Christopher", "Nance", "Daniel", "Lisa",
+    "Matthew", "Margaret", "Anthony", "Betty", "Mark", "Sandra", "Donald", "Ashley",
+    "Steven", "Kimberly", "Paul", "Emily", "Andrew", "Donna", "Joshua", "Michelle",
+    "Kenneth", "Dorothy", "Kevin", "Carol", "Brian", "Amanda", "George", "Melissa",
+    "Edward", "Deborah", "Ronald", "Stephanie", "Timmy", "Rebecca", "Jason", "Sharon",
+    "Jeffrey", "Laura", "Ryan", "Cynthia", "Jacob", "Kathleen", "Gary", "Amy",
+    "Nicholas", "Shirley", "Eric", "Angela", "Jonathan", "Helen", "Stephen", "Anna",
+    "Larry", "Brenda", "Justin", "Pamela", "Scott", "Nicole", "Brandon", "Samantha",
+    "Benjamin", "Katherine", "Samuel", "Emma", "Frank", "Ruth", "Gregory", "Olivia",
+    "Raymond", "Ava", "Alexander", "Sophia", "Patrick", "Isabella", "Jack", "Mia",
+    "Dennis", "Charlotte", "Jerry", "Harper", "Tyler", "Grace", "Aaron", "Chloe"
+]
+
+last_names = [
+    "Smith", "Johnson", "Williams", "Brown", "Jones",
+    "Miller", "Davis", "Garcia", "Rodriguez", "Wilson",
+    "Martinez", "Anderson", "Taylor", "Thomas", "Hernandez",
+    "Moore", "Martin", "Jackson", "Thompson", "White",
+    "Lopez", "Lee", "Gonzalez", "Harris", "Clark",
+    "Lewis", "Robinson", "Walker", "Perez", "Hall",
+    "Young", "Allen", "Sanchez", "Wright", "King",
+    "Scott", "Green", "Baker", "Nelson",
+    "Hill", "Ramirez", "Campbell", "Mitchell", "Roberts",
+    "Carter", "Phillips", "Evans", "Turner", "Torres",
+    "Parker", "Collins", "Edwards", "Stewart", "Flores",
+    "Morris", "Nguyen", "Murphy", "Rivera", "Cook",
+    "Rogers", "Morgan", "Peterson", "Cooper", "Reed",
+    "Bailey", "Bell", "Gomez", "Kelly", "Howard",
+    "Ward", "Cox", "Diaz", "Richardson", "Wood",
+    "Watson", "Brooks", "Bennett", "Gray", "James",
+    "Reyes", "Cruz", "Hughes", "Price", "Myers",
+    "Long", "Foster", "Sanders", "Ross", "Morales",
+    "Powell", "Sullivan", "Russell", "Ortiz", "Jenkins",
+    "Gutierrez", "Perry", "Butler", "Barnes", "Fisher"
+]
+
+hobbies = [
+    "Reading", "Writing", "Drawing", "Painting", "Photography",
+    "Gardening", "Underwater Basket Weaving", "Baking", "Knitting", "Crocheting",
+    "Sewing", "Woodworking", "Pottery", "Ceramics", "Jewelry Making",
+    "Scrapbooking", "Singing", "Dancing", "Acting", "Snail Climbing",
+    "Stand-up Comedy", "Magic", "Juggling", "Yoga", "Pilates",
+    "Meditation", "Fitness Training", "Running", "Hiking",
+    "Camping", "Backpacking", "Rock Collecting", "Kayaking",
+    "Canoeing", "Surfing", "Snowboarding", "Skiing", "Skateboarding",
+    "Cycling", "Competitive Napping", "Scootering", "Roller Skating",
+    "Ice Skating", "Horseback Riding", "Horseback Martial Arts", "Archery", "Frog Fencing",
+    "Boxing", "Martial Arts", "Yoga", "Plant Whispering", "Golfing",
+    "Tennis", "Badminton", "Table Tennis", "Bowling",
+    "Billiards", "Darts", "Chess", "Board Games", "Extreme Ironing",
+    "Cosplay", "Non-Fiction LARPing", "Model Building",
+    "Drone Sitting", "RC Car Racing", "Aquascaping", "Fishkeeping",
+    "Birdwatching", "Stargazing", "Meteorology", "Geocaching",
+    "Extreme Metal Detecting", "Treasure Hunting", "Traveling", "Language Learning",
+    "History", "Genealogy", "Philosophy", "Astrology",
+    "Tarot Reading", "Numerology", "Blogging", "Vlogging",
+    "Podcasting", "Listening to Music", "Amateur Cloud Shaping", "Theater Going",
+    "Attending Concerts", "Visiting Museums", "Backyard Dam Construction",
+    "Wine Tasting", "Beer Brewing", "Whiskey Tasting", "Coffee Roasting",
+    "Tea Brewing", "Soap Making", "Candle Making", "Perfumery", "Fishing", "Self Dentistry",
+    "Competative Duck Herding", "Balloon Animal Taxidermy", "Synchronized Solo Dancing"
+]
+
+class Miner(NPC):
+    def __init__(self):
+        super().__init__() #Base Class Attributes
+        self.sprite = "space/assets/img/objects/miner.png"
+
+class Foreman(NPC):
+    def __init__(self):
+        super().__init__() #Base Class Attributes
+        self.sprite = "space/assets/img/objects/foreman.png"
+
+class Politician(NPC):
+    def __init__(self):
+        super().__init__() #Base Class Attributes
+        self.sprite = "space/assets/img/objects/politician.png"
+
+class Security(NPC):
+    def __init__(self):
+        super().__init__() #Base Class Attributes
+        self.sprite = "space/assets/img/objects/security.png"
+----
+
+
+
+File: space/src/entities/npcs/goals/base_goal.py
+class BaseGoal:
+    def __init__(self, npc):
+        self.npc = npc
+
+    def update(self):
+        pass----
+
+
+
+File: space/src/entities/npcs/goals/wander_goal.py
+import random
+from .base_goal import BaseGoal
+
+class WanderGoal(BaseGoal):
+    def __init__(self, npc):
+        super().__init__(npc)
+
+    def update(self):
+        walkable_tiles = self.npc.npc_manager.get_walkable_tiles()
+        potential_positions = self.get_adjacent_walkable_positions(walkable_tiles)
+        if potential_positions:
+            self.npc.position = random.choice(potential_positions)
+
+    def get_adjacent_walkable_positions(self, walkable_tiles):
+        x, y = self.npc.position
+        adjacent_positions = [
+            (x, y - 1),  # Up
+            (x, y + 1),  # Down
+            (x - 1, y),  # Left
+            (x + 1, y)   # Right
+        ]
+        return [pos for pos in adjacent_positions if pos in walkable_tiles]
+----
+
+
+
+File: space/src/entities/npcs/npc.py
+from entities.npcs.goals.wander_goal import WanderGoal
+
+class NPC:
+    def __init__(self):
+        self.firstname = None
+        self.lastname = None
+        self.hobbies = []
+        self.health = 100
+        self.energy = 100
+        self.inventory = []
+        self.personal_equipment = []
+        self.currency = 0
+        self.reputation = {'assembly': 0, 'caravaneers': 0, 'cohort': 0, 'dominion': 0}
+        self.guild = None
+        self.level = 1
+        self.isBackgroundCharacter = bool
+        self.isHostile = bool
+        self.position = (0, 0)
+        self.goal = WanderGoal(self)
+        # Additional attributes as needed
+
+    def update(self):
+        if self.goal:
+            self.goal.update()        ----
+
+
+
+File: space/src/entities/npcs/__init__.py
+----
+
+
+
+File: space/src/entities/object.py
+import pygame
+
+class SpaceObject:
+    def __init__(self, name, obj_type, image_path, x, y):
+        self.name = name
+        self.obj_type = obj_type
+        self.image = pygame.image.load(image_path)
+        self.position = (x, y)
+
+    def draw(self, surface, camera):
+        if camera.colliderect(self.get_rect()):
+            surface.blit(self.image, self.position)
+
+    def get_rect(self):
+        return pygame.Rect(self.position[0], self.position[1], self.image.get_width(), self.image.get_height())
+----
+
+
+
+File: space/src/entities/planet.py
+import pygame
+import math
+import random
+import json
+
+
+class Planet:
+    def __init__(self, name, planet_type, planet_guild, image_path, orbit_radius, angle, center_x, center_y,start_pos=(0, 0)):
+        self.name = name
+        self.planet_type = planet_type
+        self.planet_guild = planet_guild
+        self.image = pygame.image.load(image_path)
+        self.orbit_radius = orbit_radius
+        self.angle = angle
+        self.position = self.calculate_position(center_x, center_y)
+        self.start_pos = start_pos
+
+    def calculate_position(self, center_x, center_y):
+        x = center_x + int(self.orbit_radius * math.cos(self.angle))
+        y = center_y + int(self.orbit_radius * math.sin(self.angle))
+        return x, y
+
+    def get_rect(self):
+        # Assuming the image's center is at the planet's position
+        rect_x = self.position[0] - self.image.get_width() // 2
+        rect_y = self.position[1] - self.image.get_height() // 2
+        return pygame.Rect(rect_x, rect_y, self.image.get_width(), self.image.get_height())
+
+    def draw(self, surface):
+        adjusted_pos = (self.position[0] - self.image.get_width() // 2, self.position[1] - self.image.get_height() // 2)
+        surface.blit(self.image, adjusted_pos)
+
+def generate_planets(json_path, center_x, center_y):
+    # random.seed(seed)
+    orbits = []
+
+    # Load data from JSON file
+    with open(json_path, 'r') as file:
+        data = json.load(file)
+        seed = data['seed']
+        planet_data = data['planets']
+        random.seed(seed)
+
+    planets = []
+    min_orbit_radius = 500
+    max_orbit_radius = 5760
+    min_distance_between_orbits = 500
+    max_distance_between_orbits = 1000
+    last_orbit_radius = min_orbit_radius
+
+    for data in planet_data:
+        if last_orbit_radius > max_orbit_radius:
+            break
+
+        orbit_radius = last_orbit_radius + random.randint(min_distance_between_orbits, max_distance_between_orbits)
+        angle = random.uniform(0, 2 * math.pi)
+
+        planet = Planet(data['name'], data['type'], data['image_path'], orbit_radius, angle, center_x, center_y)
+        planets.append(planet)
+        orbits.append(orbit_radius)
+        last_orbit_radius = orbit_radius
+
+    return planets, orbits----
+
+
+
+File: space/src/entities/player.py
+## The classes in this file represent what values are stored when the player saves the game.
+
+class Player:
+    def __init__(self):
+        self.health = 100
+        self.energy = 100
+        self.inventory = []
+        self.personal_equipment = []
+        self.stats = {'strength': 10, 'intelligence': 10}
+        self.currency = 0
+        self.reputation = {'assembly': 0, 'caravaneers': 0, 'cohort': 0, 'dominion': 0}
+        # Additional attributes as needed
+
+class Ship:
+    def __init__(self):
+        self.health = 100
+        self.fuel = 100
+        self.equipment = []
+        self.stats = {'strength': 10, 'intelligence': 10}
+        self.cargo = []
+        self.speed = 10  # km/h
+        self.fuel_consumption = 10  # kg/km
+        self.fuel_capacity = 100  # kg
+----
+
+
+
+File: space/src/entities/__init__.py
+----
+
+
+
+File: space/src/main.py
+# main.py
+import pygame
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
+from modes.star_system_mode.star_system_mode import StarSystemMode
+from modes.planetary_mode.planetary_mode import PlanetaryMode
+from entities.player import Player
+
+pygame.init()
+pygame.font.init()  # Initialize the font module
+
+
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Space Game")
+clock = pygame.time.Clock()
+
+### DEBUG LOAD ###
+# These variables only exist to load directly into planetary mode when coding.
+from modes.star_system_mode.star_systems import StarSystem
+selected_planet = StarSystem(f'space/star_systems/sol.json').planets[0]
+#### END OF DEBUG LOAD ###
+
+player = Player()
+star_system_mode = StarSystemMode(player, "sol")
+planetary_mode = PlanetaryMode(selected_planet, player, screen)
+current_mode = planetary_mode
+
+
+running = True
+while running:
+    dt = clock.tick(60)  
+    events = pygame.event.get()
+    for event in events:
+        if event.type == pygame.QUIT:
+            running = False
+    
+    if isinstance(current_mode, StarSystemMode):
+        current_mode.update(events)
+        if current_mode.landing_requested:  # Check if landing was requested
+            selected_planet = current_mode.get_selected_planet()  # Implement this method in StarSystemMode
+            player = current_mode.get_player()  # Get the player object, implement this in StarSystemMode
+            current_mode = PlanetaryMode(selected_planet, player, screen)
+    elif isinstance(current_mode, PlanetaryMode):
+        current_mode.update(events)
+        current_mode.map_manager.update_animations(dt)
+        if current_mode.switch_to_star_system_mode:
+            current_mode = star_system_mode  # Switch back to StarSystemMode
+            star_system_mode.landing_requested = False
+            continue  # Skip drawing and immediately continue to the next loop iteration
+    
+    current_mode.draw(screen)
+
+    pygame.display.flip()
+    #clock.tick(60)
+
+
+pygame.quit()
+----
+
+
+
+File: space/src/modes/planetary_mode/interaction_manager.py
+import pygame
+from .map_manager import MapManager
+
+class InteractionManager:
+    def __init__(self, map_manager, logger):
+        self.map_manager = map_manager
+        self.logger = logger
+        self.interacted = False
+        self.activate_terminal_callback = None
+
+    pass
+
+    def is_interactable_at(self, position, TILE_SIZE):
+        """
+        Check if the tile at the given position is in the 'interactable' layer.
+        add interactable objects layer in the map file, the layer must always be called "Objects".
+        Then place tiles where you want the objects to live. Change the "Name" parameter of the object in tiled.
+        """
+        y, x = position
+        tile_x, tile_y = x // TILE_SIZE, y // TILE_SIZE
+        if 0 <= tile_x and 0 <= tile_y:
+            objects_layer = self.map_manager.tmx_data.get_layer_by_name('Objects')
+            for i in range(len(objects_layer)):
+                if objects_layer[i].x == y and objects_layer[i].y == x:
+                    objectname = objects_layer[i].name
+                    return True, objectname
+        return False, None
+
+
+    def check_for_adjacent_interactables(self, player_position, TILE_SIZE):
+        #Check adjacent tiles for interactable items and log a message if found.
+        adjacent_positions = [
+            (player_position[0], player_position[1] - TILE_SIZE),  # Up
+            (player_position[0], player_position[1] + TILE_SIZE),  # Down
+            (player_position[0] - TILE_SIZE, player_position[1]),  # Left
+            (player_position[0] + TILE_SIZE, player_position[1])   # Right
+        ]
+
+        for pos in adjacent_positions:
+            is_interactable, objectname = self.is_interactable_at(pos, TILE_SIZE)
+            if is_interactable:
+                self.logger.add_log_message(f"You approach a {objectname}. Press E to interact.")
+                break  # Add this if you only want one message per move
+            
+    def interact(self, player_position, TILE_SIZE):
+        #Perform an interaction with an adjacent interactable object.
+        ## Copies code from check_for_adjacent_interactables, needs to be optimized.
+        adjacent_positions = [
+                    (player_position[0], player_position[1] - TILE_SIZE),  # Up
+                    (player_position[0], player_position[1] + TILE_SIZE),  # Down
+                    (player_position[0] - TILE_SIZE, player_position[1]),  # Left
+                    (player_position[0] + TILE_SIZE, player_position[1])   # Right
+                ]
+        for pos in adjacent_positions:
+            is_interactable, objectname = self.is_interactable_at(pos, TILE_SIZE)
+            if is_interactable:
+                self.handle_interaction_with(objectname)
+
+    def handle_interaction_with(self, objectname):
+        """
+        Handle specific interactions based on the object name.
+        """
+        if objectname == "Docking Terminal" or objectname == "Refinery Computer":
+            self.activate_terminal_callback()
+            pass
+        # Add more conditions for different objects
+
+    def set_terminal_callback(self, callback):
+        self.activate_terminal_callback = callback----
+
+
+
+File: space/src/modes/planetary_mode/logger.py
+import pygame
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
+
+class Logger:
+    def __init__(self, log_height, screen_width, font):
+        self.log_messages = []
+        self.log_height = log_height
+        self.log_scroll_position = 0
+        self.max_log_scroll = 0
+        self.font = font
+        self.log_surface = pygame.Surface((screen_width, log_height))
+
+    def add_log_message(self, message):
+        self.log_messages.append(message)
+        total_line_count = sum(len(self.wrap_text(msg, SCREEN_WIDTH - 20, self.font)) for msg in self.log_messages)
+        self.max_log_scroll = max(0, total_line_count * 20 - self.log_height)
+        self.log_scroll_position = self.max_log_scroll
+
+    def wrap_text(self, text, max_width, font):
+        """
+        Splits the text into lines so that each line fits within the max_width.
+        Returns a list of lines.
+        """
+        words = text.split(' ')
+        lines = []
+        current_line = ""
+
+        for word in words:
+            # Check the width of the line with the new word added
+            line_width = font.size(current_line + word)[0]
+            if line_width <= max_width:
+                current_line += word + " "
+            else:
+                # If the line is too long, start a new line
+                lines.append(current_line)
+                current_line = "    " + word + " "  # Indent wrapped lines
+
+        # Add the last line
+        lines.append(current_line)
+        return lines
+
+    def draw_log(self):
+        self.log_surface.fill((0, 0, 0))  # Clear the log surface
+
+        font = pygame.font.Font("space/assets/fonts/OfficeCodePro-Light.ttf", 16)
+        line_height = 20  # Adjust as needed for your font size
+        max_line_width = SCREEN_WIDTH - 20  # Adjust as needed for your sidebar size
+
+        current_line = 0
+        for message in self.log_messages:
+            wrapped_lines = self.wrap_text(message, max_line_width, font)
+            for line in wrapped_lines:
+                if current_line * line_height >= self.log_scroll_position and current_line * line_height < self.log_scroll_position + self.log_height:
+                    text_surface = font.render(line, True, (255, 255, 255))
+                    self.log_surface.blit(text_surface, (10, current_line * line_height - self.log_scroll_position))
+                current_line += 1
+----
+
+
+
+File: space/src/modes/planetary_mode/map_manager.py
+import pygame
+import pytmx
+from pytmx.util_pygame import load_pygame
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
+
+class MapManager:
+    def __init__(self, map_filename, screen_dimensions, camera_dimensions):
+        # Initialize attributes
+        self.tmx_data = self.load_map(map_filename)
+        self.map_surface = pygame.Surface(screen_dimensions)
+        self.sidebar_width = 200
+        self.log_height = 200
+        self.animations = {}
+        # Other necessary initializations
+
+    def initialize_animation_data(self):
+        self.animations = {}  # Dictionary to store animation data keyed by tile GID
+        for gid, properties in self.tmx_data.tile_properties.items():
+            animation = properties.get('frames', None)
+            self.animations[gid] = {
+                'frames': [frame.gid for frame in animation],
+                'durations': [frame.duration for frame in animation],
+                'current_frame': 0,
+                'timer': 0
+            }
+
+    def load_map(self, map_filename):
+        tmx_data = load_pygame(map_filename)
+        return tmx_data
+
+    def draw_map(self, surface, camera):
+        surface.fill((0, 0, 0))
+        for layer in self.tmx_data.visible_layers:
+            if isinstance(layer, pytmx.TiledTileLayer):
+                for x, y, gid in layer:
+                    animation = self.animations.get(gid)
+                    if animation:
+                        tile_gid = animation['frames'][animation['current_frame']]
+                        tile = self.tmx_data.get_tile_image_by_gid(tile_gid)
+                    else:
+                        tile = self.tmx_data.get_tile_image_by_gid(gid)
+
+                    if tile:
+                        surface.blit(tile, (x * self.tmx_data.tilewidth - camera.x, y * self.tmx_data.tileheight - camera.y))
+    
+    def update_animations(self, dt):
+        for animation in self.animations.values():
+            animation['timer'] += dt
+            if animation['timer'] > animation['durations'][animation['current_frame']]:
+                animation['timer'] -= animation['durations'][animation['current_frame']]
+                animation['current_frame'] = (animation['current_frame'] + 1) % len(animation['frames'])
+----
+
+
+
+File: space/src/modes/planetary_mode/npc_generator.py
+import random
+import importlib
+
+def generate_npc(guild, npc_class_name):
+    # Dynamically import the correct module based on the guild
+    npc_module = importlib.import_module(f".{guild}_npc", package="entities.npcs")
+
+    # Get the NPC class from the module
+    npc_class = getattr(npc_module, npc_class_name)
+
+    # Create an instance of the NPC class
+    npc = npc_class()
+
+    # Randomly select first name, last name, and hobbies
+    npc.firstname = random.choice(npc_module.first_names)
+    npc.lastname = random.choice(npc_module.last_names)
+    npc.hobbies = random.sample(npc_module.hobbies, 3)
+
+    # Return the initialized NPC object
+    return npc
+
+# Example usage
+#npc = generate_npc("assembly", "Foreman")
+#print(f"Generated NPC: {npc.firstname} {npc.lastname}, Hobbies: {', '.join(npc.hobbies)}")
+
+----
+
+
+
+File: space/src/modes/planetary_mode/npc_manager.py
+import pygame
+import random
+from util.config import TILE_SIZE
+from .npc_generator import generate_npc  # Import the npc_generator function
+
+class NPCManager:
+    def __init__(self, map_manager, planet):
+        self.map_manager = map_manager
+        self.planet = planet
+        self.npcs = []
+        self.populate_npcs()
+
+    def populate_npcs(self):
+        npc_types = self.get_npc_types_based_on_planet(self.planet)
+        walkable_tiles = self.get_walkable_tiles()
+        guild_name = self.planet.planet_guild  # Assuming guild name is stored in planet object
+
+        for npc_class in npc_types:
+            num_of_npcs = random.randint(10, 50) # Generates a random number between 1 and 10
+            for _ in range(num_of_npcs):
+                position = random.choice(walkable_tiles)
+                # Use npc_generator to create NPC instance
+                npc = generate_npc(guild_name, npc_class)
+                npc.position = position
+                npc.npc_manager = self # Pass reference of NPC_Manager to npc instance
+                if npc.sprite:  # Load the sprite image once during creation of each NPC
+                    npc.sprite_image = pygame.image.load(npc.sprite).convert_alpha()
+                self.npcs.append(npc)
+
+    def get_npc_types_based_on_planet(self, planet):
+        # Example logic based on planet type
+        if planet.planet_type == 'Industrial':
+            return ["Miner", "Foreman"]  # More miners and foremen for a mining planet
+        # Add other conditions for different planet types
+        return [NPC]  # Default NPC type
+
+    def get_walkable_tiles(self):
+        walkable_tiles = []
+        walkable_layer = self.map_manager.tmx_data.get_layer_by_name('walkable')
+        for x, y, gid in walkable_layer:
+            if gid != 0:  # Assuming non-zero GID indicates a walkable tile
+                walkable_tiles.append((x, y))
+        return walkable_tiles
+
+    def is_within_visible_area(self, npc_x, npc_y, camera_x, camera_y, camera_width, camera_height):
+            # Convert NPC position from tiles to pixels if necessary
+            npc_pixel_x = npc_x * TILE_SIZE
+            npc_pixel_y = npc_y * TILE_SIZE
+    
+            # Check if the NPC's position intersects with the camera's viewport
+            return (camera_x <= npc_pixel_x <= camera_x + camera_width and
+                    camera_y <= npc_pixel_y <= camera_y + camera_height)
+
+    def update(self, camera_x, camera_y, camera_width, camera_height):
+        for npc in self.npcs:
+            if self.is_within_visible_area(npc.position[0], npc.position[1], camera_x, camera_y, camera_width, camera_height):
+                npc.update()
+
+    def draw(self, npc_layer, camera):
+        npc_layer.fill((0, 0, 0, 0)) 
+        for npc in self.npcs:
+            if self.is_within_visible_area(npc.position[0], npc.position[1], camera.x, camera.y, camera.width, camera.height):
+                if npc.sprite:
+                    sprite_image = npc.sprite_image
+                    npc_screen_x = npc.position[0] * TILE_SIZE - camera.x
+                    npc_screen_y = npc.position[1] * TILE_SIZE - camera.y
+                    npc_layer.blit(sprite_image, (npc_screen_x, npc_screen_y))----
+
+
+
+File: space/src/modes/planetary_mode/planetary_mode.py
+import yaml
+import pygame
+#import pytmx
+import random
+import time
+#from pytmx.util_pygame import load_pygame
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
+from .logger import Logger
+from .map_manager import MapManager
+from .ui_planetary import UI_Planetary
+from .interaction_manager import InteractionManager
+from .terminal import Terminal
+from util.economy.economy import Economy
+from entities.player import Player
+from .npc_manager import NPCManager
+
+class PlanetaryMode:
+    def __init__(self, selected_planet, player, screen): 
+        economy_file_path = 'space/src/util/economy/economy.yaml'
+        with open(economy_file_path, 'r') as file:
+            economy_data = yaml.safe_load(file)
+
+        self.planet = selected_planet
+        self.player = Player()
+        self.screen = screen
+        self.player_sprite = pygame.image.load("space/assets/img/objects/player.png").convert_alpha()
+        self.ui_planetary = UI_Planetary()  # Create an instance of UI_Planetary       
+        self.font = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16)
+        self.logger = Logger(log_height=200, screen_width=SCREEN_WIDTH, font=self.font)
+        self.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height)
+        self.map_surface = pygame.Surface((SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height))
+        map_filename = f"space/assets/maps/{self.planet.name}.tmx"       
+        self.map_manager = MapManager(map_filename, (SCREEN_WIDTH, SCREEN_HEIGHT), (SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.log_messages = []
+        self.player_position = list(self.planet.start_pos)
+        self.map_manager.initialize_animation_data()
+        self.interaction_manager = InteractionManager(self.map_manager, self.logger)
+        self.interaction_manager.set_terminal_callback(self.activate_terminal)
+        self.terminal = None
+        self.switch_to_star_system_mode = False  # Initialize the attribute here
+        self.economy = Economy(selected_planet.name, economy_data)
+        self.economy.set_log_callback(self.logger.add_log_message)
+        self.npc_manager = NPCManager(self.map_manager, selected_planet)
+
+
+        self.clock = pygame.time.Clock()
+
+        self.npc_layer = pygame.surface.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        self.player_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        self.ui_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        self.interaction_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        self.interaction_active = False  # Flag to indicate if an interaction layer is active
+
+
+    def is_tile_walkable(self, x, y):
+        # Access the 'walkable' layer
+        walkable_layer = self.map_manager.tmx_data.get_layer_by_name("walkable")
+        if walkable_layer:
+            # The layer is structured as a 2D grid. Check if the tile at (x, y) is walkable
+            tile = walkable_layer.data[x][y]
+            if tile != 0:
+                return True
+            else:
+            # If there is no 'walkable' layer, default to non-walkable
+                return False
+    
+    def update_camera(self):
+    # Shift the camera if the player passes the edge of the current screen area
+        if self.player_position[0] < self.camera.left:
+            self.camera.move_ip(-self.camera.width, 0)
+        elif self.player_position[0] >= self.camera.right:
+            self.camera.move_ip(self.camera.width, 0)
+        if self.player_position[1] < self.camera.top:
+            self.camera.move_ip(0, -self.camera.height)
+        elif self.player_position[1] >= self.camera.bottom:
+            self.camera.move_ip(0, self.camera.height)
+        # Constrain the camera to the map bounds
+        #self.map_manager.camera.clamp_ip(pygame.Rect(0, 0, self.tmx_data.width * TILE_SIZE, self.tmx_data.height * TILE_SIZE))
+        
+    def handle_input(self, events):
+        if self.terminal and self.terminal.active:
+            for event in events:
+                if event.type == pygame.KEYDOWN:
+                    self.terminal.process_input(event)
+                elif event.type == pygame.MOUSEWHEEL:
+                    if event.y > 0:
+                        self.terminal.scroll_up()
+                    elif event.y < 0:
+                        self.terminal.scroll_down()
+        else:
+            for event in events:
+                if event.type == pygame.MOUSEWHEEL:
+                    # Adjust the log scroll position
+                    self.logger.log_scroll_position -= event.y * 20  # Adjust the multiplier as needed
+                    self.logger.log_scroll_position = max(0, min(self.logger.log_scroll_position, self.logger.max_log_scroll))
+
+                if event.type == pygame.KEYDOWN:
+                    new_position = self.player_position.copy()
+                    moved = False
+
+                    if event.key == pygame.K_KP4 or event.key == pygame.K_LEFT:
+                        new_position[0] -= TILE_SIZE
+                    elif event.key == pygame.K_KP6 or event.key == pygame.K_RIGHT:
+                        new_position[0] += TILE_SIZE
+                    elif event.key == pygame.K_KP8 or event.key == pygame.K_UP:
+                        new_position[1] -= TILE_SIZE
+                    elif event.key == pygame.K_KP2 or event.key == pygame.K_DOWN:
+                        new_position[1] += TILE_SIZE
+                    elif event.key == pygame.K_KP7:
+                        new_position[0] -= TILE_SIZE
+                        new_position[1] -= TILE_SIZE
+                    elif event.key == pygame.K_KP9:
+                        new_position[0] += TILE_SIZE
+                        new_position[1] -= TILE_SIZE
+                    elif event.key == pygame.K_KP1:
+                        new_position[0] -= TILE_SIZE
+                        new_position[1] += TILE_SIZE
+                    elif event.key == pygame.K_KP3:
+                        new_position[0] += TILE_SIZE
+                        new_position[1] += TILE_SIZE
+                    elif event.key == pygame.K_e:
+                        self.interaction_manager.interact(self.player_position, TILE_SIZE)
+
+                    if new_position != self.player_position:
+                        tile_x, tile_y = new_position[0] // TILE_SIZE, new_position[1] // TILE_SIZE
+                        if self.is_tile_walkable(tile_y, tile_x):
+                            self.player_position = new_position
+                            moved = True
+                        else:
+                            self.logger.add_log_message(f"You can't go that way!")
+
+                    if moved:
+                        self.update_camera()
+                        self.interaction_manager.check_for_adjacent_interactables(self.player_position, TILE_SIZE)
+                        self.economy.fire_event()
+                        self.economy.dump_updated_data('space/src/util/economy/economy_generated.yaml')
+                        self.npc_manager.update(self.camera.x, self.camera.y, self.camera.width, self.camera.height)
+                        print(f"Player position: {self.player_position}")
+                        print(f"Camera position: {self.camera}")
+
+    def update(self, events):
+        dt = self.clock.tick(60) / 1000.0  # Convert milliseconds to seconds
+        if self.terminal and self.terminal.active:
+            self.terminal.update(dt)
+        self.handle_input(events)
+        self.update_camera()
+        # self.npc_manager.update()
+        self.ui_planetary.update_player_stats(self.player)
+        # Add additional update logic if necessary
+
+    def draw_player(self):
+        self.player_layer.fill((0, 0, 0, 0))  # Clear the layer
+        self.player_layer.fill((0, 0, 0, 0))  # Clear the layer (with transparency)
+        player_x = self.player_position[0] - self.camera.x
+        player_y = self.player_position[1] - self.camera.y
+        self.player_layer.blit(self.player_sprite, (player_x, player_y))
+
+    def draw_ui(self):
+        self.ui_layer.fill((0, 0, 0, 0))
+
+    def draw(self, screen):
+        screen.fill((0, 0, 0))
+        self.map_manager.draw_map(self.map_surface, self.camera)
+
+        # self.draw_player()
+        # self.map_surface.blit(self.player_layer, (0, 0))
+
+        self.draw_ui()
+        self.map_surface.blit(self.ui_layer, (0, 0))
+
+        self.npc_manager.draw(self.npc_layer, self.camera)
+        self.map_surface.blit(self.npc_layer, (0, 0))  # Draw the NPC layer onto the map surface
+
+        self.draw_player()
+        self.map_surface.blit(self.player_layer, (0, 0))
+
+        if self.interaction_active:
+            self.map_surface.blit(self.interaction_layer, (0, 0))
+        
+        screen.blit(self.map_surface, (0, 0))
+
+        self.ui_planetary.draw_sidebar()
+        self.logger.draw_log()
+        screen.blit(self.map_surface, (0, 0))
+        screen.blit(self.ui_planetary.sidebar_surface, (SCREEN_WIDTH - self.ui_planetary.sidebar_width, 0))
+        screen.blit(self.logger.log_surface, (0, SCREEN_HEIGHT - self.logger.log_height))
+        
+        if self.terminal and self.terminal.active:
+            self.terminal.display(screen)
+
+    def land_on_planet(self):
+        # Logic to initialize the planetary landing, setting the initial position of the player, etc.
+        self.logger.add_log_message(f"You have landed on {self.planet.name}")
+        pass
+
+    def return_to_star_system_mode(self):
+        # Any necessary cleanup or state saving goes here
+        # ...
+
+        # Signal to switch back to StarSystemMode
+        self.switch_to_star_system_mode = True
+
+    def activate_terminal(self):
+        self.interaction_layer.fill((0, 0, 0, 0))  # Clear the layer
+        # Load the docking terminal interface image
+        terminal_image = pygame.image.load("space/assets/img/objects/terminal_screen.png").convert_alpha() 
+        # Resize the image to fit the map_surface
+        #terminal_image = pygame.transform.scale(terminal_image, (SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height))   
+        # Draw the image onto the map_surface
+        self.interaction_layer.blit(terminal_image, (0, 0))
+        self.interaction_active = True
+        self.terminal = Terminal(terminal_type="docking", planetary_mode=self, planet_name=self.planet)
+        self.terminal.activate()
+        pass
+
+    def deactivate_terminal(self):
+        self.terminal = None
+        self.interaction_active = False
+        self.draw(self.screen)
+        
+
+# Usage example
+# planetary_mode = PlanetaryMode(selected_planet, player)
+# planetary_mode.land_on_planet()----
+
+
+
+File: space/src/modes/planetary_mode/terminal.py
+import pygame
+from .terminals import docking_terminal
+
+class Terminal:
+    def __init__(self, terminal_type, planetary_mode, planet_name):
+        self.terminal_type = terminal_type
+        self.planetary_mode = planetary_mode
+        self.planet_name = planet_name  # Store the planet name
+        self.input_buffer = ""
+        self.output_buffer = []
+        self.active = False
+        self.cursor_visible = True
+        self.blink_timer = 0
+        self.blink_interval = 50  # milliseconds
+        self.max_lines = 13  # Adjust as needed for your map_surface size
+        self.scroll_position = 0
+
+    def activate(self):
+        self.active = True
+        # Clear buffers or set up terminal-specific data
+
+    def deactivate(self):
+        self.active = False
+        ## Call deactivate_terminal() from PlanetaryMode
+        if self.planetary_mode:
+            self.planetary_mode.deactivate_terminal()
+
+    def depart(self):
+        if self.planetary_mode:
+            self.planetary_mode.return_to_star_system_mode()
+
+    def process_input(self, event):
+        if self.active:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    # Execute the command in the input buffer
+                    self.execute_command(self.input_buffer)
+                    self.input_buffer = ""  # Clear the buffer after execution
+                elif event.key == pygame.K_BACKSPACE:
+                    # Handle backspace for deleting the last character
+                    self.input_buffer = self.input_buffer[:-1]
+                else:
+                    # Add the character to the input buffer
+                    # You might want to filter which characters are allowed
+                    self.input_buffer += event.unicode
+
+    def wrap_text(self, text, max_length):
+        wrapped_lines = []
+        while len(text) > max_length:
+            # Find the nearest space before the max_length
+            if text.find('\n') > 0: #if text contains \n
+                split_index = text.rfind('\n', 0, max_length)
+            else:
+                split_index = text.rfind(' ', 0, max_length)
+            if split_index == -1:  # No spaces found, force split
+                split_index = max_length
+
+            # Split the line and add to the list
+            wrapped_lines.append(text[:split_index])
+            text = text[split_index:].lstrip()  # Remove leading spaces from the rest
+
+        wrapped_lines.append(text)  # Add the last part of the text
+        return wrapped_lines
+
+    def execute_command(self, command):
+        self.output_buffer.append(f"> {command}")
+        # Process the command based on terminal type
+        if self.terminal_type == "docking":
+            result = docking_terminal.handle_command(command, self.planet_name)
+        else:
+            # Default or other terminal types
+            result = "Command not recognized in this terminal."
+
+        if command == "exit":
+            self.deactivate()
+       
+        if command == "depart":
+            self.depart()
+
+        max_line_length = 80  # Set your desired maximum line length here
+        wrapped_result = self.wrap_text(result, max_line_length)
+        self.output_buffer.extend(wrapped_result)
+
+
+    def update(self, dt):
+        if self.active:
+            self.blink_timer += dt
+            if self.blink_timer * 200 >= self.blink_interval:
+                self.blink_timer = 0
+                self.cursor_visible = not self.cursor_visible
+
+    def flatten_output_buffer(self):
+        # Flatten the output buffer with respect to newline characters
+        flattened_output = []
+        for line in self.output_buffer:
+            flattened_output.extend(line.split('\n'))
+        return flattened_output
+
+    def display(self, surface):
+        if self.active:
+            font = pygame.font.Font("space/assets/fonts/TeleSys.ttf", 16)
+            y_position = 100  # Adjust as needed
+
+            flattened_output = self.flatten_output_buffer()
+            total_line_count = len(flattened_output)
+
+            start_line = max(0, total_line_count - self.max_lines - self.scroll_position)
+            end_line = min(start_line + self.max_lines, total_line_count)
+
+            for line in flattened_output[start_line:end_line]:
+                text_surface = font.render(line, True, (46, 139, 87))
+                surface.blit(text_surface, (100, y_position))
+                y_position += text_surface.get_height() + 5
+
+            # Combine the input buffer text with the cursor for rendering
+            input_text = f"> {self.input_buffer}"
+            if self.cursor_visible:
+                input_text += "_"  # Append the cursor symbol
+
+            input_surface = font.render(input_text, True, (107, 142, 35))
+            surface.blit(input_surface, (100, y_position))
+
+    def scroll_up(self):
+        self.scroll_position = min(self.scroll_position + 1, max(0, len(self.flatten_output_buffer()) - self.max_lines))
+
+    def scroll_down(self):
+        self.scroll_position = max(self.scroll_position - 1, 0)
+----
+
+
+
+File: space/src/modes/planetary_mode/terminals/docking_terminal.py
+import yaml
+
+def handle_command(command, planet_name):
+    commands = {
+        "help": "List of available commands:\n help\n info\n depart\n map\n prices\n exit",
+        "info": "Docking Terminal v1.0. Use this terminal for managing docking operations.",
+        "map" : "Unable to fetch minimap at this tme",
+        "prices": get_planet_goods(planet_name),
+        "long":"this is a test of a very long string this is a test of a very long string this is a test of a very long string this is a test of a very long string this is a test of a very long string this is a test of a very long string ",
+        "depart": "",
+        "exit":"",
+        }
+    return commands.get(command, "Unknown command. Type 'help' for available commands.")
+
+def get_planet_goods(planet_name):
+    with open('space/src/util/economy/economy_generated.yaml', 'r') as file:
+        data = yaml.safe_load(file)
+
+    planet_data = data.get(planet_name.name, {})
+    if not planet_data:
+        return f"No economic data available for {planet_name.name}."
+
+    goods_info = planet_data.get('goods', {})
+    goods_list = "\n".join([f"{good}: ${info['currentPrice']}" for good, info in goods_info.items()])
+    return goods_list----
+
+
+
+File: space/src/modes/planetary_mode/terminals/refinery_terminal.py
+def handle_command(command):
+    commands = {
+        "help": "List of available commands: help, info, take off...",
+        "info": "Refinery Terminal v1.0. Use this terminal for managing docking operations.",
+        "map" : "This will display a minimap soon.",
+        "exit": " "
+    }
+
+    return commands.get(command, "Unknown command. Type 'help' for available commands.")
+----
+
+
+
+File: space/src/modes/planetary_mode/terminals/__init__.py
+----
+
+
+
+File: space/src/modes/planetary_mode/ui_planetary.py
+import pygame
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
+
+class UI_Planetary:
+    def __init__(self):
+        self.sidebar_width = 200
+        self.sidebar_surface = pygame.Surface((self.sidebar_width, SCREEN_HEIGHT - 200))
+        self.font = pygame.font.Font("space/assets/fonts/Modern Pixel.otf", 16)  # You can change the font and size
+        self.player_stats = None
+
+    def update_player_stats(self, player):
+        self.player_stats = {
+            "Currency": player.currency,
+            "Health": player.health,
+            "Energy": player.energy
+        }
+
+    def draw_sidebar(self):
+        if self.player_stats:
+            y_offset = 30  # Starting point for the first stat, adjust as needed
+            for stat, value in self.player_stats.items():
+                if stat == "Currency":
+                    stat_text = f"{stat}: ${value}"
+                else:
+                    stat_text = f"{stat}: {value}"
+                text_surface = self.font.render(stat_text, True, (255, 255, 255))
+                self.sidebar_surface.blit(text_surface, (10, y_offset))  # Adjust the position as needed
+                y_offset += 20  # Space between lines, adjust as needed----
+
+
+
+File: space/src/modes/star_system_mode/input_handler.py
+import pygame
+import time
+
+class InputHandler:
+    def __init__(self, star_system, star_system_mode):
+        self.last_movement_time = 0
+        self.movement_cooldown = 0.2  # 200 milliseconds
+        self.star_system = star_system
+        self.star_system_mode = star_system_mode
+
+    def handle_movement(self, ship_x_position, ship_y_position, grid_size):
+        current_time = time.time()
+        keys = pygame.key.get_pressed()
+
+        # Track whether any movement key is pressed
+        movement_key_pressed = keys[pygame.K_KP4] or keys[pygame.K_KP6] or keys[pygame.K_KP8] or keys[pygame.K_KP2] or \
+                               keys[pygame.K_KP1] or keys[pygame.K_KP3] or keys[pygame.K_KP7] or keys[pygame.K_KP9] or \
+                               keys[pygame.K_LEFT] or keys[pygame.K_RIGHT] or keys[pygame.K_UP] or keys[pygame.K_DOWN]
+
+        if current_time - self.last_movement_time > self.movement_cooldown and movement_key_pressed:
+            # Handle non-diagonal movement
+            if keys[pygame.K_KP4] or keys[pygame.K_LEFT]:
+                ship_x_position = max(0, ship_x_position - 1)
+            elif keys[pygame.K_KP6] or keys[pygame.K_RIGHT]:
+                ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
+            if keys[pygame.K_KP8] or keys[pygame.K_UP]:
+                ship_y_position = max(0, ship_y_position - 1)
+            elif keys[pygame.K_KP2] or keys[pygame.K_DOWN]:
+                ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
+
+            # Handle diagonal movement
+            if keys[pygame.K_KP1]:
+                ship_x_position = max(0, ship_x_position - 1)
+                ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
+            elif keys[pygame.K_KP3]:
+                ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
+                ship_y_position = min(grid_size[1] - 1, ship_y_position + 1)
+            elif keys[pygame.K_KP7]:
+                ship_x_position = max(0, ship_x_position - 1)
+                ship_y_position = max(0, ship_y_position - 1)
+            elif keys[pygame.K_KP9]:
+                ship_x_position = min(grid_size[0] - 1, ship_x_position + 1)
+                ship_y_position = max(0, ship_y_position - 1)
+
+            # Update the timer
+            self.last_movement_time = current_time
+        return ship_x_position, ship_y_position
+    
+    def handle_interaction(self, ship_x_position, ship_y_position, tile_size):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_e]:
+            collided_entity = collided_entity = self.star_system_mode.check_collision()
+            if collided_entity:
+                self.star_system_mode.show_interaction_menu(collided_entity)
+
+def determine_direction(ship_x_position, ship_y_position, previous_x, previous_y):
+    new_direction = None
+    if ship_x_position > previous_x and ship_y_position > previous_y:
+        new_direction = "southeast"
+    elif ship_x_position > previous_x and ship_y_position < previous_y:
+        new_direction = "northeast"
+    elif ship_x_position < previous_x and ship_y_position > previous_y:
+        new_direction = "southwest"
+    elif ship_x_position < previous_x and ship_y_position < previous_y:
+        new_direction = "northwest"
+    elif ship_x_position > previous_x:
+        new_direction = "east"
+    elif ship_x_position < previous_x:
+        new_direction = "west"
+    elif ship_y_position > previous_y:
+        new_direction = "south"
+    elif ship_y_position < previous_y:
+        new_direction = "north"
+
+    return new_direction
+
+## It actually DOES make sense to have this here. Parallax is tied to movement.
+def update_parallax(ship_x_position, ship_y_position, previous_x, previous_y, parallax_offset_x, parallax_offset_y, parallax_velocity_x, parallax_velocity_y, parallax_factor, damping_factor, velocity_threshold):
+    # Immediate change in position
+    immediate_delta_x = (ship_x_position - previous_x) * parallax_factor
+    immediate_delta_y = (ship_y_position - previous_y) * parallax_factor
+
+    # Update velocities based on immediate movement
+    parallax_velocity_x += immediate_delta_x
+    parallax_velocity_y += immediate_delta_y
+
+    # Apply damping to simulate inertia
+    parallax_velocity_x *= damping_factor
+    parallax_velocity_y *= damping_factor
+
+    # Apply the minimum velocity threshold
+    if abs(parallax_velocity_x) < velocity_threshold:
+        parallax_velocity_x = 0
+    if abs(parallax_velocity_y) < velocity_threshold:
+        parallax_velocity_y = 0
+
+    # Update parallax offsets using the velocity
+    parallax_offset_x += parallax_velocity_x
+    parallax_offset_y += parallax_velocity_y
+
+    return parallax_offset_x, parallax_offset_y, parallax_velocity_x, parallax_velocity_y
+----
+
+
+
+File: space/src/modes/star_system_mode/menu.py
+import pygame
+
+class InteractionMenu:
+    def __init__(self, options, position, font, font_size=16, font_color=(255, 255, 255)):
+        self.options = options
+        self.selected_index = 0
+        self.position = position
+        self.font = pygame.font.Font(font, font_size)
+        self.font_color = font_color
+        self.menu_items = self.create_menu_items()
+        self.active = False
+        self.selected_action = None
+
+    def create_menu_items(self):
+        menu_items = []
+        for option in self.options:
+            text_surface = self.font.render(option, True, self.font_color)
+            menu_items.append(text_surface)
+        return menu_items
+
+    def navigate(self, direction):
+        if direction == "up":
+            self.selected_index = max(0, self.selected_index - 1)
+        elif direction == "down":
+            self.selected_index = min(len(self.options) - 1, self.selected_index + 1)
+
+    def draw(self, screen):
+        if not self.active:
+            return
+
+        for i, menu_item in enumerate(self.menu_items):
+            item_pos = (self.position[0], self.position[1] + i * 20)
+            screen.blit(menu_item, item_pos)
+            if i == self.selected_index:
+                pygame.draw.rect(screen, self.font_color, (*item_pos, menu_item.get_width(), menu_item.get_height()), 2)
+
+    def update(self, event):
+        if not self.active:
+            return None
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_k:
+                self.navigate("up")
+            elif event.key == pygame.K_j:
+                self.navigate("down")
+            elif event.key == pygame.K_RETURN:
+                self.selected_action = self.options[self.selected_index]
+                self.active = False
+                return self.selected_action
+        return None
+
+    def activate(self):
+        self.active = True
+        self.selected_index = 0
+----
+
+
+
+File: space/src/modes/star_system_mode/nightsky.py
+import random
+import pygame
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT
+
+PARALLAX_FACTOR = 0.5
+PARALLAX_DAMPING_FACTOR = 0.95
+VELOCITY_THRESHOLD = 0.1
+STAR_SIZE_OPTIONS = [.5, 1, 2]
+
+def initialize_stars(screen_width, screen_height):
+    white_stars = generate_stars(100, screen_width, screen_height, STAR_SIZE_OPTIONS, (255, 255, 255))
+    purple_stars = generate_stars(50, screen_width, screen_height, STAR_SIZE_OPTIONS, (51, 0, 51))
+    blue_stars = generate_stars(75, screen_width, screen_height, STAR_SIZE_OPTIONS, (185, 217, 235))
+    return white_stars, purple_stars, blue_stars
+
+def generate_stars(num_stars, screen_width, screen_height, size_options, color):
+    stars = []
+    for _ in range(num_stars):
+        x = random.randint(0, screen_width)
+        y = random.randint(0, screen_height)
+        size = random.choice(size_options)
+        original_pos = (x, y)
+        stars.append((x, y, size, color, original_pos))
+    return stars
+
+def draw_stars(screen, stars, screen_width, screen_height, offset=(0, 0)):
+    for star in stars:
+        x, y, size, color, original_pos = star
+        shifted_x = (x - offset[0]) % screen_width
+        shifted_y = (y - offset[1]) % screen_height
+        rect = pygame.Rect(shifted_x, shifted_y, size, size)
+        pygame.draw.rect(screen, color, rect)----
+
+
+
+File: space/src/modes/star_system_mode/star_systems.py
+## This file handles the generation of star_systems.
+import json
+import random
+import math
+import pygame
+from entities.planet import Planet
+from entities.object import SpaceObject
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT
+
+class StarSystem:
+    def __init__(self, json_path):
+        self.MAP_WIDTH = SCREEN_WIDTH * 24
+        self.MAP_HEIGHT = SCREEN_HEIGHT * 24
+        # Calculate center of the map as class attributes
+        self.map_center_x = self.MAP_WIDTH // 2
+        self.map_center_y = self.MAP_HEIGHT // 2        
+        self.map_surface = None
+        self.planets = []
+        self.objects = []
+        self.orbits = []
+        self.load_system(json_path)
+
+    def load_system(self, json_path):
+        with open(json_path, 'r') as file:
+            data = json.load(file)
+            seed = data['seed']
+            planet_data = data['planets']
+            object_data = data.get('objects', [])
+            random.seed(seed)
+
+            self.map_surface = pygame.Surface((self.MAP_WIDTH, self.MAP_HEIGHT)) # Create a surface for the map
+            self.generate_planets(planet_data)
+            self.generate_objects(object_data)
+
+    def generate_planets(self, planet_data):
+        min_orbit_radius = 500
+        max_orbit_radius = 5760
+        min_distance_between_orbits = 500
+        max_distance_between_orbits = 1000
+        last_orbit_radius = min_orbit_radius
+
+        for data in planet_data:
+            if last_orbit_radius > max_orbit_radius:
+                break
+
+            orbit_radius = last_orbit_radius + random.randint(min_distance_between_orbits, max_distance_between_orbits)
+            angle = random.uniform(0, 2 * math.pi)
+            
+            start_pos = data.get('start_pos', (0, 0))
+            planet = Planet(data['name'], data['type'], data['guild'], data['image_path'], orbit_radius, angle, self.map_center_x, self.map_center_y, start_pos)
+            self.planets.append(planet)
+            self.orbits.append(orbit_radius)
+            last_orbit_radius = orbit_radius
+
+    def generate_objects(self, object_data):
+        self.objects = []
+        for data in object_data:
+            obj = SpaceObject(data['name'], data['type'], data['image_path'], data['x'], data['y'])
+            self.objects.append(obj)
+
+    def draw(self, screen, camera):
+        screen.blit(self.map_surface, (0, 0), camera)
+        font = pygame.font.Font("space/assets/fonts/OfficeCodePro-Light.ttf", 14)
+
+        for obj in self.objects:
+            obj.draw(self.map_surface, camera)
+
+        for planet in self.planets:
+            orbit_radius = planet.orbit_radius
+            pygame.draw.circle(self.map_surface, (255, 255, 255), (self.map_center_x, self.map_center_y), orbit_radius, 1)
+
+            if self.is_orbit_visible(orbit_radius, camera):
+                self.draw_planet_name_along_orbit(planet, font, screen, camera, orbit_radius)
+
+            planet.draw(self.map_surface)
+
+    
+    def draw_planet_name_along_orbit(self, planet, font, screen, camera, orbit_radius, segment_start_ratio=0.25, segment_end_ratio=0.50):
+        name = planet.name
+        char_spacing = 2  # Space between characters
+        name_length = len(name) * char_spacing
+        visible_segments = self.get_visible_segments(orbit_radius, camera, name_length)
+
+        if not visible_segments:
+            return
+
+        raw_start_angle, raw_end_angle = visible_segments[0]  # Consider only the first visible segment
+        segment_angle_range = raw_end_angle - raw_start_angle
+
+        #print(f"raw_start_angle:{raw_start_angle}, raw_end_angle:{raw_end_angle}") ##Debug
+        if raw_start_angle < 180:
+            name = name[::-1]  # Reverse the name
+
+        # Calculate actual start and end angles based on the provided ratios
+        start_angle = raw_start_angle + segment_angle_range * segment_start_ratio
+        end_angle = raw_start_angle + segment_angle_range * segment_end_ratio
+
+        for i, char in enumerate(name):
+            angle = start_angle + (end_angle - start_angle) * i / (len(name) - 1)
+            angle_rad = math.radians(angle)
+
+            x = self.map_center_x + orbit_radius * math.cos(angle_rad) - camera.x
+            y = self.map_center_y + orbit_radius * math.sin(angle_rad) - camera.y
+
+            char_surface = font.render(char, True, (255, 255, 255))
+            char_rect = char_surface.get_rect(center=(x + 10, y + 10))
+            screen.blit(char_surface, char_rect)
+        
+    def is_orbit_visible(self, orbit_radius, camera):
+        # Check if the orbit is within the camera's visible area
+        camera_rect = pygame.Rect(camera.x, camera.y, camera.width, camera.height)
+        orbit_rect = pygame.Rect(self.map_center_x - orbit_radius, self.map_center_y - orbit_radius, 2 * orbit_radius, 2 * orbit_radius)
+        return camera_rect.colliderect(orbit_rect)
+
+    def get_visible_segments(self, orbit_radius, camera, name_length):
+        visible_segments = []
+        start_angle = None
+        for angle in range(0, 360, 1):  # Check every degree for more precision
+            angle_rad = math.radians(angle)
+            x = self.map_center_x + orbit_radius * math.cos(angle_rad)
+            y = self.map_center_y + orbit_radius * math.sin(angle_rad) + 100
+
+            if camera.x <= x <= camera.x + camera.width and camera.y <= y <= camera.y + camera.height:
+                if start_angle is None:
+                    start_angle = angle
+            else:
+                if start_angle is not None:
+                    end_angle = angle
+                    if end_angle - start_angle >= self.calculate_angle_length(orbit_radius, name_length):
+                        visible_segments.append((start_angle, end_angle))
+                    start_angle = None
+
+        if start_angle is not None:
+            end_angle = 360
+            if end_angle - start_angle >= self.calculate_angle_length(orbit_radius, name_length):
+                visible_segments.append((start_angle, end_angle))
+
+        return visible_segments
+
+    def calculate_angle_length(self, orbit_radius, length):
+        return math.degrees(length / orbit_radius)
+
+
+
+# Usage example
+# sol_system = StarSystem('space/star_systems/sol.json')
+# sol_system.draw(screen, camera)
+----
+
+
+
+File: space/src/modes/star_system_mode/star_system_mode.py
+# This file handles the main loop when the player is traversing a star system
+
+import pygame
+from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
+from .input_handler import InputHandler, determine_direction, update_parallax
+from .nightsky import initialize_stars, draw_stars, PARALLAX_FACTOR, PARALLAX_DAMPING_FACTOR, VELOCITY_THRESHOLD
+from util.sprite_animation import AnimatedSprite
+from .star_systems import StarSystem
+
+class StarSystemMode:
+    def __init__(self, player, starsystem): 
+        self.selected_system = StarSystem(f'space/star_systems/{starsystem}.json')
+        self.input_handler = InputHandler(self.selected_system, self)  # Instantiate InputHandler
+        self.grid_size = (self.selected_system.MAP_WIDTH // TILE_SIZE, self.selected_system.MAP_HEIGHT // TILE_SIZE)
+        self.white_stars, self.purple_stars, self.blue_stars = initialize_stars(SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.map_center_x = self.selected_system.MAP_WIDTH // 2
+        self.map_center_y = self.selected_system.MAP_HEIGHT // 2
+        self.cargo_sheet = 'space/assets/img/cargo6frame.png'
+        self.frame_dimensions = (48, 48)
+        self.num_frames = 6
+        self.animated_cargoship = AnimatedSprite(self.cargo_sheet, self.frame_dimensions, self.num_frames)
+        self.current_direction = "southeast"
+        self.x_position = self.map_center_x // TILE_SIZE
+        self.y_position = self.map_center_y // TILE_SIZE
+        self.previous_x, self.previous_y = self.x_position, self.y_position
+        self.parallax_offset_x, self.parallax_offset_y = 0, 0
+        self.parallax_velocity_x, self.parallax_velocity_y = 0, 0
+        self.camera = pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.landing_requested = False
+        self.player = player
+        self.selected_planet = None
+
+    def handle_input(self):
+        # Handle input specific to this mode
+        self.x_position, self.y_position = self.input_handler.handle_movement(self.x_position, self.y_position, self.grid_size)
+        new_direction = determine_direction(self.x_position, self.y_position, self.previous_x, self.previous_y)
+        if new_direction:
+            self.current_direction = new_direction
+
+    def check_collision(self):
+        ship_rect = pygame.Rect(self.x_position * TILE_SIZE, self.y_position * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+        for planet in self.selected_system.planets:
+            if ship_rect.colliderect(planet.get_rect()):
+                return planet
+        for obj in self.selected_system.objects:
+            if ship_rect.colliderect(obj.get_rect()):
+                return obj
+        return None
+    
+    def show_interaction_menu(self, entity):
+        from modes.star_system_mode.menu import InteractionMenu
+        # Example options - you can customize these based on the entity
+        options = ["Scan", "Hail", "Dock", "Test"]
+
+        # Position the menu in the middle of the screen
+        menu_position = (SCREEN_WIDTH // 2 + 50, SCREEN_HEIGHT // 2 + 50)
+
+        # Create and activate the interaction menu
+        self.interaction_menu = InteractionMenu(options, menu_position, "space/assets/fonts/OfficeCodePro-Light.ttf")
+        self.interaction_menu.activate()
+
+    def get_selected_planet(self):
+        return self.selected_planet
+    
+    def get_player(self):
+        # Assuming self.player is an attribute holding the player's state
+        return self.player
+
+    def update(self, events):
+        self.handle_continuous_updates()
+        for event in events:
+            if hasattr(self, 'interaction_menu') and self.interaction_menu.active:
+                selected_action = self.interaction_menu.update(event)
+                if selected_action == "Dock":
+                    self.landing_requested = True
+                    self.selected_planet = self.check_collision()  # Assuming this returns the planet
+            else:
+                self.handle_continuous_updates()
+                        
+    def handle_continuous_updates(self):
+        self.handle_input()
+    # Update logic for continuous effects like parallax
+        self.parallax_offset_x, self.parallax_offset_y, self.parallax_velocity_x, self.parallax_velocity_y = update_parallax(
+                        self.x_position, self.y_position, self.previous_x, self.previous_y,
+                        self.parallax_offset_x, self.parallax_offset_y, self.parallax_velocity_x, self.parallax_velocity_y,
+                        PARALLAX_FACTOR, PARALLAX_DAMPING_FACTOR, VELOCITY_THRESHOLD
+                    )
+        self.previous_x, self.previous_y = self.x_position, self.y_position
+        self.animated_cargoship.update()
+        self.camera.x = max(0, min(self.x_position * TILE_SIZE - SCREEN_WIDTH // 2, self.selected_system.MAP_WIDTH - SCREEN_WIDTH))
+        self.camera.y = max(0, min(self.y_position * TILE_SIZE - SCREEN_HEIGHT // 2, self.selected_system.MAP_HEIGHT - SCREEN_HEIGHT))
+        self.input_handler.handle_interaction(self.x_position, self.y_position, TILE_SIZE)
+        # Update the interaction menu if it's active
+        if hasattr(self, 'interaction_menu') and self.interaction_menu.active:
+            for event in pygame.event.get():
+                self.interaction_menu.update(event)
+
+    def draw(self, screen):
+        # Draw logic specific to star system mode
+        screen.fill((0, 0, 0))
+        self.selected_system.draw(screen, self.camera)
+        draw_stars(screen, self.white_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 2, self.parallax_offset_y * 2))
+        draw_stars(screen, self.purple_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 3, self.parallax_offset_y * 3))
+        draw_stars(screen, self.blue_stars, SCREEN_WIDTH, SCREEN_HEIGHT, (self.parallax_offset_x * 4, self.parallax_offset_y * 4))
+        spaceship_frame = self.animated_cargoship.get_frame(self.current_direction)
+        screen.blit(spaceship_frame, (self.x_position * TILE_SIZE - self.camera.x, self.y_position * TILE_SIZE - self.camera.y))
+        
+        # Draw collision detection text
+        collided_entity = self.check_collision()
+        if collided_entity:
+            font = pygame.font.Font(None, 36)
+            text_surface = font.render("[E] Interact", True, (255, 255, 255))
+            screen.blit(text_surface, (SCREEN_WIDTH // 2 - text_surface.get_width() // 2, SCREEN_HEIGHT // 2))
+        
+        # Draw interaction menu if its active.
+        if hasattr(self, 'interaction_menu') and self.interaction_menu.active:
+            self.interaction_menu.draw(screen)
+        
+        print(f"camera: {self.camera}")----
+
+
+
+File: space/src/modes/__init__.py
+----
+
+
+
+File: space/src/util/config.py
+SCREEN_WIDTH = 1080
+SCREEN_HEIGHT = 720
+TILE_SIZE = 24----
+
+
+
+File: space/src/util/economy/economy.py
+import yaml
+import random
+
+class Economy:
+    def __init__(self, planet_name, economy_data):
+        self.planet_name = planet_name
+        self.data = economy_data
+        self.log_callback = None
+
+    def set_log_callback(self, callback):
+        self.log_callback = callback
+
+    def apply_price_change(self, item, price_change):
+        base_price = self.data[self.planet_name]['goods'][item]['basePrice']
+        change_factor = int(price_change.replace('%', '')) / 100
+
+        if '+' in price_change:
+            new_price = base_price * (1 + change_factor)
+        elif '-' in price_change:
+            new_price = base_price * (1 - change_factor)
+        else:
+            new_price = base_price
+
+        self.data[self.planet_name]['goods'][item]['currentPrice'] = new_price
+
+    def fire_event(self):
+        if random.uniform(0, 100) < 1.5:  # 2% chance to trigger an event
+            event = random.choice(list(self.data[self.planet_name]['events']))
+            print(f"Prices on {self.planet_name} have changed due to {event}")
+            event_message = f"Prices on {self.planet_name} have changed due to {event}"
+            if self.log_callback:
+                self.log_callback(event_message)
+
+            for item, change in self.data[self.planet_name]['events'][event].items():
+                self.apply_price_change(item, change['priceChange'])
+                print(f"{item} price updated.")
+
+    def dump_updated_data(self, outfile):
+        with open(outfile, 'w') as file:
+            yaml.dump(self.data, file, default_flow_style=False)
+            print(f"Updated economy data dumped to {outfile}")
+
+# Usage
+with open('space/src/util/economy/economy_generated.yaml', 'r') as file:
+    data = yaml.safe_load(file)
+
+economy = Economy('Terramonta', data)
+economy.fire_event()
+economy.dump_updated_data('space/src/util/economy/economy_generated.yaml')
+----
+
+
+
+File: space/src/util/economy/__init__.py
+----
+
+
+
+File: space/src/util/sprite_animation.py
+import pygame
+
+class AnimatedSprite:
+    def __init__(self, image_path, frame_dimensions, num_frames):
+        self.sprite_sheet = pygame.image.load(image_path).convert_alpha()
+        self.frame_width, self.frame_height = frame_dimensions
+        self.num_frames = num_frames
+        self.current_frame = 0
+        self.frames = self.load_frames()
+        self.current_direction = "north"
+
+    def load_frames(self):
+        frames = []
+        for i in range(self.num_frames):
+            frame = self.sprite_sheet.subsurface((i * self.frame_width, 0, self.frame_width, self.frame_height))
+            frames.append(frame)
+        return frames
+
+    def update(self):
+        self.current_frame = (self.current_frame + 1) % self.num_frames
+
+    def update_direction(self, direction):
+        if direction != "none":
+            self.current_direction = direction
+
+    def get_frame(self, direction):
+        frame = self.frames[self.current_frame]
+        if direction == "north":
+            return frame
+        elif direction == "south":
+            return pygame.transform.flip(frame, False, True)
+        elif direction == "west":
+            return pygame.transform.rotate(frame, 90)
+        elif direction == "east":
+            return pygame.transform.rotate(frame, -90)
+        # Add transformations for diagonal directions
+        elif direction == "northwest":
+            return pygame.transform.rotate(frame, 45)
+        elif direction == "northeast":
+            return pygame.transform.rotate(frame, -45)
+        elif direction == "southwest":
+            return pygame.transform.rotate(frame, 135)
+        elif direction == "southeast":
+            return pygame.transform.rotate(frame, -135)
+        else:
+            return frame
+        
+
+        ----
+
+
+
+File: space/src/__init__.py
+----
+
+
+
+File: space/star_systems/sol.json
+{
+    "seed": 12345,
+    "planets": [
+        {"name": "Terramonta", "type": "Industrial", "guild": "assembly", "image_path": "space/assets/img/planets/Lava.png", "start_pos": [1248, 144]},
+        {"name": "Etheora", "type": "Urban", "guild": "assembly", "image_path": "space/assets/img/planets/Baren.png"},
+        {"name": "Arboresia", "type": "Suburban", "guild": "assembly", "image_path": "space/assets/img/planets/Terran.png"},
+        {"name": "Ageria", "type": "Terran", "guild": "assembly", "image_path": "space/assets/img/planets/Terran.png"},
+        {"name": "Cosmopolara", "type": "Urban", "guild": "assembly", "image_path": "space/assets/img/planets/Terran.png"},
+        {"name": "Ferrica", "type": "Industrial", "guild": "assembly", "image_path": "space/assets/img/planets/Ice.png"},
+        {"name": "Governus Centralis", "type": "Urban", "guild": "assembly", "image_path": "space/assets/img/planets/Baren.png"}
+    ],
+    "objects": [
+        {"name": "Nexum Astra", "type": "SpaceStation", "guild": "assembly", "image_path": "space/assets/img/objects/space_station2.png", "x": 12420, "y": 8280}
+    ]
+}----
+
+
+
+File: space/__init__.py
+----
+
+
+
