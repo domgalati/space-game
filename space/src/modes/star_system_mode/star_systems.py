@@ -37,6 +37,7 @@ class StarSystem:
         self.planets = []
         self.objects = []
         self.orbits = []
+        self.name_font = None  # loaded on first draw
         self.load_system(json_path)
 
     def load_system(self, json_path):
@@ -125,7 +126,9 @@ class StarSystem:
     def draw(self, screen, camera):
         self.draw_sun(screen, camera)
         self.draw_orbits(screen, camera)
-        font = pygame.font.Font(resolve_game_path("space/assets/fonts/OfficeCodePro-Light.ttf"), 14)
+        if self.name_font is None:
+            self.name_font = pygame.font.Font(resolve_game_path("space/assets/fonts/OfficeCodePro-Light.ttf"), 14)
+        font = self.name_font
 
         for obj in self.objects:
             obj.draw(screen, camera)
@@ -212,9 +215,3 @@ class StarSystem:
 
     def calculate_angle_length(self, orbit_radius, length):
         return math.degrees(length / orbit_radius)
-
-
-
-# Usage example
-# sol_system = StarSystem('space/star_systems/sol.json')
-# sol_system.draw(screen, camera)

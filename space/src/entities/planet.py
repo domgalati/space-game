@@ -1,10 +1,7 @@
-import json
 import math
-import random
 
 import pygame
 
-from util.config import resolve_game_path
 from util.images import load_image
 
 # Corridor around the painted starport. Radius, so the ship has to be on that rim.
@@ -66,35 +63,3 @@ class Planet:
             self.position[1] - self.image.get_height() // 2 - camera.y,
         )
         surface.blit(self.image, adjusted_pos)
-
-def generate_planets(json_path, center_x, center_y):
-    # random.seed(seed)
-    orbits = []
-
-    # Load data from JSON file
-    with open(resolve_game_path(json_path), "r") as file:
-        data = json.load(file)
-        seed = data['seed']
-        planet_data = data['planets']
-        random.seed(seed)
-
-    planets = []
-    min_orbit_radius = 500
-    max_orbit_radius = 5760
-    min_distance_between_orbits = 500
-    max_distance_between_orbits = 1000
-    last_orbit_radius = min_orbit_radius
-
-    for data in planet_data:
-        if last_orbit_radius > max_orbit_radius:
-            break
-
-        orbit_radius = last_orbit_radius + random.randint(min_distance_between_orbits, max_distance_between_orbits)
-        angle = random.uniform(0, 2 * math.pi)
-
-        planet = Planet(data['name'], data['type'], data['image_path'], orbit_radius, angle, center_x, center_y)
-        planets.append(planet)
-        orbits.append(orbit_radius)
-        last_orbit_radius = orbit_radius
-
-    return planets, orbits

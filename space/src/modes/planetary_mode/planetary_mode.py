@@ -1,8 +1,4 @@
 import pygame
-#import pytmx
-import random
-import time
-#from pytmx.util_pygame import load_pygame
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, resolve_game_path
 from .logger import Logger
 from .map_manager import MapManager
@@ -47,7 +43,7 @@ class PlanetaryMode:
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height)
         self.map_surface = pygame.Surface((SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height))
         map_filename = resolve_game_path(f"space/assets/maps/{self.planet.name}.tmx")       
-        self.map_manager = MapManager(map_filename, (SCREEN_WIDTH, SCREEN_HEIGHT), (SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.map_manager = MapManager(map_filename)
         self.log_messages = []
         self.player_position = self._player_start()
         self._center_camera()
@@ -75,7 +71,6 @@ class PlanetaryMode:
 
         self.npc_layer = pygame.surface.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         self.player_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        self.ui_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         self.interaction_layer = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         self.interaction_active = False  # Flag to indicate if an interaction layer is active
 
@@ -91,18 +86,10 @@ class PlanetaryMode:
                 return [int(obj.x), int(obj.y)]
         return list(self.planet.start_pos)
 
-    def is_tile_walkable(self, x, y):
-        # Access the 'walkable' layer
-        walkable_layer = self.map_manager.tmx_data.get_layer_by_name("walkable")
-        if walkable_layer:
-            # The layer is structured as a 2D grid. Check if the tile at (x, y) is walkable
-            tile = walkable_layer.data[x][y]
-            if tile != 0:
-                return True
-            else:
-            # If there is no 'walkable' layer, default to non-walkable
-                return False
-    
+    def is_tile_walkable(self, row, col):
+        """True where the "walkable" layer has a tile. The layer is stored rows first."""
+        return self.map_manager.tmx_data.get_layer_by_name("walkable").data[row][col] != 0
+
     def _player_center(self):
         return self.player_position[0] + TILE_SIZE // 2, self.player_position[1] + TILE_SIZE // 2
 
@@ -241,27 +228,16 @@ class PlanetaryMode:
         self.handle_input(events)
         self.update_camera()
         self.ui_planetary.update_player_stats(self.player)
-        # Add additional update logic if necessary
 
     def draw_player(self):
-        self.player_layer.fill((0, 0, 0, 0))  # Clear the layer
-        self.player_layer.fill((0, 0, 0, 0))  # Clear the layer (with transparency)
+        self.player_layer.fill((0, 0, 0, 0))
         player_x = self.player_position[0] - self.camera.x
         player_y = self.player_position[1] - self.camera.y
         self.player_layer.blit(self.player_sprite, (player_x, player_y))
 
-    def draw_ui(self):
-        self.ui_layer.fill((0, 0, 0, 0))
-
     def draw(self, screen):
         screen.fill((0, 0, 0))
         self.map_manager.draw_map(self.map_surface, self.camera)
-
-        # self.draw_player()
-        # self.map_surface.blit(self.player_layer, (0, 0))
-
-        self.draw_ui()
-        self.map_surface.blit(self.ui_layer, (0, 0))
 
         self.npc_manager.draw(self.npc_layer, self.camera)
         self.map_surface.blit(self.npc_layer, (0, 0))  # Draw the NPC layer onto the map surface
@@ -275,8 +251,6 @@ class PlanetaryMode:
         if self.conversation_panel:
             self.conversation_panel.draw(self.map_surface)
 
-        screen.blit(self.map_surface, (0, 0))
-
         self.ui_planetary.draw_sidebar()
         self.logger.draw_log()
         screen.blit(self.map_surface, (0, 0))
@@ -286,26 +260,16 @@ class PlanetaryMode:
         if self.terminal and self.terminal.active:
             self.terminal.display(screen)
 
-    def land_on_planet(self):
-        # Logic to initialize the planetary landing, setting the initial position of the player, etc.
-        self.logger.add_log_message(f"You have landed on {self.planet.name}")
-        pass
-
     def return_to_star_system_mode(self):
         self.switch_to_star_system_mode = True
 
     def activate_terminal(self, terminal_type="docking"):
-        self.interaction_layer.fill((0, 0, 0, 0))  # Clear the layer
-        # Load the docking terminal interface image
+        self.interaction_layer.fill((0, 0, 0, 0))
         terminal_image = pygame.image.load(bezel_path(terminal_type)).convert_alpha()
-        # Resize the image to fit the map_surface
-        #terminal_image = pygame.transform.scale(terminal_image, (SCREEN_WIDTH - self.sidebar_width, SCREEN_HEIGHT - self.log_height))   
-        # Draw the image onto the map_surface
         self.interaction_layer.blit(terminal_image, (0, 0))
         self.interaction_active = True
         self.terminal = Terminal(terminal_type=terminal_type, planetary_mode=self, planet_name=self.planet)
         self.terminal.activate()
-        pass
 
     def start_conversation(self, npc):
         conversation = Conversation(
@@ -324,8 +288,3 @@ class PlanetaryMode:
         self.terminal = None
         self.interaction_active = False
         self.draw(self.screen)
-        
-
-# Usage example
-# planetary_mode = PlanetaryMode(selected_planet, player)
-# planetary_mode.land_on_planet()

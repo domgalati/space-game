@@ -1,17 +1,10 @@
-import pygame
 import pytmx
 from pytmx.util_pygame import load_pygame
-from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE
 
 class MapManager:
-    def __init__(self, map_filename, screen_dimensions, camera_dimensions):
-        # Initialize attributes
+    def __init__(self, map_filename):
         self.tmx_data = self.load_map(map_filename)
-        self.map_surface = pygame.Surface(screen_dimensions)
-        self.sidebar_width = 200
-        self.log_height = 200
         self.animations = {}
-        # Other necessary initializations
 
     def initialize_animation_data(self):
         self.animations = {}  # Dictionary to store animation data keyed by tile GID
