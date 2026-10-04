@@ -1,4 +1,3 @@
-import os
 import random
 
 import yaml
@@ -8,7 +7,6 @@ from util.economy.news import event_price
 from world.atlas import place_name
 
 BASE_DATA = "space/src/util/economy/economy.yaml"
-GENERATED_DATA = "space/src/util/economy/economy_generated.yaml"
 
 NEWS_CHANCE = 0.35  # per market, per landing
 SETTLE_RATE = 0.5  # share of the gap to base price closed per landing
@@ -19,31 +17,29 @@ def _read_yaml(path):
         return yaml.safe_load(file) or {}
 
 
-def load_market_data(base_path=None, snapshot_path=None):
-    """Base goods and events.
-
-    Pass ``snapshot_path`` only in tests. The game keeps live prices in memory for the
-    session and does not read or write the generated snapshot yet.
-    """
+def load_market_data(base_path=None, prices=None):
+    """Base goods and events, with `prices` ({place: {good: price}}, from a save) laid over
+    them. Goods the yaml has added since keep their base price; ones it dropped are ignored."""
     data = _read_yaml(base_path or resolve_game_path(BASE_DATA))
-    if not snapshot_path:
-        return data
-    snapshot = _read_yaml(snapshot_path) if os.path.exists(snapshot_path) else {}
     for place, market in data.items():
-        saved = ((snapshot.get(place) or {}).get("goods")) or {}
+        saved = (prices or {}).get(place) or {}
         for good, info in ((market or {}).get("goods") or {}).items():
-            price = (saved.get(good) or {}).get("currentPrice")
-            if price is not None:
-                info["currentPrice"] = round(price, 2)
+            if saved.get(good) is not None:
+                info["currentPrice"] = round(saved[good], 2)
     return data
 
 
 class Economy:
-    def __init__(self, place, economy_data, feed=None):
+    def __init__(self, place, economy_data, feed=None, events=None):
         self.place = place  # body id this market belongs to; see world.atlas
         self.data = economy_data
         self.feed = feed
+        self.events = events  # world.events.Events, to announce trades; optional
         self.log_callback = None
+
+    def emit(self, name, **details):
+        if self.events is not None:
+            self.events.emit(name, place=self.place, **details)
 
     def set_log_callback(self, callback):
         self.log_callback = callback
@@ -84,7 +80,3 @@ class Economy:
             for headline in headlines:
                 self.log_callback(headline)
         return headlines
-
-    def save(self, outfile=GENERATED_DATA):
-        """No-op until save slots exist. Prices live on the in-memory market data."""
-        return

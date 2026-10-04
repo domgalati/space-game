@@ -30,6 +30,7 @@ class Conversation:
         default_mood = npc.base_mood if npc.base_mood is not None else starting_mood(player.reputation, npc.guild)
         self.npc_state = world_state.npc_state(npc.npc_id or f"unnamed/{id(npc)}", default_mood)
         self.context = GameContext(npc, self.npc_state, player, world_state, economy=economy, location=location)
+        world_state.events.emit("talked", npc=npc.npc_id)
         self.error = None
         self.runner = None
         try:

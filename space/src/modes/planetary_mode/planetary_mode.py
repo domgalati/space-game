@@ -51,7 +51,9 @@ class PlanetaryMode:
         self._center_camera()
         self.map_manager.initialize_animation_data()
         self.news_feed = NewsFeed(self.world_state)
-        self.economy = Economy(selected_planet.id, self.world_state.markets_data(), feed=self.news_feed)
+        self.economy = Economy(
+            selected_planet.id, self.world_state.markets_data(), feed=self.news_feed, events=self.world_state.events
+        )
         self.economy.set_log_callback(self.logger.add_log_message)
         self.news_feed.advance()
         self.economy.market_news()
@@ -238,6 +240,10 @@ class PlanetaryMode:
         
         if self.terminal and self.terminal.active:
             self.terminal.display(screen)
+
+    def notice(self, text):
+        """A message for the player from outside this mode, such as "Game saved"."""
+        self.logger.add_log_message(text)
 
     def return_to_star_system_mode(self):
         self.pending = Depart(self.planet)

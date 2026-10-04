@@ -43,7 +43,7 @@ def panel(tmp_path):
     script.write_text(SCRIPT, encoding="utf-8")
     npc = build_npc(roll_npc_record("T/Miner-01", "Miner", "assembly"))
     npc.dialogue_file = str(script)
-    conversation = Conversation(npc, Player(), WorldState(str(tmp_path / "w.yaml")))
+    conversation = Conversation(npc, Player(), WorldState())
     return DialoguePanel(conversation, (880, 520))
 
 
@@ -103,7 +103,7 @@ def test_script_errors_end_the_conversation(tmp_path):
     script.write_text("title: Start\n---\n<<explode>>\n===\n", encoding="utf-8")
     npc = build_npc(roll_npc_record("T/Miner-02", "Miner", "assembly"))
     npc.dialogue_file = str(script)
-    conversation = Conversation(npc, Player(), WorldState(str(tmp_path / "w.yaml")))
+    conversation = Conversation(npc, Player(), WorldState())
     panel = DialoguePanel(conversation, (880, 520))
     assert panel.closed
     assert "Unknown command" in conversation.summary_lines()[-1]

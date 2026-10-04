@@ -1,46 +1,38 @@
-"""In-session world facts: story flags, per-NPC memory, residents, markets, and news.
+"""World facts for a run: story flags, per-NPC memory, residents, markets, and news.
 
-Load/save helpers remain for tests and a future save-slot system. The game currently
-starts a fresh ``WorldState()`` every run and does not write to disk.
-
-Places are keyed by body id ("sol/terramonta", see world.atlas), never by display name.
+Saved with the player by world.save. Places are keyed by body id ("sol/terramonta", see
+world.atlas), never by display name. ``events`` announces what happens; it isn't saved.
 """
-import os
-
-import yaml
-
-from util.config import resolve_game_path
-
-SAVE_PATH = "space/saves/world_state.yaml"
-VERSION = 2  # 2: rosters and news keyed by body id instead of planet name
+from world.events import Events
 
 
 class WorldState:
-    def __init__(self, path=None, data=None):
-        self.path = path or resolve_game_path(SAVE_PATH)
+    def __init__(self, data=None):
         data = data or {}
+        self.events = Events()
         self.globals = data.get("globals") or {}
         self.npcs = data.get("npcs") or {}  # npc_id -> {mood, vars, visited}
         self.rosters = data.get("rosters") or {}  # location -> [npc record]
         self.news = data.get("news") or {}  # see util.economy.news_feed
         self.markets = None  # live economy data for this run; see markets_data()
+        self._saved_prices = data.get("prices") or {}  # place -> good -> price, from a save
 
     def markets_data(self):
-        """Session market book. Loaded once from the base yaml, then mutated in place."""
+        """The run's market book: the base yaml with any saved prices, then mutated in place."""
         if self.markets is None:
             from util.economy.economy import load_market_data
-            self.markets = load_market_data()
+            self.markets = load_market_data(prices=self._saved_prices)
         return self.markets
 
-    @classmethod
-    def load(cls, path=None):
-        """Reload from disk. Unused by the game until save slots exist."""
-        path = path or resolve_game_path(SAVE_PATH)
-        data = None
-        if os.path.exists(path):
-            with open(path, "r", encoding="utf-8") as file:
-                data = yaml.safe_load(file)
-        return cls(path, data)
+    def prices(self):
+        """Current price of every good, by place. Base prices and events stay in the yaml, so
+        a save keeps only what moved and picks up new goods when the yaml changes."""
+        if self.markets is None:
+            return self._saved_prices
+        return {
+            place: {good: info["currentPrice"] for good, info in ((market or {}).get("goods") or {}).items()}
+            for place, market in self.markets.items()
+        }
 
     def npc_state(self, npc_id, default_mood=0):
         state = self.npcs.get(npc_id)
@@ -51,17 +43,9 @@ class WorldState:
 
     def to_dict(self):
         return {
-            "version": VERSION,
             "globals": self.globals,
             "npcs": self.npcs,
             "rosters": self.rosters,
             "news": self.news,
+            "prices": self.prices(),
         }
-
-    def save(self):
-        """Write to disk. The game does not call this until save slots exist."""
-        os.makedirs(os.path.dirname(self.path), exist_ok=True)
-        temp = f"{self.path}.tmp"
-        with open(temp, "w", encoding="utf-8") as file:
-            yaml.safe_dump(self.to_dict(), file, sort_keys=False, allow_unicode=True)
-        os.replace(temp, self.path)

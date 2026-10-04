@@ -5,6 +5,7 @@ from util.config import SCREEN_WIDTH, SCREEN_HEIGHT
 from entities.player import Player
 from game import Game
 from modes.transitions import Land
+from world.save import SaveError, has_save, save_path
 from world.world_state import WorldState
 
 STARTING_CREDITS = 1500
@@ -17,6 +18,8 @@ DEBUG_DRONES = 0
 # Privateers patrolling near the start. They hunt and engage but can't shoot until combat exists.
 DEBUG_PRIVATEERS = 3
 FULLSCREEN_KEY = pygame.K_F11  # switches between fullscreen and a window
+SAVE_KEY = pygame.K_F5  # docking also saves, to the same file
+LOAD_KEY = pygame.K_F9
 FPS = 60
 MAX_FRAME = 0.25  # seconds; a stall (dragging the window, a breakpoint) counts as no longer than this
 
@@ -55,6 +58,20 @@ def restore_window():
     window.position = WINDOWPOS_CENTERED
 
 
+def load_or_keep(game):
+    """The saved run, or `game` unchanged (with a note saying why) if there's none to load."""
+    if not has_save(game.save_to):
+        game.mode.notice("No saved game.")
+        return game
+    try:
+        loaded = Game.load(game.save_to)
+    except SaveError as exc:
+        game.mode.notice(f"Load failed: {exc}")
+        return game
+    loaded.mode.notice("Game loaded.")
+    return loaded
+
+
 def main():
     pygame.init()
     pygame.font.init()
@@ -73,6 +90,7 @@ def main():
     flight.spawn_test_privateers(DEBUG_PRIVATEERS)
     if DEBUG_START_ON_PLANET:
         game.land(Land(flight.selected_system.planets[0]))
+    game.save_to = save_path()  # set after the debug landing, so starting never overwrites a save
 
     running = True
     while running:
@@ -81,6 +99,12 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN and event.key == FULLSCREEN_KEY:
                 fullscreen = toggle_fullscreen(fullscreen)
+                continue
+            if event.type == pygame.KEYDOWN and event.key == SAVE_KEY:
+                game.save()
+                continue
+            if event.type == pygame.KEYDOWN and event.key == LOAD_KEY:
+                game = load_or_keep(game)
                 continue
             events.append(event)
             if event.type == pygame.QUIT:

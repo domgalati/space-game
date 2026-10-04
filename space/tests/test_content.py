@@ -23,9 +23,9 @@ def choose(conversation, options, text):
     return talk(conversation, conversation.choose(options.choices.index(text)))
 
 
-def hesk(tmp_path, player=None):
+def hesk(player=None):
     npc = build_npc(character_record(load_character("hesk_durran")))
-    world = WorldState(str(tmp_path / "w.yaml"))
+    world = WorldState()
     return Conversation(npc, player or Player(), world, location="Terramonta"), npc, world
 
 
@@ -40,9 +40,9 @@ def test_hesk_definition_builds_an_npc():
     load_program(npc.dialogue_file)
 
 
-def test_hesk_quest_flow(tmp_path):
+def test_hesk_quest_flow():
     player = Player()
-    conversation, _, world = hesk(tmp_path, player)
+    conversation, _, world = hesk(player)
     lines, menu = talk(conversation)
     assert lines[0].startswith("New face.")
     assert "About that ore order." not in menu.choices
@@ -73,8 +73,8 @@ def test_hesk_quest_flow(tmp_path):
     ]
 
 
-def test_hesk_tusks_node_blocks_leaving(tmp_path):
-    conversation, _, _ = hesk(tmp_path)
+def test_hesk_tusks_node_blocks_leaving():
+    conversation, _, _ = hesk()
     _, menu = talk(conversation)
     _, reply = choose(conversation, menu, "Nice tusks.")
     assert not conversation.can_exit
@@ -84,9 +84,9 @@ def test_hesk_tusks_node_blocks_leaving(tmp_path):
     assert "Nice tusks." not in menu.choices
 
 
-def test_generic_dialogue_every_topic(tmp_path):
+def test_generic_dialogue_every_topic():
     npc = build_npc(roll_npc_record("Terramonta/Miner-01", "Miner", "assembly"))
-    world = WorldState(str(tmp_path / "w.yaml"))
+    world = WorldState()
     conversation = Conversation(npc, Player(), world, location="Terramonta")
     assert npc.dialogue_file is None
     lines, menu = talk(conversation)

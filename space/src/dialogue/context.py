@@ -12,6 +12,7 @@ Functions (use in {braces} or conditions):
 Commands:
     <<give "Item" n>> <<take "Item" n>> <<pay n>> <<charge n>> <<rep faction delta>>
     <<mood delta>> (disposition, clamped to -100..100) <<wait n>> (ignored)
+    <<event "name">> announces a story beat on world_state.events (see world.events), for quests
 """
 import random
 
@@ -76,6 +77,7 @@ class GameContext:
             "rep": self._rep,
             "mood": self._mood,
             "wait": lambda *args: None,
+            "event": lambda name: self.world_state.events.emit(str(name), npc=self.npc.npc_id),
         }
 
     def _inventory(self):

@@ -1,4 +1,8 @@
-## The classes in this file represent what values are stored when the player saves the game.
+"""The player, their ship and where they are: everything about them a save keeps (world.save).
+
+Each class turns itself into plain data (to_dict) and back (from_dict). Keys a save lacks
+keep a new player's defaults, so adding a field doesn't break older saves.
+"""
 
 FUEL_PER_STEP = 0.25  # cruise burn per tile flown in star system mode
 DOCK_FUEL = 6  # spent when a dock actually succeeds
@@ -20,6 +24,39 @@ class Player:
         self.ship = Ship()
         self.location = Location()
 
+    def to_dict(self):
+        return {
+            "health": self.health,
+            "energy": self.energy,
+            "currency": self.currency,
+            "stats": dict(self.stats),
+            "reputation": dict(self.reputation),
+            "trade_ledger": dict(self.trade_ledger),
+            "kill_log": [dict(kill) for kill in self.kill_log],
+            "charted_planets": sorted(self.charted_planets),
+            "personal_equipment": list(self.personal_equipment),
+            "inventory": self.inventory.to_dict(),
+            "ship": self.ship.to_dict(),
+            "location": self.location.to_dict(),
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        player = cls()
+        for key in ("health", "energy", "currency", "kill_log", "personal_equipment"):
+            if key in data:
+                setattr(player, key, data[key])
+        for key in ("stats", "reputation", "trade_ledger"):
+            getattr(player, key).update(data.get(key) or {})
+        player.charted_planets = set(data.get("charted_planets") or ())
+        if "inventory" in data:
+            player.inventory = Inventory.from_dict(data["inventory"])
+        if "ship" in data:
+            player.ship = Ship.from_dict(data["ship"])
+        if "location" in data:
+            player.location = Location.from_dict(data["location"])
+        return player
+
 class Location:
     """Where the player is: a star system, the body they are docked at (None in flight),
     and the ship's tile in that system, kept while docked so departure resumes there."""
@@ -28,6 +65,14 @@ class Location:
         self.system = system  # system id, e.g. "sol"
         self.body = body  # body id, e.g. "sol/terramonta", or None
         self.tile = tile  # (x, y) in the system's tile grid, or None before the first flight
+
+    def to_dict(self):
+        return {"system": self.system, "body": self.body, "tile": list(self.tile) if self.tile else None}
+
+    @classmethod
+    def from_dict(cls, data):
+        tile = data.get("tile")
+        return cls(data.get("system"), data.get("body"), tuple(tile) if tile else None)
 
 class Ship:
     def __init__(self):
@@ -42,6 +87,23 @@ class Ship:
         self.equipment = []
         self.stats = {'hull': 10, 'cargo_space': 10, 'speed': 10}
         self.cargo = Inventory(capacity=100)
+
+    SAVED = ("max_hull", "hull", "max_shield", "shield", "shield_up", "max_fuel", "fuel", "equipment", "stats")
+
+    def to_dict(self):
+        data = {key: getattr(self, key) for key in self.SAVED}
+        data["cargo"] = self.cargo.to_dict()
+        return data
+
+    @classmethod
+    def from_dict(cls, data):
+        ship = cls()
+        for key in cls.SAVED:
+            if key in data:
+                setattr(ship, key, data[key])
+        if "cargo" in data:
+            ship.cargo = Inventory.from_dict(data["cargo"])
+        return ship
 
     def burn_fuel(self, steps=1, multiplier=1.0, amount=None):
         cost = amount if amount is not None else FUEL_PER_STEP * steps * multiplier
@@ -87,6 +149,15 @@ class Inventory:
         if self.items[item] == 0:
             del self.items[item]
         return True
+
+    def to_dict(self):
+        return {"capacity": self.capacity, "items": dict(self.items)}
+
+    @classmethod
+    def from_dict(cls, data):
+        inventory = cls(data["capacity"])
+        inventory.items = dict(data.get("items") or {})
+        return inventory
 
     def get_total_quantity(self):
         return sum(self.items.values())

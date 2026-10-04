@@ -20,8 +20,8 @@ def goods(**prices):
     return {name: {"basePrice": base, "currentPrice": current} for name, (base, current) in prices.items()}
 
 
-def feed_with_news(tmp_path):
-    feed = NewsFeed(WorldState(str(tmp_path / "w.yaml")))
+def feed_with_news():
+    feed = NewsFeed(WorldState())
     feed.advance()
     feed.record("Terramonta", "Mining Accident", [
         {"good": "Raw Minerals", "price": 120, "change": "+20%"},
@@ -53,8 +53,8 @@ def row_with(lines, *parts):
     return any(all(part in line for part in parts) for line in lines)
 
 
-def test_front_page_shows_only_checked_markets(tmp_path):
-    feed = feed_with_news(tmp_path)
+def test_front_page_shows_only_checked_markets():
+    feed = feed_with_news()
     lines = page(feed)
     text = "\n".join(lines)
     assert "THE NEXUS WIRE" in text and "LANDING 1" in text
@@ -69,14 +69,14 @@ def test_front_page_shows_only_checked_markets(tmp_path):
     assert row_with(boot, "Etheora", "live")
 
 
-def test_movers_use_the_price_seen_at_the_last_check(tmp_path):
-    lines = page(feed_with_news(tmp_path))
+def test_movers_use_the_price_seen_at_the_last_check():
+    lines = page(feed_with_news())
     assert row_with(lines, "Steel", "Etheora", "$405", "+50%")
     assert row_with(lines, "Raw Minerals", "Terramonta", "$120", "+20%")
 
 
-def test_stale_markets_are_flagged_in_the_intro_and_their_stories_dropped(tmp_path):
-    feed = feed_with_news(tmp_path)
+def test_stale_markets_are_flagged_in_the_intro_and_their_stories_dropped():
+    feed = feed_with_news()
     for _ in range(FRESH_TICKS + 1):
         feed.advance()
     lines = page(feed)
@@ -86,16 +86,16 @@ def test_stale_markets_are_flagged_in_the_intro_and_their_stories_dropped(tmp_pa
     assert NO_WIRE in text
 
 
-def test_quiet_wire_when_fresh_but_nothing_happened(tmp_path):
-    feed = NewsFeed(WorldState(str(tmp_path / "w.yaml")))
+def test_quiet_wire_when_fresh_but_nothing_happened():
+    feed = NewsFeed(WorldState())
     feed.advance()
     feed.observe("Etheora", goods(Steel=(270, 270)))
     assert QUIET_WIRE in "\n".join(page(feed))
 
 
 @pytest.mark.parametrize("width", [80, 52])
-def test_page_is_capped_and_fits_the_terminal(tmp_path, width):
-    feed = NewsFeed(WorldState(str(tmp_path / "w.yaml")))
+def test_page_is_capped_and_fits_the_terminal(width):
+    feed = NewsFeed(WorldState())
     feed.advance()
     for index in range(12):
         feed.record("Etheora", f"Event Number {index}", [
@@ -113,8 +113,8 @@ def test_page_is_capped_and_fits_the_terminal(tmp_path, width):
         assert "EVENT NUMBER 0" in text
 
 
-def test_wording_changes_numbers_do_not(tmp_path):
-    feed = feed_with_news(tmp_path)
+def test_wording_changes_numbers_do_not():
+    feed = feed_with_news()
     first, second = page(feed, seed=1), page(feed, seed=2)
     assert first != second
 
@@ -124,17 +124,17 @@ def test_wording_changes_numbers_do_not(tmp_path):
     assert numbers(first) == numbers(second)
 
 
-def test_only_glyphs_telesys_has(tmp_path):
+def test_only_glyphs_telesys_has():
     pygame.init()
     pygame.freetype.init()
     font = pygame.freetype.Font(str(TELESYS), 16)
-    feed = feed_with_news(tmp_path)
+    feed = feed_with_news()
     used = set("".join(page(feed) + page(feed, width=52) + intro(feed) + intro(feed, width=52))) - {" "}
     assert not {ch for ch in used if font.get_metrics(ch)[0] is None}
 
 
-def test_trade_news_reads_the_economy_feed(tmp_path):
-    feed = feed_with_news(tmp_path)
+def test_trade_news_reads_the_economy_feed():
+    feed = feed_with_news()
     report = trade.handle("news", "", None, Economy("Terramonta", {"Terramonta": {}}, feed=feed))
     assert isinstance(report, Transient) and report.intro is not None
     assert "BOOM" in "\n".join(plain(line) for line in to_lines(report.renderable, 80))
