@@ -16,7 +16,7 @@ def make_npc():
     npc.firstname = "Sue"
     npc.lastname = "Reyes"
     npc.job_title = "Miner"
-    npc.guild = "assembly"
+    npc.faction = "assembly"
     npc.hobbies = ["Chess", "Stargazing", "Baking"]
     npc.species = "vessari"
     return npc

@@ -56,7 +56,7 @@ class GameContext:
             "npc_first": lambda: npc.firstname,
             "npc_last": lambda: npc.lastname,
             "npc_job": lambda: npc.job_title or "",
-            "npc_guild": lambda: npc.guild or "",
+            "npc_guild": lambda: npc.faction or "",
             "npc_species": lambda: species_name(getattr(npc, "species", "human")),
             "npc_has_hobby": self._has_hobby,
             "npc_hobby": lambda: self.rng.choice(npc.hobbies) if npc.hobbies else "keeping busy",

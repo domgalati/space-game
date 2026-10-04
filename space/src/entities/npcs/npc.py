@@ -1,7 +1,12 @@
+from entities.actor import Actor
 from entities.npcs.goals.wander_goal import WanderGoal
 
-class NPC:
+
+class NPC(Actor):
+    """Someone the player meets ashore: an Actor with a job, a look, a voice and a goal."""
+
     def __init__(self):
+        super().__init__()
         self.npc_id = None
         self.sprite = None
         self.species = "human"
@@ -13,14 +18,6 @@ class NPC:
         self.lastname = None
         self.hobbies = []
         self.job_title = None
-        self.health = 100
-        self.energy = 100
-        self.inventory = []
-        self.personal_equipment = []
-        self.currency = 0
-        self.reputation = {'assembly': 0, 'caravaneers': 0, 'cohort': 0, 'dominion': 0}
-        self.guild = None
-        self.level = 1
         self.position = (0, 0)
         self.goal = WanderGoal(self)
 

@@ -27,7 +27,7 @@ def load_program(relative_path):
 class Conversation:
     def __init__(self, npc, player, world_state, economy=None, location=None):
         self.npc = npc
-        default_mood = npc.base_mood if npc.base_mood is not None else starting_mood(player.reputation, npc.guild)
+        default_mood = npc.base_mood if npc.base_mood is not None else starting_mood(player.reputation, npc.faction)
         self.npc_state = world_state.npc_state(npc.npc_id or f"unnamed/{id(npc)}", default_mood)
         self.context = GameContext(npc, self.npc_state, player, world_state, economy=economy, location=location)
         world_state.events.emit("talked", npc=npc.npc_id)

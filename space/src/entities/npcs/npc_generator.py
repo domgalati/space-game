@@ -42,7 +42,7 @@ def build_npc(record):
     npc.firstname = record["firstname"]
     npc.lastname = record["lastname"]
     npc.job_title = record["job"]
-    npc.guild = record["guild"]
+    npc.faction = record["guild"]
     npc.species = record.get("species", "human")
     npc.hobbies = list(record.get("hobbies", []))
     npc.portrait_recipe = record.get("portrait")
@@ -51,7 +51,7 @@ def build_npc(record):
     npc.base_mood = record.get("mood")
     npc.sprite = (
         record.get("sprite")
-        or map_sprite(npc.guild, npc.job_title, npc.species)
+        or map_sprite(npc.faction, npc.job_title, npc.species)
         or npc.sprite
         or DEFAULT_SPRITE
     )
