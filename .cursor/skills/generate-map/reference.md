@@ -33,11 +33,11 @@ Scan and hail already treat any body with a matching `.tmx` as landable (`has_la
 
 1. A class in `space/src/entities/npcs/assembly_npc.py` with `self.sprite` pointing at `space/assets/img/objects/<job>.png`. `build_npc` in `space/src/entities/npcs/npc_generator.py` imports `{guild}_npc`, so the class name is the job name. An unknown job still spawns, with the base `NPC` class, the dockworker sprite, and the default portrait outfit.
 2. A 24x24 sprite. Recolor `miner.png` or `foreman.png`. Do not crop the MAS character sheet; those sprites are a different style and a different scale.
-3. A `JOB_GOODS_BIAS` entry (and a `JOB_DESCRIPTIONS` entry) in `space/src/dialogue/topics.py`. Goods must exist in this location's economy or "How's business?" falls back to a stock line.
+3. A `JOB_GOODS_BIAS` entry (and a `JOB_DESCRIPTIONS` entry) in `space/src/dialogue/topics.py`. Goods are item ids (`space/items.yaml`) and must exist in this location's economy or "How's business?" falls back to a stock line. Per-place overrides in `PLANET_JOB_GOODS_BIAS` are keyed by body id (`sol/etheora`).
 
 Posts come from the map. `NPCManager` hangs each NPC near up to two of its job's posts. No code change per location unless the job is new.
 
-**Star system JSON.** A station is an `objects` entry and needs `guild` or scan omits it. A planet already has `type` and `guild`. Do not add `start_pos`; generated maps spawn from `Player Start`.
+**Star system JSON.** Every body needs an `id`, unique in its system. A dockable body names its map with `map`. A station is an `objects` entry and needs `guild` or scan omits it. A planet already has `type` and `guild`. Do not add `start_tile`; generated maps spawn from `Player Start`.
 
 ## Adding a room type
 

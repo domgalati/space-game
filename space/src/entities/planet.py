@@ -15,7 +15,7 @@ DOCK_XY = (-0.62 / _DOCK_LEN * 0.84, -0.48 / _DOCK_LEN * 0.84)
 
 class Planet:
     def __init__(self, body_id, name, planet_type, planet_guild, image_path, orbit_radius, angle, center_x, center_y,
-                 start_pos=(0, 0), map_path=None):
+                 start_tile=(0, 0), map_path=None):
         self.id = body_id  # "<system>/<body>"; see world.atlas
         self.category = "planet"  # what kind of body: "planet", "station" or "wreck"
         self.name = name
@@ -27,7 +27,7 @@ class Planet:
         self.orbit_radius = orbit_radius
         self.angle = angle
         self.position = self.calculate_position(center_x, center_y)
-        self.start_pos = start_pos
+        self.start_tile = start_tile  # where you land on a map with no "Player Start"
 
     def calculate_position(self, center_x, center_y):
         x = center_x + int(self.orbit_radius * math.cos(self.angle))

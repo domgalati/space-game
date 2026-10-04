@@ -7,14 +7,9 @@ TERMINAL_TYPES = {
 }
 
 
-def _cardinal_pixel_neighbors(player_position, tile_size):
-    x, y = player_position[0], player_position[1]
-    return [
-        (x, y - tile_size),
-        (x, y + tile_size),
-        (x - tile_size, y),
-        (x + tile_size, y),
-    ]
+def _cardinal_neighbors(tile):
+    x, y = tile
+    return [(x, y - 1), (x, y + 1), (x - 1, y), (x + 1, y)]
 
 
 def _chebyshev_adjacent_tiles(player_tile):
@@ -40,31 +35,24 @@ class InteractionManager:
         self._announced_npc_ids = set()
         self._announced_object_names = set()
 
-    def is_interactable_at(self, position, tile_size):
-        """
-        Check if the tile at the given position is in the Objects layer.
-        """
-        y, x = position
-        tile_x, tile_y = x // tile_size, y // tile_size
-        if 0 <= tile_x and 0 <= tile_y:
-            objects_layer = self.map_manager.tmx_data.get_layer_by_name("Objects")
-            for i in range(len(objects_layer)):
-                if objects_layer[i].x == y and objects_layer[i].y == x:
-                    objectname = objects_layer[i].name
-                    return True, objectname
-        return False, None
+    def object_at(self, tile):
+        """Name of the map object (a terminal, a bar counter) on `tile`, or None."""
+        data = self.map_manager.tmx_data
+        for obj in data.get_layer_by_name("Objects"):
+            if (int(obj.x) // data.tilewidth, int(obj.y) // data.tileheight) == tile:
+                return obj.name
+        return None
 
-    def adjacent_npcs(self, player_position, tile_size):
-        player_tile = (player_position[0] // tile_size, player_position[1] // tile_size)
+    def adjacent_npcs(self, player_tile):
         neighbor_tiles = set(_chebyshev_adjacent_tiles(player_tile))
         return [npc for npc in self.npc_manager.npcs if npc.position in neighbor_tiles]
 
-    def check_for_adjacent_interactables(self, player_position, tile_size):
+    def check_for_adjacent_interactables(self, player_tile):
         # Terminals / objects: cardinal only (matches bump geometry on the map).
         adjacent_object_names = set()
-        for pos in _cardinal_pixel_neighbors(player_position, tile_size):
-            is_interactable, objectname = self.is_interactable_at(pos, tile_size)
-            if is_interactable:
+        for tile in _cardinal_neighbors(player_tile):
+            objectname = self.object_at(tile)
+            if objectname:
                 adjacent_object_names.add(objectname)
 
         self._announced_object_names &= adjacent_object_names
@@ -77,7 +65,7 @@ class InteractionManager:
                 break
 
         # Drop announcements for NPCs no longer nearby.
-        nearby = self.adjacent_npcs(player_position, tile_size)
+        nearby = self.adjacent_npcs(player_tile)
         nearby_ids = {id(npc) for npc in nearby}
         self._announced_npc_ids &= nearby_ids
 
@@ -96,19 +84,18 @@ class InteractionManager:
 
         return newly_seen or bool(nearby)
 
-    def interact(self, player_position, tile_size):
+    def interact(self, player_tile):
         # One interaction per press: an adjacent object wins over an adjacent NPC.
-        for pos in _cardinal_pixel_neighbors(player_position, tile_size):
-            is_interactable, objectname = self.is_interactable_at(pos, tile_size)
-            if is_interactable:
+        for tile in _cardinal_neighbors(player_tile):
+            objectname = self.object_at(tile)
+            if objectname:
                 self.handle_interaction_with(objectname)
                 return
 
-        nearby = self.adjacent_npcs(player_position, tile_size)
+        nearby = self.adjacent_npcs(player_tile)
         if nearby:
             # Prefer the closest NPC (Manhattan), stable for diagonals.
-            px = player_position[0] // tile_size
-            py = player_position[1] // tile_size
+            px, py = player_tile
             nearby.sort(
                 key=lambda n: abs(n.position[0] - px) + abs(n.position[1] - py)
             )

@@ -16,7 +16,7 @@ class SpaceObject:
         self.planet_guild = guild
         self.image = load_image(image_path)
         self.position = (x, y)
-        self.start_pos = (0, 0)
+        self.start_tile = (0, 0)  # where you land on a map with no "Player Start"
         self.access = [tuple(point) for point in (access or [])]
 
     def world_center(self):

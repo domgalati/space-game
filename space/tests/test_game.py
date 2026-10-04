@@ -74,3 +74,28 @@ def test_a_mode_with_nowhere_to_go_stays(game):
     game.update([], 1 / 60)
     assert game.mode is flight
     assert flight.elapsed == pytest.approx(1 / 60)
+
+
+def test_ashore_the_player_walks_and_interacts_in_tiles(game):
+    from modes.planetary_mode.interaction_manager import _cardinal_neighbors
+
+    game.mode.request_landing(dockable(game, "sol/nexum-astra"))
+    game.update([], 1 / 60)
+    ashore = game.mode
+    start = ashore.player_tile
+    assert all(isinstance(c, int) for c in start)
+
+    data = ashore.map_manager.tmx_data
+    beside_terminal = next(
+        (x, y) for y in range(data.height) for x in range(data.width)
+        if ashore.is_tile_walkable(y, x)
+        and any(ashore.interaction_manager.object_at(t) == "Docking Terminal" for t in _cardinal_neighbors((x, y)))
+    )
+    ashore.player_tile = beside_terminal
+    ashore.interaction_manager.interact(ashore.player_tile)
+    assert ashore.terminal is not None and ashore.terminal.terminal_type == "docking"
+
+    ashore.player_tile = start
+    ashore.terminal = None
+    stepped = next((d for d in ((1, 0), (-1, 0), (0, 1), (0, -1)) if ashore._try_move(*d)), None)
+    assert stepped and ashore.player_tile == (start[0] + stepped[0], start[1] + stepped[1])
