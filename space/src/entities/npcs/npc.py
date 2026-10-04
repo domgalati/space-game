@@ -21,11 +21,8 @@ class NPC:
         self.reputation = {'assembly': 0, 'caravaneers': 0, 'cohort': 0, 'dominion': 0}
         self.guild = None
         self.level = 1
-        self.isBackgroundCharacter = bool
-        self.isHostile = bool
         self.position = (0, 0)
         self.goal = WanderGoal(self)
-        # Additional attributes as needed
 
     def update(self):
         if self.goal:
