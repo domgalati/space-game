@@ -143,7 +143,7 @@ def test_running_dark_dodges_a_distant_ping_and_says_so(mode):
     mode.add_vessel(drone)
     mode.last_action = "wait"
     mode.spend_turns(DRONE_PING_EVERY)
-    assert mode.ping_warning().advice.startswith("DODGE: HOLD STILL, SHIELD DOWN")
+    assert mode.ping_warning().advice.startswith("KEEP SIGNAL UNDER")
     mode.spend_turns(4)
     assert drone.player_fix is None and mode.events.latest() == "PING MISSED YOU"
 
@@ -186,3 +186,14 @@ def test_your_ping_reports_rough_ranges(mode):
     lines = mode.area_ping()
     assert "Contact E, about 1200 m" in lines[1]
     assert mode.sensors.wedges[0].distance == pytest.approx(1234)
+
+
+def test_a_full_hold_can_be_too_loud_to_dodge_even_running_dark():
+    from entities.inventory import Inventory
+    from modes.star_system_mode.star_system_mode import dodge_advice
+
+    hold = Inventory(capacity=10)
+    limit = SIGNATURE_DARK + 100
+    assert dodge_advice(limit, hold) == f"KEEP SIGNAL UNDER {limit}"
+    hold.add_item("steel", 10)
+    assert dodge_advice(limit, hold) == f"CAN'T DODGE WITH THIS CARGO (SIGNAL UNDER {limit})"

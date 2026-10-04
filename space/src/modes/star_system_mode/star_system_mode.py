@@ -775,18 +775,11 @@ class StarSystemMode:
 
 
 def dodge_advice(limit, cargo):
-    """The least restrictive way to fly that stays under `limit`, given what's in the hold."""
+    """How quiet to be to slip a ping, or that even running dark (holding still, shield down,
+    the quietest a ship can be) is too loud with what's in the hold."""
     fill = cargo.get_total_quantity() / cargo.capacity
-    options = (
-        ("SHIELD UP, NO BOOST", signature(True, True, False, fill)),
-        ("HOLD STILL, SHIELD UP", signature(False, True, False, fill)),
-        ("SHIELD DOWN, NO BOOST", signature(True, False, False, fill)),
-        ("HOLD STILL, SHIELD DOWN", signature(False, False, False, fill)),
-    )
-    for advice, loudness in options:
-        if loudness < limit:
-            #return f"DODGE: {advice} (SIGNAL UNDER {int(limit)})"
-            return f"KEEP SIGNAL UNDER {int(limit)}"
+    if signature(False, False, False, fill) < limit:
+        return f"KEEP SIGNAL UNDER {int(limit)}"
     return f"CAN'T DODGE WITH THIS CARGO (SIGNAL UNDER {int(limit)})"
 
 
