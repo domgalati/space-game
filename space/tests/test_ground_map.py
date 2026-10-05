@@ -140,3 +140,32 @@ def test_a_blocked_step_spends_no_time():
                 if not ground.walkable((here[0] + dx, here[1] + dy)))
     assert not ashore._try_move(*wall)
     assert ashore.clock.now == 0
+
+
+def draw_every_cell(renderer, surface, camera):
+    """The renderer before culling: every cell of every layer, for comparison."""
+    tmx = renderer.tmx
+    surface.fill((0, 0, 0))
+    for layer in renderer.layers:
+        for x, y, gid in layer:
+            animation = renderer.animations.get(gid)
+            if animation:
+                gid = animation["frames"][animation["current_frame"]]
+            tile = tmx.get_tile_image_by_gid(gid)
+            if tile:
+                surface.blit(tile, (x * tmx.tilewidth - camera.x, y * tmx.tileheight - camera.y))
+
+
+def test_drawing_only_whats_in_view_looks_the_same_as_drawing_everything(ground):
+    from modes.planetary_mode.map_renderer import MapRenderer
+
+    renderer = MapRenderer(ground)
+    assert renderer.reach == (1, 2)  # this map has 48x72 tiles: one column and two rows overhang
+    width, height = ground.width * ground.tile_width, ground.height * ground.tile_height
+    view = pygame.Rect(0, 0, 400, 300)
+    for spot in ((0, 0), (width - 400, height - 300), (width // 2 + 11, height // 2 - 7), (-60, -40)):
+        view.topleft = spot
+        culled, full = pygame.Surface(view.size), pygame.Surface(view.size)
+        renderer.draw(culled, view)
+        draw_every_cell(renderer, full, view)
+        assert pygame.image.tostring(culled, "RGB") == pygame.image.tostring(full, "RGB"), spot
