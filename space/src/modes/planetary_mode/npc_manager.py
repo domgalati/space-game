@@ -1,7 +1,9 @@
 import pygame
 import random
+from functools import partial
 
 from util.config import TILE_SIZE, resolve_game_path
+from util.turns import Ticker
 from entities.npcs.goals.hang_near_goal import HangNearGoal
 from entities.npcs.goals.wander_goal import WanderGoal
 from entities.npcs.npc_generator import build_npc
@@ -23,12 +25,17 @@ _TARGET_ACTIVITIES = {
 
 
 class NPCManager:
-    def __init__(self, ground, planet, roster):
+    """The people on a map: who lives here, where they start, and their turns on the clock."""
+
+    def __init__(self, ground, planet, roster, clock, player=None):
         self.ground = ground
         self.planet = planet
         self.roster = roster
+        self.clock = clock  # util.turns.TurnClock; every NPC takes its turns on it
+        self.player = player  # NPCs beside the player hold still, so E stays aimed at them
         self.npcs = []
         self._sprite_cache = {}
+        self._turns = {}  # npc -> its Ticker on the clock
         self.map_properties = ground.properties
         self.mining_machine_tiles = ground.layer_tiles("Mining Machines")
         self.terminal_tiles = ground.object_tiles(("Docking Terminal", "Refinery Computer"))
@@ -49,10 +56,10 @@ class NPCManager:
                 # Each NPC keeps a couple of posts so a crew spreads out instead of stacking.
                 posts = random.sample(posts, min(2, len(posts)))
                 npc.goal = HangNearGoal(npc, posts, activity="on shift")
-                self._add(npc, self._tile_near(posts[0]))
+                self.add(npc, self._tile_near(posts[0]))
             else:
                 self._assign_goal(npc)
-                self._add(npc, self._free_tile())
+                self.add(npc, self._free_tile())
 
         for char_id, tiles in self.character_posts.items():
             try:
@@ -63,16 +70,25 @@ class NPCManager:
             npc = build_npc(character_record(definition))
             post = tiles[0]
             npc.goal = HangNearGoal(npc, [post], activity=definition.get("activity"))
-            self._add(npc, post if self.ground.free(post) else self._tile_near(post))
+            self.add(npc, post if self.ground.free(post) else self._tile_near(post))
 
-    def _add(self, npc, tile):
+    def add(self, npc, tile):
+        """Bring `npc` onto the map at free `tile` and start its turns, at its speed."""
         if tile is None:
             print(f"No room on the map for {npc.npc_id}")
             return
         self.ground.place(npc, tile)
+        self._turns[npc] = Ticker(partial(self.take_turn, npc), npc.speed)
+        self.clock.add(self._turns[npc])
         if npc.sprite:
             npc.sprite_image = self._load_sprite(npc.sprite)
         self.npcs.append(npc)
+
+    def remove(self, npc):
+        """Take `npc` off the map and the clock: gone, or (later) fallen in a fight."""
+        self.ground.remove(npc)
+        self.clock.remove(self._turns.pop(npc))
+        self.npcs.remove(npc)
 
     def _load_sprite(self, path):
         if path not in self._sprite_cache:
@@ -138,19 +154,17 @@ class NPCManager:
             and camera_y <= npc_pixel_y <= camera_y + camera_height
         )
 
-    def update(self, camera_x, camera_y, camera_width, camera_height, player_tile=None):
-        for npc in self.npcs:
-            if player_tile is not None and self._is_adjacent_to_player(npc.position, player_tile):
-                continue  # stay put so the player can press E
-            if self.is_within_visible_area(
-                npc.position[0], npc.position[1], camera_x, camera_y, camera_width, camera_height
-            ):
-                npc.update(self.ground)
+    def take_turn(self, npc):
+        """One of `npc`'s turns, on or off screen: follow its goal, unless the player is beside it."""
+        if self.beside_player(npc):
+            return  # stay put so the player can press E
+        npc.update(self.ground)
 
-    def _is_adjacent_to_player(self, npc_tile, player_tile):
-        dx = abs(npc_tile[0] - player_tile[0])
-        dy = abs(npc_tile[1] - player_tile[1])
-        return max(dx, dy) == 1
+    def beside_player(self, npc):
+        here = getattr(self.player, "position", None)
+        if here is None or npc.position is None:
+            return False
+        return max(abs(npc.position[0] - here[0]), abs(npc.position[1] - here[1])) == 1
 
     def draw(self, npc_layer, camera):
         npc_layer.fill((0, 0, 0, 0))

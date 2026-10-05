@@ -68,3 +68,75 @@ def test_walking_into_someone_trades_places_with_them():
     ground.place(crew, target)
     assert ashore._try_move(*step)
     assert ashore.player_tile == target and crew.position == start
+
+
+class CountingGoal:
+    """Counts its NPC's turns instead of moving it."""
+
+    def __init__(self):
+        self.turns = 0
+
+    def update(self, ground):
+        self.turns += 1
+
+
+def ashore_at_nexum_astra():
+    from entities.player import Player
+    from modes.planetary_mode.planetary_mode import PlanetaryMode
+    from modes.star_system_mode.star_systems import StarSystem
+    from world.world_state import WorldState
+
+    station = StarSystem("space/star_systems/sol.json").body("sol/nexum-astra")
+    return PlanetaryMode(station, Player(), WorldState())
+
+
+def counted(ashore, far):
+    """Swap every NPC's goal for a counter. Returns the NPC farthest from tile `far`."""
+    for npc in ashore.npc_manager.npcs:
+        npc.goal = CountingGoal()
+    npcs = sorted(ashore.npc_manager.npcs, key=lambda n: abs(n.position[0] - far[0]) + abs(n.position[1] - far[1]))
+    return npcs[-1]
+
+
+def test_npcs_take_turns_on_the_clock_even_off_screen():
+    ashore = ashore_at_nexum_astra()
+    farthest = counted(ashore, ashore.player_tile)
+    camera = ashore.camera
+    assert not camera.collidepoint(farthest.position[0] * 24, farthest.position[1] * 24)  # off screen
+    ashore.wait()
+    ashore.wait()
+    assert farthest.goal.turns == 2
+    assert ashore.clock.turn == 2
+
+
+def test_a_faster_npc_acts_more_often():
+    ashore = ashore_at_nexum_astra()
+    npc = counted(ashore, ashore.player_tile)
+    manager, tile = ashore.npc_manager, npc.position
+    manager.remove(npc)
+    assert npc.position is None and npc not in manager.npcs and ashore.ground.free(tile)
+    npc.speed = 200
+    manager.add(npc, tile)
+    for _ in range(3):
+        ashore.wait()
+    assert npc.goal.turns == 6
+
+
+def test_someone_beside_the_player_holds_still():
+    ashore = ashore_at_nexum_astra()
+    counted(ashore, ashore.player_tile)
+    ground = ashore.ground
+    neighbour = ashore.npc_manager.npcs[0]
+    beside = next(t for t in ground.neighbours(ashore.player_tile) if ground.free(t))
+    ground.move(neighbour, beside)
+    ashore.wait()
+    assert neighbour.goal.turns == 0
+
+
+def test_a_blocked_step_spends_no_time():
+    ashore = ashore_at_nexum_astra()
+    ground, here = ashore.ground, ashore.player_tile
+    wall = next((dx, dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                if not ground.walkable((here[0] + dx, here[1] + dy)))
+    assert not ashore._try_move(*wall)
+    assert ashore.clock.now == 0

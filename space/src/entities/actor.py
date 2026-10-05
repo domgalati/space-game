@@ -4,6 +4,7 @@ What every person shares lives here, so a fight, a trade or a conversation can t
 player and an NPC alike. Subclasses add what's theirs alone (the player's ship, an NPC's job).
 """
 from entities.inventory import Inventory
+from util.turns import SPEED
 from world.factions import FACTIONS
 
 INVENTORY_CAPACITY = 20
@@ -20,6 +21,7 @@ class Actor:
         self.currency = 0
         self.reputation = dict.fromkeys(FACTIONS, 0)  # this actor's standing with each faction
         self.position = None  # (x, y) tile while standing on a GroundMap, else None
+        self.speed = SPEED  # turn-clock speed (util.turns): 100 acts once a turn, 200 twice
 
     @property
     def alive(self):

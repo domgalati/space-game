@@ -1,6 +1,7 @@
 import pygame
 from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, resolve_game_path
 from util.keys import held_direction
+from util.turns import TurnClock, turns_for
 from modes.transitions import Depart
 from .logger import Logger
 from .ground_map import GroundMap
@@ -18,7 +19,8 @@ from .npc_manager import NPCManager
 from .dialogue_panel import DialoguePanel
 
 CAMERA_DEADZONE = 0.3  # share of the view the player can roam before the camera follows
-MOVE_REPEAT = 0.12  # seconds between steps while a direction key is held
+MOVE_REPEAT = 0.12  # seconds between steps (or waits) while a key is held
+WAIT_KEY = pygame.K_SPACE  # pass a turn in place, as in flight
 
 class PlanetaryMode:
     def __init__(self, selected_planet, player, world_state=None):
@@ -60,7 +62,8 @@ class PlanetaryMode:
         self.news_feed.advance()
         self.economy.market_news()
         self.news_feed.observe(selected_planet.id, self.economy.goods())
-        self.npc_manager = NPCManager(self.ground, selected_planet, NPCRoster(self.world_state))
+        self.clock = TurnClock()  # NPCs act on it; each step or wait the player takes spends time
+        self.npc_manager = NPCManager(self.ground, selected_planet, NPCRoster(self.world_state), self.clock, player)
         self.interaction_manager = InteractionManager(
             self.ground, self.npc_manager, self.logger, economy=self.economy
         )
@@ -146,21 +149,22 @@ class PlanetaryMode:
                 self.ground.move(self.player, player_tile)
             self._blocked_move_logged = False
             self.update_camera()
-            # Advance NPC turns first; adjacent NPCs freeze so E stays valid.
-            self.npc_manager.update(
-                self.camera.x,
-                self.camera.y,
-                self.camera.width,
-                self.camera.height,
-                player_tile=player_tile,
-            )
-            self.interaction_manager.check_for_adjacent_interactables(self.player_tile)
+            self.spend_turn()
             return True
 
         if not self._blocked_move_logged:
             self.logger.add_log_message("Your path is blocked")
             self._blocked_move_logged = True
         return False
+
+    def spend_turn(self):
+        """The player acted: one action's worth of time passes and everyone else takes the turns
+        that came due. Then say who and what is close enough to use."""
+        self.clock.advance(turns_for(self.player.speed))
+        self.interaction_manager.check_for_adjacent_interactables(self.player_tile)
+
+    def wait(self):
+        self.spend_turn()
 
     def handle_input(self, events):
         if self.terminal and self.terminal.active:
@@ -192,14 +196,19 @@ class PlanetaryMode:
                 if self.conversation_panel or (self.terminal and self.terminal.active):
                     return
 
-        dx, dy = held_direction(pygame.key.get_pressed())
-        if dx == 0 and dy == 0:
+        keys = pygame.key.get_pressed()
+        dx, dy = held_direction(keys)
+        waiting = keys[WAIT_KEY]
+        if dx == 0 and dy == 0 and not waiting:
             self.next_move_time = 0  # allow an immediate step on the next press
             self._blocked_move_logged = False
             return
 
         if self.elapsed >= self.next_move_time:
-            self._try_move(dx, dy)
+            if dx or dy:
+                self._try_move(dx, dy)
+            else:
+                self.wait()
             self.next_move_time = self.elapsed + MOVE_REPEAT
 
     def update(self, events, dt):
