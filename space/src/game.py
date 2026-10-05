@@ -60,6 +60,7 @@ class Game:
             self.save()
 
     def depart(self, transition):
+        self.mode.leave()
         flight = self.flight(self.player.location.system)
         flight.undock(transition.body)
         self.mode = flight

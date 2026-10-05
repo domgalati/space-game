@@ -23,23 +23,20 @@ _TARGET_ACTIVITIES = {
 
 
 class NPCManager:
-    def __init__(self, map_manager, planet, roster):
-        self.map_manager = map_manager
+    def __init__(self, ground, planet, roster):
+        self.ground = ground
         self.planet = planet
         self.roster = roster
         self.npcs = []
-        self._walkable_tiles_cache = None
         self._sprite_cache = {}
-        self.map_properties = map_manager.tmx_data.properties
-        self.mining_machine_tiles = self._collect_layer_tiles("Mining Machines")
-        self.terminal_tiles = self._collect_object_tiles(
-            ("Docking Terminal", "Refinery Computer")
-        )
+        self.map_properties = ground.properties
+        self.mining_machine_tiles = ground.layer_tiles("Mining Machines")
+        self.terminal_tiles = ground.object_tiles(("Docking Terminal", "Refinery Computer"))
         self.post_tiles, self.character_posts = self._collect_posts()
         self.populate_npcs()
 
     def populate_npcs(self):
-        walkable_tiles = self.get_walkable_tiles()
+        walkable_tiles = self.ground.walkable_tiles()
         if not walkable_tiles:
             return
 
@@ -52,11 +49,10 @@ class NPCManager:
                 # Each NPC keeps a couple of posts so a crew spreads out instead of stacking.
                 posts = random.sample(posts, min(2, len(posts)))
                 npc.goal = HangNearGoal(npc, posts, activity="on shift")
-                npc.position = self._tile_near(posts[0], walkable_tiles)
+                self._add(npc, self._tile_near(posts[0]))
             else:
-                npc.position = random.choice(walkable_tiles)
                 self._assign_goal(npc)
-            self._add(npc)
+                self._add(npc, self._free_tile())
 
         for char_id, tiles in self.character_posts.items():
             try:
@@ -66,12 +62,14 @@ class NPCManager:
                 continue
             npc = build_npc(character_record(definition))
             post = tiles[0]
-            npc.position = post if post in walkable_tiles else self._tile_near(post, walkable_tiles)
             npc.goal = HangNearGoal(npc, [post], activity=definition.get("activity"))
-            self._add(npc)
+            self._add(npc, post if self.ground.free(post) else self._tile_near(post))
 
-    def _add(self, npc):
-        npc.npc_manager = self
+    def _add(self, npc, tile):
+        if tile is None:
+            print(f"No room on the map for {npc.npc_id}")
+            return
+        self.ground.place(npc, tile)
         if npc.sprite:
             npc.sprite_image = self._load_sprite(npc.sprite)
         self.npcs.append(npc)
@@ -94,26 +92,27 @@ class NPCManager:
         per_type = max(1, _TOTAL_NPC_CAP // max(1, len(npc_types)))
         return {npc_type: per_type for npc_type in npc_types}
 
-    def _tile_near(self, target, walkable_tiles, radius=3):
+    def _free_tile(self):
+        """Somewhere free anywhere on the map, or None if every tile is taken."""
+        free = [t for t in self.ground.walkable_tiles() if self.ground.free(t)]
+        return random.choice(free) if free else None
+
+    def _tile_near(self, target, radius=3):
+        """A free tile within `radius` of `target`, else anywhere free."""
         tx, ty = target
-        nearby = [t for t in walkable_tiles if abs(t[0] - tx) <= radius and abs(t[1] - ty) <= radius]
-        return random.choice(nearby or walkable_tiles)
+        nearby = [t for t in self.ground.walkable_tiles()
+                  if abs(t[0] - tx) <= radius and abs(t[1] - ty) <= radius and self.ground.free(t)]
+        return random.choice(nearby) if nearby else self._free_tile()
 
     def _collect_posts(self):
         """Job posts ({job: [tile]}) and authored-character posts ({character id: [tile]})."""
         posts = {}
         characters = {}
-        try:
-            layer = self.map_manager.tmx_data.get_layer_by_name("NPC Posts")
-        except ValueError:
-            return posts, characters
-        for obj in layer:
-            tile = (int(obj.x) // TILE_SIZE, int(obj.y) // TILE_SIZE)
-            name = obj.name or ""
+        for name, tiles in self.ground.markers("NPC Posts").items():
             if name.startswith(POST_PREFIX):
-                characters.setdefault(name[len(POST_PREFIX):], []).append(tile)
+                characters[name[len(POST_PREFIX):]] = tiles
             else:
-                posts.setdefault(name, []).append(tile)
+                posts[name] = tiles
         return posts, characters
 
     def _assign_goal(self, npc):
@@ -126,48 +125,10 @@ class NPCManager:
         else:
             npc.goal = WanderGoal(npc)
 
-    def _collect_layer_tiles(self, layer_name):
-        tiles = []
-        try:
-            layer = self.map_manager.tmx_data.get_layer_by_name(layer_name)
-        except ValueError:
-            return tiles
-        for x, y, gid in layer:
-            if gid != 0:
-                tiles.append((x, y))
-        return tiles
-
-    def _collect_object_tiles(self, names):
-        tiles = []
-        seen = set()
-        try:
-            objects_layer = self.map_manager.tmx_data.get_layer_by_name("Objects")
-        except ValueError:
-            return tiles
-        for obj in objects_layer:
-            if obj.name not in names:
-                continue
-            tile = (int(obj.x) // TILE_SIZE, int(obj.y) // TILE_SIZE)
-            if tile not in seen:
-                seen.add(tile)
-                tiles.append(tile)
-        return tiles
-
     def get_npc_types_based_on_planet(self, planet):
         if getattr(planet, "planet_type", None) == "Industrial":
             return ["Miner", "Foreman"]
         return ["Miner"]
-
-    def get_walkable_tiles(self):
-        if self._walkable_tiles_cache is not None:
-            return self._walkable_tiles_cache
-        walkable_tiles = []
-        walkable_layer = self.map_manager.tmx_data.get_layer_by_name("walkable")
-        for x, y, gid in walkable_layer:
-            if gid != 0:
-                walkable_tiles.append((x, y))
-        self._walkable_tiles_cache = walkable_tiles
-        return walkable_tiles
 
     def is_within_visible_area(self, npc_x, npc_y, camera_x, camera_y, camera_width, camera_height):
         npc_pixel_x = npc_x * TILE_SIZE
@@ -184,7 +145,7 @@ class NPCManager:
             if self.is_within_visible_area(
                 npc.position[0], npc.position[1], camera_x, camera_y, camera_width, camera_height
             ):
-                npc.update()
+                npc.update(self.ground)
 
     def _is_adjacent_to_player(self, npc_tile, player_tile):
         dx = abs(npc_tile[0] - player_tile[0])

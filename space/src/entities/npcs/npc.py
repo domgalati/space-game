@@ -18,9 +18,10 @@ class NPC(Actor):
         self.lastname = None
         self.hobbies = []
         self.job_title = None
-        self.position = (0, 0)
         self.goal = WanderGoal(self)
 
-    def update(self):
+    def update(self, ground):
+        """Take a turn on `ground` (a GroundMap)."""
         if self.goal:
-            self.goal.update()        
+            self.goal.update(ground)
+        

@@ -19,6 +19,7 @@ class Actor:
         self.equipment = {}  # slot -> item id; see world.items
         self.currency = 0
         self.reputation = dict.fromkeys(FACTIONS, 0)  # this actor's standing with each faction
+        self.position = None  # (x, y) tile while standing on a GroundMap, else None
 
     @property
     def alive(self):

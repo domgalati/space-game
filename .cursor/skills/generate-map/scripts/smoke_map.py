@@ -10,51 +10,48 @@ Usage (venv, repository root):
 """
 import os
 import sys
-from collections import deque
+from pathlib import Path
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
-
-NEIGHBORS = ((1, 0), (-1, 0), (0, 1), (0, -1))
+# Check maps the way the game reads them: through its GroundMap.
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "space" / "src"))
 
 
 def main(path):
     import pygame
-    from pytmx.util_pygame import load_pygame
+    from modes.planetary_mode.ground_map import GroundMap
 
     pygame.init()
     pygame.display.set_mode((1, 1))
-    data = load_pygame(path)
-    props = data.properties or {}
+    ground = GroundMap.load(path)
+    props = ground.properties
     if "mapgen_seed" not in props:
         print(f"HANDMADE: {path} has no mapgen_seed. Do not regenerate it.")
         return 2
 
     problems = []
-    tile = data.tilewidth
-    walkable = {(x, y) for x, y, gid in data.get_layer_by_name("walkable") if gid}
+    walkable = ground.walkable_tiles()
     if not walkable:
         problems.append("no walkable tiles")
 
-    spawn = _named_point(data, "Spawns", "Player Start", tile)
+    spawn = ground.spawn()
     if spawn is None:
         problems.append("no Player Start spawn")
-    elif spawn not in walkable:
+    elif not ground.walkable(spawn):
         problems.append(f"Player Start {spawn} is not walkable")
-    elif not _connected(spawn, walkable):
+    elif len(ground.reachable_from(spawn)) != len(walkable):
         problems.append("walkable floor is split; the spawn cannot reach every tile")
 
-    for obj in _layer(data, "Objects"):
-        point = (int(obj.x) // tile, int(obj.y) // tile)
-        if not any((point[0] + dx, point[1] + dy) in walkable for dx, dy in NEIGHBORS):
-            problems.append(f"{obj.name} at {point} has no walkable side")
+    for obj in ground.objects:
+        if not any(ground.walkable(side) for side in ground.neighbours(obj.tile)):
+            problems.append(f"{obj.name} at {obj.tile} has no walkable side")
 
     jobs = _jobs(props.get("npc_jobs", ""))
-    posts = {}
-    for obj in _layer(data, "NPC Posts"):
-        point = (int(obj.x) // tile, int(obj.y) // tile)
-        posts.setdefault(obj.name, []).append(point)
-        if point not in walkable:
-            problems.append(f"{obj.name} post at {point} is not walkable")
+    posts = ground.markers("NPC Posts")
+    for name, tiles in posts.items():
+        for point in tiles:
+            if not ground.walkable(point):
+                problems.append(f"{name} post at {point} is not walkable")
     for job in jobs:
         if job not in posts:
             problems.append(f"{job} is in npc_jobs but has no NPC Posts")
@@ -66,37 +63,10 @@ def main(path):
         return 1
 
     print(
-        f"OK {data.width}x{data.height} walkable={len(walkable)} "
-        f"objects={len(_layer(data, 'Objects'))} spawn={spawn} jobs={jobs}"
+        f"OK {ground.width}x{ground.height} walkable={len(walkable)} "
+        f"objects={len(ground.objects)} spawn={spawn} jobs={jobs}"
     )
     return 0
-
-
-def _layer(data, name):
-    try:
-        return list(data.get_layer_by_name(name))
-    except ValueError:
-        return []
-
-
-def _named_point(data, layer, name, tile):
-    for obj in _layer(data, layer):
-        if obj.name == name:
-            return (int(obj.x) // tile, int(obj.y) // tile)
-    return None
-
-
-def _connected(start, walkable):
-    seen = {start}
-    queue = deque([start])
-    while queue:
-        x, y = queue.popleft()
-        for dx, dy in NEIGHBORS:
-            nxt = (x + dx, y + dy)
-            if nxt in walkable and nxt not in seen:
-                seen.add(nxt)
-                queue.append(nxt)
-    return len(seen) == len(walkable)
 
 
 def _jobs(raw):
