@@ -3,7 +3,8 @@ from util.config import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, resolve_game_pat
 from util.keys import held_direction
 from modes.transitions import Depart
 from .logger import Logger
-from .map_manager import MapManager
+from .ground_map import GroundMap
+from .map_renderer import MapRenderer
 from .ui_planetary import UI_Planetary
 from .interaction_manager import InteractionManager
 from ui.terminal import bezel_path
@@ -46,11 +47,11 @@ class PlanetaryMode:
         )
         self.camera = pygame.Rect(0, 0, SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height)
         self.map_surface = pygame.Surface((SCREEN_WIDTH - self.ui_planetary.sidebar_width, SCREEN_HEIGHT - self.logger.log_height))
-        self.map_manager = MapManager(self.planet.map_path)
+        self.ground = GroundMap.load(self.planet.map_path)
+        self.map_renderer = MapRenderer(self.ground)
         self.log_messages = []
-        self.player_tile = self._player_start()  # (x, y) in map tiles, like NPC positions
+        self.ground.place(player, self._player_start())
         self._center_camera()
-        self.map_manager.initialize_animation_data()
         self.news_feed = NewsFeed(self.world_state)
         self.economy = Economy(
             selected_planet.id, self.world_state.markets_data(), feed=self.news_feed, events=self.world_state.events
@@ -59,9 +60,9 @@ class PlanetaryMode:
         self.news_feed.advance()
         self.economy.market_news()
         self.news_feed.observe(selected_planet.id, self.economy.goods())
-        self.npc_manager = NPCManager(self.map_manager, selected_planet, NPCRoster(self.world_state))
+        self.npc_manager = NPCManager(self.ground, selected_planet, NPCRoster(self.world_state))
         self.interaction_manager = InteractionManager(
-            self.map_manager, self.npc_manager, self.logger, economy=self.economy
+            self.ground, self.npc_manager, self.logger, economy=self.economy
         )
         self.interaction_manager.set_terminal_callback(self.activate_terminal)
         self.interaction_manager.set_conversation_callback(self.start_conversation)
@@ -80,19 +81,16 @@ class PlanetaryMode:
 
     def _player_start(self):
         """Generated maps mark a "Player Start" spawn; hand-made ones use the body's start_tile."""
-        data = self.map_manager.tmx_data
-        try:
-            spawns = data.get_layer_by_name("Spawns")
-        except ValueError:
-            return tuple(self.planet.start_tile)
-        for obj in spawns:
-            if obj.name == "Player Start":
-                return int(obj.x) // data.tilewidth, int(obj.y) // data.tileheight
-        return tuple(self.planet.start_tile)
+        return self.ground.spawn() or tuple(self.planet.start_tile)
 
-    def is_tile_walkable(self, row, col):
-        """True where the "walkable" layer has a tile. The layer is stored rows first."""
-        return self.map_manager.tmx_data.get_layer_by_name("walkable").data[row][col] != 0
+    @property
+    def player_tile(self):
+        """Where the player stands, in map tiles, like NPC positions."""
+        return self.player.position
+
+    @player_tile.setter
+    def player_tile(self, tile):
+        self.ground.move(self.player, tile)
 
     def _player_pixels(self):
         """Top-left of the player's tile on the map, in pixels."""
@@ -125,8 +123,8 @@ class PlanetaryMode:
 
     def _clamp_camera(self):
         """Keep the view on the map; a map smaller than the view is centered in it."""
-        data = self.map_manager.tmx_data
-        map_w, map_h = data.width * data.tilewidth, data.height * data.tileheight
+        ground = self.ground
+        map_w, map_h = ground.width * ground.tile_width, ground.height * ground.tile_height
         if map_w <= self.camera.width:
             self.camera.x = (map_w - self.camera.width) // 2
         else:
@@ -137,10 +135,15 @@ class PlanetaryMode:
             self.camera.y = max(0, min(self.camera.y, map_h - self.camera.height))
 
     def _try_move(self, dx, dy):
-        """Step one tile by (dx, dy). Returns whether the way was open."""
-        tile_x, tile_y = self.player_tile[0] + dx, self.player_tile[1] + dy
-        if self.is_tile_walkable(tile_y, tile_x):
-            self.player_tile = player_tile = (tile_x, tile_y)
+        """Step one tile by (dx, dy), trading places with anyone standing there, so a crew
+        member who stops to talk never walls you in. Returns whether the way was open."""
+        player_tile = (self.player_tile[0] + dx, self.player_tile[1] + dy)
+        if self.ground.walkable(player_tile):
+            someone = self.ground.occupant(player_tile)
+            if someone is not None:
+                self.ground.swap(self.player, someone)
+            else:
+                self.ground.move(self.player, player_tile)
             self._blocked_move_logged = False
             self.update_camera()
             # Advance NPC turns first; adjacent NPCs freeze so E stays valid.
@@ -202,7 +205,7 @@ class PlanetaryMode:
     def update(self, events, dt):
         """One frame, `dt` seconds long. Returns a transition (modes.transitions) or None."""
         self.elapsed += dt
-        self.map_manager.update_animations(dt * 1000)  # Tiled frame durations are in ms
+        self.map_renderer.update(dt * 1000)  # Tiled frame durations are in ms
         if self.terminal and self.terminal.active:
             self.terminal.update(dt)
         if self.conversation_panel:
@@ -221,7 +224,7 @@ class PlanetaryMode:
 
     def draw(self, screen):
         screen.fill((0, 0, 0))
-        self.map_manager.draw_map(self.map_surface, self.camera)
+        self.map_renderer.draw(self.map_surface, self.camera)
 
         self.npc_manager.draw(self.npc_layer, self.camera)
         self.map_surface.blit(self.npc_layer, (0, 0))  # Draw the NPC layer onto the map surface
@@ -271,6 +274,10 @@ class PlanetaryMode:
         for line in self.conversation_panel.conversation.summary_lines():
             self.logger.add_log_message(line)
         self.conversation_panel = None
+
+    def leave(self):
+        """Step off the map: the player keeps no tile once back aboard."""
+        self.ground.remove(self.player)
 
     def deactivate_terminal(self):
         self.terminal = None

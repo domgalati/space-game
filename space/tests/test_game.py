@@ -85,11 +85,11 @@ def test_ashore_the_player_walks_and_interacts_in_tiles(game):
     start = ashore.player_tile
     assert all(isinstance(c, int) for c in start)
 
-    data = ashore.map_manager.tmx_data
+    ground = ashore.ground
     beside_terminal = next(
-        (x, y) for y in range(data.height) for x in range(data.width)
-        if ashore.is_tile_walkable(y, x)
-        and any(ashore.interaction_manager.object_at(t) == "Docking Terminal" for t in _cardinal_neighbors((x, y)))
+        tile for tile in ground.walkable_tiles()
+        if ground.free(tile)
+        and any(ashore.interaction_manager.object_at(t) == "Docking Terminal" for t in _cardinal_neighbors(tile))
     )
     ashore.player_tile = beside_terminal
     ashore.interaction_manager.interact(ashore.player_tile)

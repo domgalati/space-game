@@ -24,8 +24,8 @@ def _chebyshev_adjacent_tiles(player_tile):
 
 
 class InteractionManager:
-    def __init__(self, map_manager, npc_manager, logger, economy=None):
-        self.map_manager = map_manager
+    def __init__(self, ground, npc_manager, logger, economy=None):
+        self.ground = ground
         self.logger = logger
         self.interacted = False
         self.activate_terminal_callback = None
@@ -37,11 +37,8 @@ class InteractionManager:
 
     def object_at(self, tile):
         """Name of the map object (a terminal, a bar counter) on `tile`, or None."""
-        data = self.map_manager.tmx_data
-        for obj in data.get_layer_by_name("Objects"):
-            if (int(obj.x) // data.tilewidth, int(obj.y) // data.tileheight) == tile:
-                return obj.name
-        return None
+        obj = self.ground.object_at(tile)
+        return obj.name if obj else None
 
     def adjacent_npcs(self, player_tile):
         neighbor_tiles = set(_chebyshev_adjacent_tiles(player_tile))
